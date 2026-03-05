@@ -1,6 +1,7 @@
 import React from 'react'
 import { CYAN, animeStatusColor, animeStatusLabel } from '../constants.js'
 import { RankBadge } from './Shared.jsx'
+import { QuickAddButton } from './QuickAddButton.jsx'
 
 export function AnimeCard({ anime, rank, onClick }) {
   // Support both AniList shape (nested) and Supabase shape (flat)
@@ -55,6 +56,11 @@ export function AnimeCard({ anime, rank, onClick }) {
           </div>
         )}
       </div>
+      <QuickAddButton
+        itemId={anime.id} itemType="anime"
+        title={title}
+        coverUrl={cover}
+      />
     </div>
   )
 }

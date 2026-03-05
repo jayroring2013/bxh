@@ -1,6 +1,7 @@
 import React from 'react'
 import { ROSE, mangaStatusColor } from '../constants.js'
 import { RankBadge } from './Shared.jsx'
+import { QuickAddButton } from './QuickAddButton.jsx'
 
 export function MangaCard({ manga, rank, stats, onClick }) {
   const attrs  = manga.attributes
@@ -86,6 +87,11 @@ export function MangaCard({ manga, rank, stats, onClick }) {
           </div>
         )}
       </div>
+      <QuickAddButton
+        itemId={manga.id} itemType="manga"
+        title={title}
+        coverUrl={cover}
+      />
     </div>
   )
 }

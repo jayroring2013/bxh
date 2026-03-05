@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { RANOBE, novelStatusColor } from '../constants.js'
 import { RankBadge } from './Shared.jsx'
+import { QuickAddButton } from './QuickAddButton.jsx'
 
 export function NovelCard({ series, rank, onClick }) {
   const [desc,   setDesc]   = useState(null)
@@ -90,6 +91,11 @@ export function NovelCard({ series, rank, onClick }) {
 
         {desc && <div className="novel-card__desc">{desc}</div>}
       </div>
+      <QuickAddButton
+        itemId={series.id} itemType="novel"
+        title={series.romaji || series.title}
+        coverUrl={cover}
+      />
     </div>
   )
 }
