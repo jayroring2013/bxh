@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { MANGADEX_COVER, ROSE, mangaStatusColor } from '../constants.js'
+import { ROSE, mangaStatusColor } from '../constants.js'
 
 export function MangaModal({ manga, stats, onClose }) {
   useEffect(() => {
@@ -14,9 +14,12 @@ export function MangaModal({ manga, stats, onClose }) {
   const titleJa = attrs.title?.ja || attrs.altTitles?.find(t => t.ja)?.ja || null
   const altEn  = attrs.altTitles?.find(t => t.en)?.en
 
-  const coverRel  = manga.relationships?.find(r => r.type === 'cover_art')
-  const coverFile = coverRel?.attributes?.fileName
-  const cover     = coverFile ? `${MANGADEX_COVER}/${manga.id}/${coverFile}.512.jpg` : null
+  const cover = manga._cover_url
+    || (() => {
+      const rel  = manga.relationships?.find(r => r.type === 'cover_art')
+      const file = rel?.attributes?.fileName
+      return file ? `https://uploads.mangadex.org/covers/${manga.id}/${file}.512.jpg` : null
+    })()
 
   const authors  = manga.relationships?.filter(r => r.type === 'author').map(r => r.attributes?.name).filter(Boolean)
   const artists  = manga.relationships?.filter(r => r.type === 'artist').map(r => r.attributes?.name).filter(Boolean)
