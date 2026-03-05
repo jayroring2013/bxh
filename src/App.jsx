@@ -3,6 +3,7 @@ import { RANOBE } from './constants.js'
 import { useHash } from './hooks.js'
 import { LangProvider } from './context/LangContext.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { ToastProvider } from './context/ToastContext.jsx'
 import { LandingPage } from './pages/LandingPage.jsx'
 import { NovelsPage }  from './pages/NovelsPage.jsx'
 import { AnimePage }   from './pages/AnimePage.jsx'
@@ -37,7 +38,9 @@ export default function App() {
   return (
     <LangProvider>
       <AuthProvider>
+        <ToastProvider>
         <Router />
+        </ToastProvider>
       </AuthProvider>
     </LangProvider>
   )

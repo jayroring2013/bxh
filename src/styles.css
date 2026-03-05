@@ -963,3 +963,8 @@ input::placeholder {
   box-shadow: 0 24px 60px rgba(244, 63, 94, 0.3),
               0 8px 20px rgba(0, 0, 0, 0.5);
 }
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
