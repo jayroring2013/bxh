@@ -2,18 +2,25 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Redirecting...</title>
+  <title>NovelTrend — Verifying...</title>
+  <style>
+    body { margin: 0; background: #050508; display: flex; align-items: center;
+      justify-content: center; height: 100vh; font-family: sans-serif; color: #fff; }
+    .dot { animation: pulse 1s infinite; font-size: 32px; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  </style>
   <script>
-    // This page catches Supabase auth redirects that land at the root domain
-    // and forwards them to the actual app at /bxh/
-    const hash   = window.location.hash
-    const search = window.location.search
-    if (hash.includes('access_token') || search.includes('access_token')) {
-      window.location.replace('/bxh/' + hash + search)
+    // Catch Supabase email verification tokens and forward to the app
+    const hash   = window.location.hash   // #access_token=...
+    const search = window.location.search // ?access_token=... (some flows)
+    const hasToken = hash.includes('access_token') || search.includes('access_token')
+    if (hasToken) {
+      // Forward token to app — keep the full hash so AuthContext can parse it
+      window.location.replace('https://jayroring2013.github.io/bxh/' + hash + search)
     } else {
-      window.location.replace('/bxh/')
+      window.location.replace('https://jayroring2013.github.io/bxh/')
     }
   </script>
 </head>
-<body>Redirecting...</body>
+<body><div class="dot">●</div></body>
 </html>
