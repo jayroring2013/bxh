@@ -4,7 +4,9 @@ export const LOCALES = {
     nav_novels:  'Light Novels',
     nav_anime:   'Anime',
     nav_manga:   'Manga',
-    nav_vote:    'Vote',
+    nav_vote:     'Vote',
+    nav_ranking:  'Rankings',
+    nav_schedule: 'Schedule',
     nav_home:    'Home',
 
     // Search
@@ -137,7 +139,9 @@ export const LOCALES = {
     nav_novels:  'Light Novel',
     nav_anime:   'Anime',
     nav_manga:   'Manga',
-    nav_vote:    'Bình chọn',
+    nav_vote:     'Bình chọn',
+    nav_ranking:  'Bảng xếp hạng',
+    nav_schedule: 'Lịch phát hành',
     nav_home:    'Trang chủ',
 
     // Search

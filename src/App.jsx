@@ -11,6 +11,8 @@ import { AnimePage }       from './pages/AnimePage.jsx'
 import { MangaPage }       from './pages/MangaPage.jsx'
 import { VotePage }        from './pages/VotePage.jsx'
 import { MyListPage }      from './pages/MyListPage.jsx'
+import { SchedulePage }    from './pages/SchedulePage.jsx'
+import { RankingPage }     from './pages/RankingPage.jsx'
 
 function Router() {
   const hash   = useHash()
@@ -38,6 +40,8 @@ function Router() {
   if (hash.startsWith('#/manga'))     return wrap(MangaPage)
   if (hash.startsWith('#/vote'))      return wrap(VotePage)
   if (hash.startsWith('#/list'))      return wrap(MyListPage)
+  if (hash.startsWith('#/schedule'))   return wrap(SchedulePage)
+  if (hash.startsWith('#/ranking'))    return wrap(RankingPage)
   return wrap(LandingPage)
 }
 
