@@ -6,6 +6,11 @@ export function NovelModal({ series, onClose }) {
   const [detail, setDetail] = useState(null)
   const [ldg,    setLdg]    = useState(true)
 
+  const { user } = useAuth()
+  const { addOrUpdate, getEntry, remove } = useUserList()
+  const [showList, setShowList] = useState(false)
+  const existing  = getEntry(novel.id, 'novel')
+
   useEffect(() => {
     const esc = e => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', esc)
@@ -155,6 +160,40 @@ export function NovelModal({ series, onClose }) {
                   🌐 Web Novel
                 </a>
               )}
+
+            {/* Add to List button */}
+            <div style={{ marginTop: 16 }}>
+              {user ? (
+                <button onClick={() => setShowList(true)} style={{
+                  background: existing ? 'rgba(74,222,128,0.12)' : 'rgba(139,92,246,0.15)',
+                  border: `1px solid ${existing ? 'rgba(74,222,128,0.4)' : 'rgba(139,92,246,0.4)'}`,
+                  color: existing ? '#4ADE80' : '#A78BFA',
+                  padding: '9px 20px', borderRadius: 10, cursor: 'pointer',
+                  fontSize: 13, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
+                  display: 'flex', alignItems: 'center', gap: 7,
+                }}>
+                  {existing ? '✓ ' : '+ '}
+                  {existing ? (navigator.language.startsWith('vi') ? 'Đã có trong danh sách' : 'In My List') : (navigator.language.startsWith('vi') ? 'Thêm vào danh sách' : 'Add to List')}
+                </button>
+              ) : (
+                <a href="#/list" style={{
+                  color: '#475569', fontSize: 12,
+                  textDecoration: 'none', display: 'block', marginTop: 4,
+                }}>
+                  {navigator.language.startsWith('vi') ? '🔖 Đăng nhập để lưu vào danh sách' : '🔖 Sign in to save to list'}
+                </a>
+              )}
+            </div>
+
+            {showList && (
+              <AddToListModal
+                item={{ item_id: String(novel.id), item_type: 'novel', title: (novel.title?.romaji || novel.title || ""), cover_url: cover }}
+                existing={existing}
+                onSave={addOrUpdate}
+                onRemove={remove}
+                onClose={() => setShowList(false)}
+              />
+            )}
             </div>
           </div>
         </div>

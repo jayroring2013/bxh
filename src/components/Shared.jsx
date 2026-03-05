@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useLang } from '../context/LangContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
+import { AuthModal } from './AuthModal.jsx'
 
 /* ── Skeleton ──────────────────────────────────────────────── */
 export const SkeletonCard = () => (
@@ -110,12 +112,16 @@ export const Pills = ({ items, active, onSelect, accent, solid }) => (
 /* ── App header ────────────────────────────────────────────── */
 export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, activeSort, onSort, hideSearch, hideSorts }) {
   const { t, lang, toggleLang } = useLang()
+  const { user, signOut } = useAuth()
+  const [showAuth,    setShowAuth]    = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
 
   const TABS = [
     { path: '#/novels', icon: '📖', labelKey: 'nav_novels' },
     { path: '#/anime',  icon: '🎌', labelKey: 'nav_anime'  },
     { path: '#/manga',  icon: '📚', labelKey: 'nav_manga'  },
     { path: '#/vote',   icon: '🗳️', labelKey: 'nav_vote'   },
+    { path: '#/list',   icon: '🔖', labelKey: 'nav_list'   },
   ]
 
   // Search placeholder per tab
@@ -188,8 +194,58 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
           🌐 {lang === 'vi' ? 'EN' : 'VI'}
         </button>
 
+        {/* User button */}
+        {user ? (
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button onClick={() => setShowUserMenu(p => !p)} style={{
+              width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
+              background: `linear-gradient(135deg, ${accent}, #6366F1)`,
+              border: `2px solid ${accent}60`, color: '#fff',
+              fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', fontFamily: "'Be Vietnam Pro', sans-serif",
+            }}>
+              {user.email?.[0]?.toUpperCase() || '?'}
+            </button>
+            {showUserMenu && (
+              <div style={{
+                position: 'absolute', top: 42, right: 0, zIndex: 9999,
+                background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 12, padding: 8, minWidth: 180,
+                boxShadow: '0 16px 40px rgba(0,0,0,0.8)',
+              }}>
+                <div style={{ padding: '6px 12px', fontSize: 11, color: '#475569',
+                  borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 4 }}>
+                  {user.email}
+                </div>
+                <a href="#/list" onClick={() => setShowUserMenu(false)} style={{
+                  display: 'block', padding: '8px 12px', color: '#fff', textDecoration: 'none',
+                  borderRadius: 8, fontSize: 13, fontWeight: 600,
+                }}>🔖 {lang === 'vi' ? 'Danh sách của tôi' : 'My List'}</a>
+                <button onClick={() => { signOut(); setShowUserMenu(false) }} style={{
+                  display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                  background: 'none', border: 'none', color: '#F87171', cursor: 'pointer',
+                  borderRadius: 8, fontSize: 13, fontWeight: 600,
+                  fontFamily: "'Be Vietnam Pro', sans-serif",
+                }}>↩ {lang === 'vi' ? 'Đăng xuất' : 'Sign out'}</button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button onClick={() => setShowAuth(true)} style={{
+            background: accent, border: 'none', color: '#fff',
+            padding: '6px 14px', borderRadius: 9, cursor: 'pointer',
+            fontSize: 12, fontWeight: 700, flexShrink: 0,
+            fontFamily: "'Be Vietnam Pro', sans-serif",
+            boxShadow: `0 4px 14px ${accent}40`,
+          }}>
+            {lang === 'vi' ? 'Đăng nhập' : 'Sign In'}
+          </button>
+        )}
+
       </div>
     </header>
+
+    {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
   )
 }
 
