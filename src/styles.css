@@ -400,19 +400,26 @@ input::placeholder {
   background: rgba(255, 255, 255, 0.04);
   border-radius: 11px;
   padding: 3px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  max-width: 600px;
 }
+.app-header__nav::-webkit-scrollbar { display: none; }
 
 .nav-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 16px;
+  gap: 5px;
+  padding: 6px 11px;
   border-radius: 9px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #64748B;
   transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-tab--active {
