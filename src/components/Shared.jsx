@@ -149,12 +149,13 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
         {/* Nav tabs */}
         <nav className="app-header__nav">
           {TABS.map(tab => {
-            const on = activeTab === tab.path
+            const on = activeTab === tab.path || activeTab.startsWith(tab.path + '/')
             return (
               <a key={tab.path} href={tab.path}
                 className={`nav-tab${on ? ' nav-tab--active' : ''}`}
                 style={on ? { background: accent } : {}}>
-                {tab.icon} {t(tab.labelKey)}
+                <span>{tab.icon}</span>
+                <span style={{ display: on ? 'inline' : undefined }}>{t(tab.labelKey)}</span>
               </a>
             )
           })}
