@@ -234,9 +234,10 @@ def fetch_manga(total=500):
             except Exception as e:
                 print(f"\n    Stats batch failed: {e}", end=' ')
 
-            # Aggregate counts — batch where possible, skip if too slow
-            agg_map = {}
-            for mid in ids:
+            # Aggregate counts — parallel with thread pool (5 workers)
+            import concurrent.futures
+
+            def fetch_agg(mid):
                 try:
                     agg = fetch_json(
                         f'https://api.mangadex.org/manga/{mid}/aggregate?translatedLanguage[]=en'
@@ -251,13 +252,18 @@ def fetch_manga(total=500):
                         for v in volumes.values():
                             if isinstance(v, dict) and isinstance(v.get('chapters'), dict):
                                 ch_set.update(v['chapters'].keys())
-                        agg_map[mid] = {
-                            'volumes':  vol_count or None,
-                            'chapters': len(ch_set) or None,
-                        }
-                    time.sleep(0.4)   # MangaDex: gentle per-ID pacing
+                        return mid, {'volumes': vol_count or None, 'chapters': len(ch_set) or None}
                 except Exception:
                     pass
+                return mid, {}
+
+            agg_map = {}
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as ex:
+                futures = {ex.submit(fetch_agg, mid): mid for mid in ids}
+                for fut in concurrent.futures.as_completed(futures):
+                    mid, data = fut.result()
+                    if data:
+                        agg_map[mid] = data
 
             now = datetime.now(timezone.utc).isoformat()
             for m in items:
@@ -358,3 +364,56 @@ if __name__ == '__main__':
     print(f"\n✅ Done in {elapsed/60:.1f} min")
     print(f"   Anime: {len(anime_rows)} rows")
     print(f"   Manga: {len(manga_rows)} rows")
+
+# ── Novels (RanobeDB) ─────────────────────────────────────────
+
+RANOBE_URL = 'https://ranobedb-s1pr.onrender.com/api/v0'
+
+def fetch_novels_cache(total=500):
+    limit  = 24
+    pages  = (total + limit - 1) // limit
+    all_rows = []
+    print(f"\n📖 Fetching top {total} novels from RanobeDB ({pages} pages × {limit})...")
+
+    for page in range(1, pages + 1):
+        print(f"  Page {page}/{pages}...", end=' ', flush=True)
+        try:
+            params = f'limit={limit}&page={page}&sort=num_books'
+            data   = fetch_json(f'{RANOBE_URL}/series?{params}')
+            items  = data.get('series', [])
+            if not items:
+                print("no data — stopping")
+                break
+
+            now = datetime.now(timezone.utc).isoformat()
+            for s in items:
+                cover_fn = s.get('book', {}).get('image', {}).get('filename') if s.get('book') else None
+                cover_url = f"https://images.ranobedb.org/{cover_fn}" if cover_fn else None
+                genres = [t['name'] for t in (s.get('tags') or []) if t.get('ttype') == 'genre']
+                rating = s.get('rating') or {}
+                all_rows.append({
+                    'id':                   s['id'],
+                    'title':                s.get('title'),
+                    'romaji':               s.get('romaji'),
+                    'title_orig':           s.get('title_orig'),
+                    'cover_url':            cover_url,
+                    'description':          (s.get('book_description') or {}).get('description', '')[:2000],
+                    'publication_status':   s.get('publication_status'),
+                    'num_books':            s.get('c_num_books') or 0,
+                    'start_date':           s.get('c_start_date'),
+                    'end_date':             s.get('c_end_date'),
+                    'genres':               genres,
+                    'score':                float(rating.get('score', 0)) or None,
+                    'score_count':          rating.get('count'),
+                    'synced_at':            now,
+                })
+
+            print(f"✓ {len(items)} novels")
+            upsert_batch('novels', all_rows[-len(items):], batch_size=50, quiet=True)
+            time.sleep(1.5)
+
+        except Exception as e:
+            print(f"✗ {e} — skipping page")
+            time.sleep(5)
+
+    return all_rows
