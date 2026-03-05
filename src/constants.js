@@ -94,7 +94,7 @@ export const fmtDate = d =>
     : '?'
 
 /* ── Manga options ─────────────────────────────────────────── */
-export const MANGADEX_COVER = 'https://uploads.mangadex.org/covers'
+export const MANGADEX_COVER = 'https://mangadex.org/covers'
 export const ROSE = '#F43F5E'
 
 export const MANGA_SORTS = [

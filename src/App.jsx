@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { RANOBE } from './constants.js'
 import { useHash } from './hooks.js'
 import { LangProvider } from './context/LangContext.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
 import { LandingPage } from './pages/LandingPage.jsx'
 import { NovelsPage }  from './pages/NovelsPage.jsx'
 import { AnimePage }   from './pages/AnimePage.jsx'
 import { MangaPage }   from './pages/MangaPage.jsx'
 import { VotePage }    from './pages/VotePage.jsx'
+import { MyListPage }  from './pages/MyListPage.jsx'
 
 function Router() {
   const hash   = useHash()
@@ -27,13 +29,16 @@ function Router() {
   if (hash.startsWith('#/anime'))          return <AnimePage />
   if (hash.startsWith('#/manga'))          return <MangaPage />
   if (hash.startsWith('#/vote'))           return <VotePage />
+  if (hash.startsWith('#/list'))           return <MyListPage />
   return <LandingPage />
 }
 
 export default function App() {
   return (
     <LangProvider>
-      <Router />
+      <AuthProvider>
+        <Router />
+      </AuthProvider>
     </LangProvider>
   )
 }

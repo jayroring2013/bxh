@@ -78,7 +78,10 @@ const sbFetch = async (table, query) => {
       'Content-Type': 'application/json',
     },
   })
-  if (!res.ok) throw new Error(`Supabase ${res.status}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`Supabase ${res.status} — ${url.slice(0,80)} — ${body.slice(0,120)}`)
+  }
   return res.json()
 }
 
