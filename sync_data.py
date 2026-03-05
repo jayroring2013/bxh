@@ -40,8 +40,13 @@ def fetch_json(url, method='GET', body=None, headers=None, retries=6):
                 wait = 60 * (attempt + 1)
                 print(f"  Rate limited — waiting {wait}s before retry...", flush=True)
                 time.sleep(wait)
+            elif e.code in (503, 502, 504):
+                # Service unavailable — wait longer, server needs to recover
+                wait = 60 + (30 * attempt)   # 60s, 90s, 120s, 150s, 180s, 210s
+                print(f"  Service unavailable — waiting {wait}s...", flush=True)
+                time.sleep(wait)
             elif e.code >= 500:
-                wait = 10 * (attempt + 1)
+                wait = 15 * (attempt + 1)
                 print(f"  Server error — waiting {wait}s...", flush=True)
                 time.sleep(wait)
             elif attempt == retries - 1:
@@ -154,6 +159,10 @@ def fetch_anime(total=1000):
                 method='POST',
                 body={'query': ANILIST_QUERY, 'variables': {'page': page, 'perPage': per_page}},
             )
+            if not data or not data.get('data'):
+                print(f"empty response — skipping page")
+                time.sleep(30)
+                continue
             media = data['data']['Page']['media']
             now   = datetime.now(timezone.utc).isoformat()
             for m in media:
@@ -219,6 +228,10 @@ def fetch_manga(total=500):
                 'availableTranslatedLanguage[]=en',
             ])
             data  = fetch_json(f'https://api.mangadex.org/manga?{params}')
+            if not data:
+                print(f"empty response — skipping page")
+                time.sleep(15)
+                continue
             items = data.get('data', [])
             if not items:
                 print("no data — skipping")
@@ -230,7 +243,7 @@ def fetch_manga(total=500):
             try:
                 stat_params = '&'.join(f'manga[]={i}' for i in ids)
                 stat_data   = fetch_json(f'https://api.mangadex.org/statistics/manga?{stat_params}')
-                stats_map   = stat_data.get('statistics', {})
+                stats_map   = (stat_data or {}).get('statistics', {})
             except Exception as e:
                 print(f"\n    Stats batch failed: {e}", end=' ')
 
@@ -242,10 +255,12 @@ def fetch_manga(total=500):
                     agg = fetch_json(
                         f'https://api.mangadex.org/manga/{mid}/aggregate?translatedLanguage[]=en'
                     )
+                    if not agg:
+                        return mid, {}
                     volumes = agg.get('volumes', {})
                     if not volumes or isinstance(volumes, list):
                         agg2    = fetch_json(f'https://api.mangadex.org/manga/{mid}/aggregate')
-                        volumes = agg2.get('volumes', {})
+                        volumes = (agg2 or {}).get('volumes', {})
                     if isinstance(volumes, dict):
                         vol_count = len([k for k in volumes if k != 'none'])
                         ch_set    = set()
@@ -258,7 +273,7 @@ def fetch_manga(total=500):
                 return mid, {}
 
             agg_map = {}
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as ex:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
                 futures = {ex.submit(fetch_agg, mid): mid for mid in ids}
                 for fut in concurrent.futures.as_completed(futures):
                     mid, data = fut.result()
@@ -320,7 +335,7 @@ def fetch_manga(total=500):
             # Upsert each page immediately
             upsert_batch('manga', all_rows[-len(items):], batch_size=25, quiet=True)
 
-            time.sleep(2)   # MangaDex: 2s between pages
+            time.sleep(3)   # MangaDex: 3s between pages (reduce 503 chance)
 
         except Exception as e:
             print(f"✗ {e} — skipping page")
