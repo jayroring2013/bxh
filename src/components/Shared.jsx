@@ -132,6 +132,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
   : t('search_vote')
 
   return (
+    <>
     <header className="app-header" style={{ borderBottom: `1px solid ${accent}26` }}>
       <div className="app-header__inner">
 
@@ -246,6 +247,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
     </header>
 
     {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+    </>
   )
 }
 
