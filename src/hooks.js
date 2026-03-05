@@ -29,25 +29,71 @@ export function useNovels({ search, sort, status, genre }) {
   const [loading,     setLoading]     = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error,       setError]       = useState(null)
-  const [page,        setPage]        = useState(1)
-  const [totalPages,  setTotalPages]  = useState(1)
+  const [offset,      setOffset]      = useState(0)
+  const [hasMore,     setHasMore]     = useState(false)
   const [totalCount,  setTotalCount]  = useState(0)
+  const LIMIT = 24
 
-  const fetch_novels = async (p, reset) => {
+  const fetch_novels = async (off, reset) => {
     try {
       reset ? setLoading(true) : setLoadingMore(true)
       setError(null)
-      const params = new URLSearchParams({ limit: 24, page: p, sort, rl: 'ja' })
-      if (search.trim())    params.set('q', search.trim())
-      if (status !== 'all') params.set('pubStatus', status)
-      if (genre  !== 'all') params.append('genresInclude', genre)
-      const res  = await fetch(`${RANOBE}/series?${params}`)
-      if (!res.ok) throw new Error(`API ${res.status}`)
-      const data = await res.json()
-      setSeries(prev => reset ? (data.series || []) : [...prev, ...(data.series || [])])
-      setTotalPages(data.totalPages || 1)
-      setTotalCount(parseInt(data.count) || 0)
-      setPage(p)
+
+      // Try Supabase cache first
+      const params = new URLSearchParams()
+      params.set('limit',  LIMIT)
+      params.set('offset', off)
+      params.set('select', '*')
+
+      const sortCol =
+          sort === 'num_books' || sort === 'popularity' ? 'num_books.desc'
+        : sort === 'score'     ? 'score.desc'
+        : sort === 'start_date_desc' ? 'start_date.desc'
+        : 'num_books.desc'
+      params.set('order', sortCol)
+
+      if (search.trim()) {
+        params.set('or', `(title.ilike.*${search.trim()}*,romaji.ilike.*${search.trim()}*)`)
+      }
+      if (status && status !== 'all') params.set('publication_status', `eq.${status}`)
+      if (genre  && genre  !== 'all') params.set('genres', `cs.{"${genre}"}`)
+
+      let usedCache = false
+      try {
+        const data = await sbFetch('novels', params.toString())
+        if (data && data.length > 0) {
+          // Normalize Supabase rows to match RanobeDB shape
+          const normalized = data.map(n => ({
+            ...n,
+            book:   n.cover_url ? { image: { filename: n.cover_url.replace('https://images.ranobedb.org/', '') } } : null,
+            tags:   (n.genres || []).map(g => ({ name: g, ttype: 'genre' })),
+            rating: { score: n.score, count: n.score_count },
+            c_num_books: n.num_books,
+            c_start_date: n.start_date,
+            c_end_date:   n.end_date,
+          }))
+          setSeries(prev => reset ? normalized : [...prev, ...normalized])
+          setHasMore(data.length === LIMIT)
+          setTotalCount(prev => reset ? data.length : prev + data.length)
+          setOffset(off)
+          usedCache = true
+        }
+      } catch (_) {}
+
+      // Fallback to live API if cache empty or failed
+      if (!usedCache) {
+        const liveParams = new URLSearchParams({ limit: LIMIT, page: Math.floor(off / LIMIT) + 1, sort, rl: 'ja' })
+        if (search.trim())    liveParams.set('q', search.trim())
+        if (status !== 'all') liveParams.set('pubStatus', status)
+        if (genre  !== 'all') liveParams.append('genresInclude', genre)
+        const res  = await fetch(\`\${RANOBE}/series?\${liveParams}\`)
+        if (!res.ok) throw new Error(\`API \${res.status}\`)
+        const data = await res.json()
+        setSeries(prev => reset ? (data.series || []) : [...prev, ...(data.series || [])])
+        setHasMore((Math.floor(off / LIMIT) + 1) < (data.totalPages || 1))
+        setTotalCount(parseInt(data.count) || 0)
+        setOffset(off)
+      }
     } catch (e) {
       setError(e.message)
     } finally {
@@ -58,14 +104,14 @@ export function useNovels({ search, sort, status, genre }) {
 
   useEffect(() => {
     setSeries([])
-    setPage(1)
-    fetch_novels(1, true)
+    setOffset(0)
+    fetch_novels(0, true)
   }, [search, sort, status, genre])
 
-  const loadMore = () => fetch_novels(page + 1, false)
-  const retry    = () => fetch_novels(1, true)
+  const loadMore = () => fetch_novels(offset + LIMIT, false)
+  const retry    = () => fetch_novels(0, true)
 
-  return { series, loading, loadingMore, error, page, totalPages, totalCount, loadMore, retry }
+  return { series, loading, loadingMore, error, hasMore, totalCount, loadMore, retry }
 }
 
 /* ── Supabase query helper ────────────────────────────────── */
