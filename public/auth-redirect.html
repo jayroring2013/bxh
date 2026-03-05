@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <script>
+    // This page catches Supabase auth redirects that land at the root domain
+    // and forwards them to the actual app at /bxh/
+    const hash   = window.location.hash
+    const search = window.location.search
+    if (hash.includes('access_token') || search.includes('access_token')) {
+      window.location.replace('/bxh/' + hash + search)
+    } else {
+      window.location.replace('/bxh/')
+    }
+  </script>
+</head>
+<body>Redirecting...</body>
+</html>
