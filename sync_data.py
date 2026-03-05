@@ -309,8 +309,8 @@ if __name__ == '__main__':
     print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 55)
 
-    anime_rows = fetch_anime(total=50)
-    manga_rows = fetch_manga(total=20)
+    anime_rows = fetch_anime(total=1000)
+    manga_rows = fetch_manga(total=500)
 
     elapsed = time.time() - start
     print(f"\n✅ Done in {elapsed/60:.1f} min")
