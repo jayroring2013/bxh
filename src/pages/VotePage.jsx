@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { RANOBE, PURPLE } from '../constants.js'
 import { supabase, SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { AppHeader, HeroBanner, ErrorBox } from '../components/Shared.jsx'
 
 const GOLD   = '#F59E0B'
@@ -186,6 +187,7 @@ function VoteCard({ novel, rank, voteEntry, hasVoted, onVote, voting, t }) {
 
 export function VotePage() {
   const { t, lang } = useLang()
+  const { user, token } = useAuth()
   const now   = new Date()
   const month = now.getMonth() + 1
   const year  = now.getFullYear()
@@ -207,7 +209,7 @@ export function VotePage() {
   const daysLeft  = new Date(year, month, 1) - now
   const daysNum   = Math.ceil(daysLeft / 86400000)
   const monthLabel = t('vote_month')[month - 1]
-  const isConfigured = SUPABASE_URL !== 'YOUR_SUPABASE_URL'
+  const isConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON)
 
   // Load top 50 novels by volume count + current month votes in parallel
   useEffect(() => {
@@ -276,35 +278,38 @@ export function VotePage() {
     const key = `${novel.novel_id}-${month}-${year}`
     if (votedIds.has(key)) { showToast(t('vote_already'), false); return }
     setVoting(true)
-
-    // Save to Supabase — wait for confirmation before updating UI
     try {
-
-
-
+      const authHeader = token ? `Bearer ${token}` : `Bearer ${SUPABASE_ANON}`
       const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_vote`, {
         method: 'POST',
         headers: {
-          apikey:          SUPABASE_ANON,
-          Authorization:  `Bearer ${SUPABASE_ANON}`,
+          apikey:         SUPABASE_ANON,
+          Authorization:  authHeader,
           'Content-Type': 'application/json',
-          Prefer:         'return=minimal',
+          Prefer:         'return=representation',
         },
         body: JSON.stringify({
-          p_novel_id:     novel.novel_id,
-          p_novel_title:  novel.novel_title,
-          p_novel_romaji: novel.novel_romaji,
-          p_cover_url:    novel.cover_url,
-          p_month:        month,
-          p_year:         year,
+          p_novel_id:    novel.novel_id,
+          p_novel_title: novel.novel_title,
+          p_cover_url:   novel.cover_url,
+          p_month:       month,
+          p_year:        year,
+          p_user_id:     user?.id || null,
         }),
       })
-      const body = await res.text()
+      const text = await res.text()
+      const data = text ? JSON.parse(text) : {}
 
       if (!res.ok) {
-        showToast(`Error ${res.status}: ${body || res.statusText}`, false)
+        showToast(`Error ${res.status}: ${text || res.statusText}`, false)
+      } else if (data?.error === 'already_voted') {
+        // Server confirmed duplicate — update localStorage to match
+        const newSet = new Set(votedIds)
+        newSet.add(key)
+        setVotedIds(newSet)
+        localStorage.setItem('nt_voted', JSON.stringify([...newSet]))
+        showToast(t('vote_already'), false)
       } else {
-        // Only mark as voted + update UI after DB confirms success
         const newSet = new Set(votedIds)
         newSet.add(key)
         setVotedIds(newSet)

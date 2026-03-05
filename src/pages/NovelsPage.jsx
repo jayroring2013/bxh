@@ -16,7 +16,7 @@ export function NovelsPage({ genres }) {
 
   const search = useDebounce(searchInput)
 
-  const { series, loading, loadingMore, error, page, totalPages, totalCount, loadMore, retry } =
+  const { series, loading, loadingMore, error, hasMore, totalCount, loadMore, retry } =
     useNovels({ search, sort, status, genre })
 
   const NOVEL_SORTS = [
@@ -70,10 +70,10 @@ export function NovelsPage({ genres }) {
           <>
             <CardGrid>
               {series.map((s, i) => (
-                <NovelCard key={s.id} series={s} rank={i + 1 + (page - 1) * 24} onClick={setSelected} />
+                <NovelCard key={s.id} series={s} rank={i + 1} onClick={setSelected} />
               ))}
             </CardGrid>
-            {page < totalPages && <LoadMoreBtn onLoad={loadMore} loading={loadingMore} color={PURPLE} />}
+            {hasMore && <LoadMoreBtn onLoad={loadMore} loading={loadingMore} color={PURPLE} />}
           </>
         )}
         {!loading && !error && series.length === 0 && <EmptyState icon="📖" msg={t('empty_novels')} />}
