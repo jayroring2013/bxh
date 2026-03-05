@@ -2,6 +2,7 @@ import React from 'react'
 import { ROSE, mangaStatusColor } from '../constants.js'
 import { RankBadge } from './Shared.jsx'
 import { QuickAddButton } from './QuickAddButton.jsx'
+import { ViewOnButton } from './ViewOnButton.jsx'
 
 export function MangaCard({ manga, rank, stats, onClick }) {
   const attrs  = manga.attributes
@@ -92,6 +93,7 @@ export function MangaCard({ manga, rank, stats, onClick }) {
         title={title}
         coverUrl={cover}
       />
+      <ViewOnButton itemId={manga.id} itemType="manga" title={title} />
     </div>
   )
 }

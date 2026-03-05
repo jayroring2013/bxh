@@ -120,8 +120,10 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
     { path: '#/novels', icon: '📖', labelKey: 'nav_novels' },
     { path: '#/anime',  icon: '🎌', labelKey: 'nav_anime'  },
     { path: '#/manga',  icon: '📚', labelKey: 'nav_manga'  },
-    { path: '#/vote',   icon: '🗳️', labelKey: 'nav_vote'   },
-    { path: '#/list',   icon: '🔖', labelKey: 'nav_list'   },
+    { path: '#/vote',     icon: '🗳️', labelKey: 'nav_vote'     },
+    { path: '#/ranking',  icon: '🏆', labelKey: 'nav_ranking'  },
+    { path: '#/schedule', icon: '📅', labelKey: 'nav_schedule' },
+    { path: '#/list',     icon: '🔖', labelKey: 'nav_list'     },
   ]
 
   // Search placeholder per tab
