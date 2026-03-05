@@ -72,6 +72,42 @@ def supabase_upsert(table, rows):
         if r.status not in (200, 201, 204):
             raise Exception(f"Supabase upsert returned {r.status}")
 
+# ── Supabase Storage ─────────────────────────────────────────
+
+def upload_cover(manga_id, cover_fn):
+    """Download cover from MangaDex and upload to Supabase Storage."""
+    src_url  = f"https://uploads.mangadex.org/covers/{manga_id}/{cover_fn}.512.jpg"
+    dest_path = f"{manga_id}/{cover_fn}.512.jpg"
+    public_url = f"{SUPABASE_URL}/storage/v1/object/public/manga-covers/{dest_path}"
+
+    # Download image
+    try:
+        req = urllib.request.Request(src_url, headers={'User-Agent': 'NovelTrend-Sync/1.0'})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            image_data = r.read()
+    except Exception as e:
+        return None
+
+    # Upload to Supabase Storage
+    upload_url = f"{SUPABASE_URL}/storage/v1/object/manga-covers/{dest_path}"
+    try:
+        req = urllib.request.Request(
+            upload_url,
+            data=image_data,
+            headers={
+                'apikey':        SUPABASE_KEY,
+                'Authorization': f'Bearer {SUPABASE_KEY}',
+                'Content-Type':  'image/jpeg',
+                'x-upsert':      'true',
+            },
+            method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=30) as r:
+            pass
+        return public_url
+    except Exception as e:
+        return None
+
 # ── AniList ──────────────────────────────────────────────────
 # AniList rate limit: ~90 requests/minute (1 req per 0.67s safe)
 # We use perPage=50 to halve the number of requests needed for 1000 anime
@@ -234,7 +270,13 @@ def fetch_manga(total=500):
                     if r['type'] in ('author', 'artist') and r.get('attributes', {}).get('name')
                 })
                 cover_fn  = cover['attributes']['fileName'] if cover and cover.get('attributes') else None
-                cover_url = f"https://uploads.mangadex.org/covers/{m['id']}/{cover_fn}.512.jpg" if cover_fn else None
+                # Upload to Supabase Storage to avoid MangaDex hotlink blocking
+                if cover_fn:
+                    cover_url = upload_cover(m['id'], cover_fn)
+                    if not cover_url:
+                        cover_url = f"https://mangadex.org/covers/{m['id']}/{cover_fn}.512.jpg"  # fallback
+                else:
+                    cover_url = None
                 title_en  = (attrs['title'].get('en')
                              or attrs['title'].get('ja-ro')
                              or (list(attrs['title'].values())[0] if attrs['title'] else None))
@@ -309,8 +351,8 @@ if __name__ == '__main__':
     print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 55)
 
-    anime_rows = fetch_anime(total=50)
-    manga_rows = fetch_manga(total=50)
+    anime_rows = fetch_anime(total=1000)
+    manga_rows = fetch_manga(total=500)
 
     elapsed = time.time() - start
     print(f"\n✅ Done in {elapsed/60:.1f} min")
