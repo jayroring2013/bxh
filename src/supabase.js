@@ -2,7 +2,7 @@
 // Replace these with your own values from:
 // supabase.com → Your Project → Settings → API
 export const SUPABASE_URL  = 'https://zragvkqsslfyarjbjmmz.supabase.co'
-export const SUPABASE_ANON = 'sb_publishable_ANQfGg47ThI9uwXyvc9oUQ_QAF575Zd'
+export const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyYWd2a3Fzc2xmeWFyamJqbW16Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjYzMzY4NCwiZXhwIjoyMDg4MjA5Njg0fQ.V2VYm1pzKLbylTkHS4nTX8T6dMqpRdENpMWLydC_jmE'
 
 const headers = () => ({
   apikey:          SUPABASE_ANON,

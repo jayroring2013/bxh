@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { RANOBE, ANILIST } from './constants.js'
+import { RANOBE } from './constants.js'
+import { SUPABASE_URL, SUPABASE_ANON } from './supabase.js'
 
 /* ── Hash-based router ────────────────────────────────────── */
 export function useHash() {
@@ -67,68 +68,78 @@ export function useNovels({ search, sort, status, genre }) {
   return { series, loading, loadingMore, error, page, totalPages, totalCount, loadMore, retry }
 }
 
-/* ── Fetch anime ──────────────────────────────────────────── */
-const ANIME_QUERY = `
-  query(
-    $page:Int, $perPage:Int, $sort:[MediaSort], $type:MediaType,
-    $search:String, $status:MediaStatus, $format:MediaFormat, $genre:String
-  ){
-    Page(page:$page, perPage:$perPage){
-      pageInfo { total currentPage lastPage hasNextPage }
-      media(
-        sort:$sort, type:$type, search:$search,
-        status:$status, format:$format, genre:$genre
-      ){
-        id
-        title { romaji english native }
-        coverImage { extraLarge large color }
-        bannerImage
-        description(asHtml:false)
-        genres status format episodes duration
-        season seasonYear
-        startDate { year month day }
-        endDate   { year month day }
-        averageScore meanScore popularity favourites
-        studios(isMain:true) { nodes { id name } }
-        nextAiringEpisode { episode airingAt }
-        siteUrl
-      }
-    }
-  }
-`
+/* ── Supabase query helper ────────────────────────────────── */
+const sbFetch = async (table, query) => {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?${query}`
+  const res  = await fetch(url, {
+    headers: {
+      apikey:        SUPABASE_ANON,
+      Authorization: `Bearer ${SUPABASE_ANON}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!res.ok) throw new Error(`Supabase ${res.status}`)
+  return res.json()
+}
 
+/* ── Fetch anime from Supabase ────────────────────────────── */
 export function useAnime({ search, sort, status, format, genre }) {
   const [anime,       setAnime]       = useState([])
   const [loading,     setLoading]     = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error,       setError]       = useState(null)
-  const [page,        setPage]        = useState(1)
+  const [offset,      setOffset]      = useState(0)
   const [hasNext,     setHasNext]     = useState(false)
   const [totalCount,  setTotalCount]  = useState(0)
+  const LIMIT = 24
 
-  const fetch_anime = async (p, reset) => {
+  const fetch_anime = async (off, reset) => {
     try {
       reset ? setLoading(true) : setLoadingMore(true)
       setError(null)
-      const vars = { page: p, perPage: 24, sort: [sort], type: 'ANIME' }
-      if (search)               vars.search = search
-      if (status)               vars.status = status
-      if (format)               vars.format = format
-      if (genre && genre !== 'All') vars.genre = genre
-      const res  = await fetch(ANILIST, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body:    JSON.stringify({ query: ANIME_QUERY, variables: vars }),
-      })
-      if (!res.ok) throw new Error(`API ${res.status}`)
-      const json = await res.json()
-      if (json.errors) throw new Error(json.errors[0].message)
-      const pg    = json.data?.Page
-      const items = pg?.media || []
-      setAnime(prev => reset ? items : [...prev, ...items])
-      setHasNext(pg?.pageInfo?.hasNextPage || false)
-      setTotalCount(pg?.pageInfo?.total    || 0)
-      setPage(p)
+
+      const sortCol =
+          sort === 'POPULARITY_DESC' ? 'popularity.desc'
+        : sort === 'SCORE_DESC'      ? 'average_score.desc'
+        : sort === 'TRENDING_DESC'   ? 'popularity.desc'
+        : sort === 'START_DATE_DESC' ? 'season_year.desc'
+        : sort === 'START_DATE'      ? 'season_year.asc'
+        : sort === 'TITLE_ROMAJI'    ? 'title_romaji.asc'
+        : sort === 'FAVOURITES_DESC' ? 'favourites.desc'
+        : 'popularity.desc'
+
+      const params = new URLSearchParams()
+      params.append('limit',  LIMIT)
+      params.append('offset', off)
+      params.append('order',  sortCol)
+      params.append('select', '*')
+
+      if (search)                params.append('or', `(title_romaji.ilike.*${search}*,title_english.ilike.*${search}*)`)
+      if (status)                params.append('status', `eq.${status}`)
+      if (format)                params.append('format', `eq.${format}`)
+      if (genre && genre !== 'All') params.append('genres', `cs.{"${genre}"}`)
+
+      // Get total count
+      const countParams = new URLSearchParams(params)
+      countParams.set('limit', 1)
+      countParams.set('offset', 0)
+
+      const [data, countRes] = await Promise.all([
+        sbFetch('anime', params.toString()),
+        fetch(`${SUPABASE_URL}/rest/v1/anime?${countParams}`, {
+          headers: {
+            apikey: SUPABASE_ANON,
+            Authorization: `Bearer ${SUPABASE_ANON}`,
+            Prefer: 'count=exact',
+          },
+        }),
+      ])
+
+      const total = parseInt(countRes.headers?.get?.('content-range')?.split('/')?.[1] || 0)
+      setAnime(prev => reset ? data : [...prev, ...data])
+      setHasNext(off + LIMIT < total)
+      setTotalCount(total || data.length)
+      setOffset(off)
     } catch (e) {
       setError(e.message)
     } finally {
@@ -139,38 +150,35 @@ export function useAnime({ search, sort, status, format, genre }) {
 
   useEffect(() => {
     setAnime([])
-    setPage(1)
-    fetch_anime(1, true)
+    setOffset(0)
+    fetch_anime(0, true)
   }, [search, sort, status, format, genre])
 
-  const loadMore = () => fetch_anime(page + 1, false)
-  const retry    = () => fetch_anime(1, true)
+  const loadMore = () => fetch_anime(offset + LIMIT, false)
+  const retry    = () => fetch_anime(0, true)
 
-  return { anime, loading, loadingMore, error, page, hasNext, totalCount, loadMore, retry }
+  return { anime, loading, loadingMore, error, offset, hasNext, totalCount, loadMore, retry }
 }
 
-/* ── Fetch manga tags ─────────────────────────────────────── */
+/* ── Fetch manga tags from Supabase ───────────────────────── */
 export function useMangaTags() {
-  const [tags, setTags] = useState([])
+  const [tags, setTags] = useState([{ id: '', label: 'All' }])
   useEffect(() => {
-    fetch('https://api.mangadex.org/manga/tag')
-      .then(r => r.json())
-      .then(d => {
-        const genres = (d.data || [])
-          .filter(t => t.attributes.group === 'genre')
-          .map(t => ({ id: t.id, label: t.attributes.name.en }))
-          .sort((a, b) => a.label.localeCompare(b.label))
-        setTags([{ id: '', label: 'All' }, ...genres])
+    sbFetch('manga', 'select=genres&limit=1000')
+      .then(rows => {
+        const seen = new Set()
+        rows.forEach(r => (r.genres || []).forEach(g => seen.add(g)))
+        const sorted = [...seen].sort()
+        setTags([{ id: '', label: 'All' }, ...sorted.map(g => ({ id: g, label: g }))])
       })
-      .catch(() => setTags([{ id: '', label: 'All' }]))
+      .catch(() => {})
   }, [])
   return tags
 }
 
-/* ── Fetch manga ──────────────────────────────────────────── */
+/* ── Fetch manga from Supabase ────────────────────────────── */
 export function useManga({ search, sort, status, demographic, tag }) {
   const [manga,       setManga]       = useState([])
-  const [stats,       setStats]       = useState({})   // id -> { rating, follows }
   const [loading,     setLoading]     = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error,       setError]       = useState(null)
@@ -184,96 +192,62 @@ export function useManga({ search, sort, status, demographic, tag }) {
       reset ? setLoading(true) : setLoadingMore(true)
       setError(null)
 
+      const sortCol =
+          sort === 'followedCount'         ? 'follows.desc'
+        : sort === 'rating'                ? 'rating.desc'
+        : sort === 'latestUploadedChapter' ? 'synced_at.desc'
+        : sort === 'createdAt'             ? 'year.desc'
+        : sort === 'title'                 ? 'title_en.asc'
+        : 'follows.desc'
+
       const params = new URLSearchParams()
-      params.append('limit', LIMIT)
+      params.append('limit',  LIMIT)
       params.append('offset', off)
-      params.append(`order[${sort}]`, 'desc')
-      params.append('contentRating[]', 'safe')
-      params.append('contentRating[]', 'suggestive')
-      params.append('includes[]', 'cover_art')
-      params.append('includes[]', 'author')
-      params.append('includes[]', 'artist')
-      params.append('availableTranslatedLanguage[]', 'en')
-      if (search)      params.append('title', search)
-      if (status)      params.append('status[]', status)
-      if (demographic) params.append('publicationDemographic[]', demographic)
-      if (tag)         params.append('includedTags[]', tag)
+      params.append('order',  sortCol)
+      params.append('select', '*')
 
-      const res  = await fetch(`https://api.mangadex.org/manga?${params}`)
-      if (!res.ok) throw new Error(`API ${res.status}`)
-      const data = await res.json()
-      const items = data.data || []
+      if (search)      params.append('or',            `(title_en.ilike.*${search}*,title_ja_ro.ilike.*${search}*)`)
+      if (status)      params.append('status',        `eq.${status}`)
+      if (demographic) params.append('demographic',   `eq.${demographic}`)
+      if (tag)         params.append('genres',        `cs.{"${tag}"}`)
 
-      setManga(prev => reset ? items : [...prev, ...items])
-      setHasNext(off + LIMIT < (data.total || 0))
-      setTotalCount(data.total || 0)
+      const [data] = await Promise.all([
+        sbFetch('manga', params.toString()),
+      ])
+
+      // Normalize to same shape the cards/modals expect
+      const normalized = data.map(m => ({
+        id: m.id,
+        attributes: {
+          title:                  { en: m.title_en, 'ja-ro': m.title_ja_ro, ja: m.title_ja },
+          description:            { en: m.description_en },
+          status:                 m.status,
+          publicationDemographic: m.demographic,
+          year:                   m.year,
+          lastChapter:            m.last_chapter,
+          lastVolume:             m.last_volume,
+          originalLanguage:       m.original_language,
+          tags: [
+            ...(m.genres || []).map(g => ({ attributes: { group: 'genre',  name: { en: g } } })),
+            ...(m.themes || []).map(t => ({ attributes: { group: 'theme',  name: { en: t } } })),
+          ],
+        },
+        relationships: [
+          ...(m.author ? [{ type: 'author', attributes: { name: m.author } }] : []),
+        ],
+        _cover_url: m.cover_url,
+        _stats: {
+          rating:   m.rating   ? String(parseFloat(m.rating).toFixed(2)) : null,
+          follows:  m.follows,
+          chapters: m.chapters,
+          volumes:  m.volumes,
+        },
+      }))
+
+      setManga(prev => reset ? normalized : [...prev, ...normalized])
+      setHasNext(off + LIMIT < (totalCount || 999))
+      setTotalCount(prev => reset ? (data.length < LIMIT ? off + data.length : prev) : prev)
       setOffset(off)
-
-      // Fetch statistics + aggregate (chapters/volumes) for these manga
-      if (items.length > 0) {
-        const ids = items.map(m => m.id)
-
-        // 1) Statistics — rating & follows
-        const statParams = new URLSearchParams()
-        ids.forEach(id => statParams.append('manga[]', id))
-        const statRes = await fetch(`https://api.mangadex.org/statistics/manga?${statParams}`)
-        if (statRes.ok) {
-          const statData = await statRes.json()
-          const newStats = {}
-          Object.entries(statData.statistics || {}).forEach(([id, s]) => {
-            newStats[id] = {
-              rating:  s.rating?.bayesian ? s.rating.bayesian.toFixed(2) : null,
-              follows: s.follows ?? null,
-            }
-          })
-
-          // 2) Aggregate — chapter & volume counts (one request per manga, run in parallel)
-          const aggResults = await Promise.allSettled(
-            ids.map(async id => {
-              // Try English first
-              let res = await fetch(`https://api.mangadex.org/manga/${id}/aggregate?translatedLanguage[]=en`)
-              let data = await res.json()
-              let volumes = data.volumes
-
-              // If volumes came back as an empty array, retry without language filter
-              if (!volumes || (Array.isArray(volumes) && volumes.length === 0)) {
-                res = await fetch(`https://api.mangadex.org/manga/${id}/aggregate`)
-                data = await res.json()
-                volumes = data.volumes
-              }
-
-              if (!volumes || Array.isArray(volumes)) return { id, vols: null, chaps: null }
-
-              // Count volumes (exclude the "none" bucket)
-              const volCount = Object.keys(volumes).filter(k => k !== 'none').length
-
-              // Count all unique chapters across every volume including "none"
-              const allChapters = new Set()
-              Object.values(volumes).forEach(vol => {
-                if (typeof vol === 'object' && vol.chapters) {
-                  if (typeof vol.chapters === 'object' && !Array.isArray(vol.chapters)) {
-                    Object.keys(vol.chapters).forEach(c => allChapters.add(c))
-                  }
-                }
-              })
-
-              return { id, vols: volCount || null, chaps: allChapters.size || null }
-            })
-          )
-
-          aggResults.forEach(r => {
-            if (r.status === 'fulfilled' && r.value) {
-              const { id, vols, chaps } = r.value
-              if (newStats[id]) {
-                newStats[id].volumes  = vols
-                newStats[id].chapters = chaps
-              }
-            }
-          })
-
-          setStats(prev => reset ? newStats : { ...prev, ...newStats })
-        }
-      }
     } catch (e) {
       setError(e.message)
     } finally {
@@ -284,7 +258,6 @@ export function useManga({ search, sort, status, demographic, tag }) {
 
   useEffect(() => {
     setManga([])
-    setStats({})
     setOffset(0)
     fetch_manga(0, true)
   }, [search, sort, status, demographic, tag])
@@ -292,5 +265,5 @@ export function useManga({ search, sort, status, demographic, tag }) {
   const loadMore = () => fetch_manga(offset + LIMIT, false)
   const retry    = () => fetch_manga(0, true)
 
-  return { manga, stats, loading, loadingMore, error, offset, hasNext, totalCount, loadMore, retry }
+  return { manga, stats: {}, loading, loadingMore, error, offset, hasNext, totalCount, loadMore, retry }
 }

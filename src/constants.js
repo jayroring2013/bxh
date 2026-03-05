@@ -1,5 +1,16 @@
 export const RANOBE  = 'https://ranobedb-s1pr.onrender.com/api/v0'
-export const ANILIST = 'https://graphql.anilist.co'
+
+// ── CORS proxy (Cloudflare Worker) ───────────────────────────
+// On localhost we call APIs directly.
+// On GitHub Pages we route through the worker to bypass CORS.
+// Replace WORKER_URL with your deployed worker URL after setup.
+const WORKER_URL = 'YOUR_WORKER_URL'  // e.g. https://noveltrend-proxy.yourname.workers.dev
+const IS_LOCAL   = window.location.hostname === 'localhost'
+                || window.location.hostname === '127.0.0.1'
+
+export const ANILIST    = IS_LOCAL ? 'https://graphql.anilist.co'    : `${WORKER_URL}/anilist`
+export const MANGADEX   = IS_LOCAL ? 'https://api.mangadex.org'      : `${WORKER_URL}/mangadex`
+
 export const CYAN    = '#06B6D4'
 export const PURPLE  = '#8B5CF6'
 
@@ -83,7 +94,6 @@ export const fmtDate = d =>
     : '?'
 
 /* ── Manga options ─────────────────────────────────────────── */
-export const MANGADEX = 'https://api.mangadex.org'
 export const MANGADEX_COVER = 'https://uploads.mangadex.org/covers'
 export const ROSE = '#F43F5E'
 
