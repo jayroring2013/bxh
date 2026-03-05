@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext.jsx'
-import { useUserList } from '../useList.js'
-import { AddToListModal } from './AddToListModal.jsx'
 import { createPortal } from 'react-dom'
 import { CYAN, animeStatusColor, animeStatusLabel } from '../constants.js'
 
 export function AnimeModal({ anime, onClose }) {
-  const { user } = useAuth()
-  const { addOrUpdate, getEntry, remove } = useUserList()
-  const [showList, setShowList] = useState(false)
-  const existing  = getEntry(anime.id, 'anime')
 
   useEffect(() => {
     const esc = e => { if (e.key === 'Escape') onClose() }

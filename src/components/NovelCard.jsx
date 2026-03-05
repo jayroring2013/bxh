@@ -13,15 +13,23 @@ export function NovelCard({ series, rank, onClick }) {
   const vols = series.c_num_books || parseInt(series.volumes?.count) || 0
   const tag  = series.tags?.[0]
 
-  // Lazy-load description & rating, staggered by rank to avoid hammering the API
+  // Use cached data if available, lazy-load from API only as fallback
   useEffect(() => {
+    // If Supabase cache has description already, use it
+    const cachedDesc = series.description || series.book_description?.description
+    const cachedRating = series.rating
+    if (cachedDesc) { setDesc(cachedDesc); }
+    if (cachedRating?.score) { setRating(cachedRating); return }
+
+    // Fallback: lazy-load from live API (staggered to avoid hammering)
+    if (cachedDesc && cachedRating) return
     const t = setTimeout(async () => {
       try {
         const r  = await fetch(`${RANOBE}/series/${series.id}`)
         const d  = await r.json()
         const tx = d.series?.book_description?.description || d.series?.description || ''
         const rt = d.series?.rating || null
-        if (tx) setDesc(tx)
+        if (tx && !cachedDesc) setDesc(tx)
         if (rt?.score) setRating(rt)
       } catch (_) {}
     }, Math.min(rank * 180, 3000))
