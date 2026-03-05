@@ -29,17 +29,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Clean install dependencies
+        run: rm -rf node_modules && npm ci
 
       - name: Build
         run: npm run build
         env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPOSITORY:    ${{ github.repository }}
+          VITE_SUPABASE_URL:    ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Copy index.html to 404.html
-        run: cp dist/index.html dist/404.html
+        run: |
+          cp dist/index.html dist/404.html
+          # Copy auth-redirect for root domain Supabase email redirects
+          cp public/auth-redirect.html dist/auth-redirect.html || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
