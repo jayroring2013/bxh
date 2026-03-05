@@ -1,8 +1,8 @@
 // ─── Supabase Configuration ──────────────────────────────────
 // Replace these with your own values from:
 // supabase.com → Your Project → Settings → API
-export const SUPABASE_URL  = 'YOUR_SUPABASE_URL'
-export const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY'
+export const SUPABASE_URL  = 'https://zragvkqsslfyarjbjmmz.supabase.co'
+export const SUPABASE_ANON = 'sb_publishable_ANQfGg47ThI9uwXyvc9oUQ_QAF575Zd'
 
 const headers = () => ({
   apikey:          SUPABASE_ANON,
