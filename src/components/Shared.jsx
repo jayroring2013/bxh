@@ -182,7 +182,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
         <button onClick={toggleLang} style={{
           background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
           color: '#fff', padding: '6px 12px', borderRadius: 9, cursor: 'pointer',
-          fontSize: 12, fontWeight: 700, flexShrink: 0, fontFamily: "'Outfit', sans-serif",
+          fontSize: 12, fontWeight: 700, flexShrink: 0, fontFamily: "'Be Vietnam Pro', sans-serif",
           display: 'flex', alignItems: 'center', gap: 5,
         }}>
           🌐 {lang === 'vi' ? 'EN' : 'VI'}

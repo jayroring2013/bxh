@@ -18,7 +18,7 @@ export function MangaModal({ manga, stats, onClose }) {
     || (() => {
       const rel  = manga.relationships?.find(r => r.type === 'cover_art')
       const file = rel?.attributes?.fileName
-      return file ? `https://uploads.mangadex.org/covers/${manga.id}/${file}.512.jpg` : null
+      return file ? `https://mangadex.org/covers/${manga.id}/${file}.512.jpg` : null
     })()
 
   const authors  = manga.relationships?.filter(r => r.type === 'author').map(r => r.attributes?.name).filter(Boolean)

@@ -13,7 +13,7 @@ export function MangaCard({ manga, rank, stats, onClick }) {
     || (() => {
       const rel  = manga.relationships?.find(r => r.type === 'cover_art')
       const file = rel?.attributes?.fileName
-      return file ? `https://uploads.mangadex.org/covers/${manga.id}/${file}.256.jpg` : null
+      return file ? `https://mangadex.org/covers/${manga.id}/${file}.256.jpg` : null
     })()
 
   const genre = (attrs.tags || []).find(t => t.attributes.group === 'genre')?.attributes?.name?.en
