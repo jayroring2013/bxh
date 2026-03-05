@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useUserList } from '../useList.js'
 import { AddToListModal } from './AddToListModal.jsx'

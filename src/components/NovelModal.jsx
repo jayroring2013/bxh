@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { RANOBE, PURPLE, novelStatusColor } from '../constants.js'
+import { useAuth } from '../context/AuthContext.jsx'
+import { useUserList } from '../useList.js'
+import { AddToListModal } from './AddToListModal.jsx'
 
 export function NovelModal({ series, onClose }) {
   const [detail, setDetail] = useState(null)
@@ -9,7 +12,7 @@ export function NovelModal({ series, onClose }) {
   const { user } = useAuth()
   const { addOrUpdate, getEntry, remove } = useUserList()
   const [showList, setShowList] = useState(false)
-  const existing  = getEntry(novel.id, 'novel')
+  const existing  = getEntry(series.id, 'novel')
 
   useEffect(() => {
     const esc = e => { if (e.key === 'Escape') onClose() }
@@ -187,7 +190,7 @@ export function NovelModal({ series, onClose }) {
 
             {showList && (
               <AddToListModal
-                item={{ item_id: String(novel.id), item_type: 'novel', title: (novel.title?.romaji || novel.title || ""), cover_url: cover }}
+                item={{ item_id: String(series.id), item_type: 'novel', title: (d?.title?.romaji || series.title || ''), cover_url: img }}
                 existing={existing}
                 onSave={addOrUpdate}
                 onRemove={remove}
