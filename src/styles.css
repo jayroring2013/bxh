@@ -8,7 +8,7 @@
 body {
   background: #0a0a0f;
   color: #fff;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 a {
@@ -167,7 +167,7 @@ input::placeholder {
 }
 
 .novel-card__title {
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 14px;
   color: #fff;
   line-height: 1.2;
@@ -292,7 +292,7 @@ input::placeholder {
 }
 
 .anime-card__title {
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 14px;
   color: #fff;
   line-height: 1.2;
@@ -342,7 +342,7 @@ input::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 13px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
@@ -383,13 +383,13 @@ input::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 18px;
   color: #fff;
 }
 
 .app-header__logo-text {
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 22px;
   letter-spacing: 2px;
 }
@@ -443,7 +443,7 @@ input::placeholder {
   color: #fff;
   font-size: 13px;
   outline: none;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .app-header__search-clear {
@@ -479,7 +479,7 @@ input::placeholder {
   font-weight: 600;
   white-space: nowrap;
   transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .sort-btn--active {
@@ -506,7 +506,7 @@ input::placeholder {
 }
 
 .hero-banner__title {
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: clamp(26px, 5vw, 58px);
   line-height: 1;
   letter-spacing: 3px;
@@ -571,7 +571,7 @@ input::placeholder {
   font-size: 12px;
   font-weight: 500;
   transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 /* ─── Main content ──────────────────────────────────────────────── */
@@ -591,7 +591,7 @@ input::placeholder {
 .empty-state__icon { font-size: 52px; margin-bottom: 16px; }
 
 .empty-state__title {
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 30px;
 }
 
@@ -617,7 +617,7 @@ input::placeholder {
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 /* ─── Load more ─────────────────────────────────────────────────── */
@@ -637,7 +637,7 @@ input::placeholder {
   align-items: center;
   gap: 10px;
   transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .load-more__btn:disabled { cursor: default; }
@@ -663,7 +663,7 @@ input::placeholder {
 }
 
 .page-footer__brand {
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 14px;
   letter-spacing: 2px;
 }
@@ -776,7 +776,7 @@ input::placeholder {
 }
 
 .modal-title {
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 28px;
   line-height: 1.1;
   margin-bottom: 2px;
@@ -812,7 +812,7 @@ input::placeholder {
 }
 
 .modal-stat__value {
-  font-family: 'Bebas Neue', cursive;
+  font-family: 'Barlow Condensed', sans-serif;
   font-size: 20px;
   line-height: 1;
 }
