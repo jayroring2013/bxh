@@ -8,7 +8,7 @@ Usage:
 
 Environment variables (set in GitHub Actions secrets or .env):
   SUPABASE_URL          https://zragvkqsslfyarjbjmmz.supabase.co
-  SUPABASE_SERVICE_KEY  your service_role key (NOT anon key)
+  SUPABASE_SERVICE_KEY  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyYWd2a3Fzc2xmeWFyamJqbW16Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjYzMzY4NCwiZXhwIjoyMDg4MjA5Njg0fQ.V2VYm1pzKLbylTkHS4nTX8T6dMqpRdENpMWLydC_jmE (NOT anon key)
 """
 
 import os, json, time, urllib.request, urllib.error
