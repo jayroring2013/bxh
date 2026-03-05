@@ -73,7 +73,7 @@ function VoteCard({ novel, rank, voteEntry, hasVoted, onVote, voting, t }) {
         width: 34, height: 34, borderRadius: '50%',
         background: rankBg(rank),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: "'Bebas Neue', cursive", fontSize: 14,
+        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
         color: rank <= 3 ? '#000' : '#fff',
         boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
       }}>#{rank}</div>
@@ -106,7 +106,7 @@ function VoteCard({ novel, rank, voteEntry, hasVoted, onVote, voting, t }) {
         {/* Title */}
         <div>
           <div style={{
-            fontFamily: "'Bebas Neue', cursive", fontSize: 15, lineHeight: 1.25,
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, lineHeight: 1.25,
             color: '#fff', display: '-webkit-box', WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical', overflow: 'hidden',
           }}>
@@ -150,7 +150,7 @@ function VoteCard({ novel, rank, voteEntry, hasVoted, onVote, voting, t }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
           <div>
             <div style={{
-              fontFamily: "'Bebas Neue', cursive", fontSize: 26, lineHeight: 1,
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, lineHeight: 1,
               color: isTop3 ? rankColor(rank) : PURPLE,
             }}>
               {voteCount.toLocaleString()}
@@ -171,7 +171,7 @@ function VoteCard({ novel, rank, voteEntry, hasVoted, onVote, voting, t }) {
               cursor: hasVoted ? 'default' : voting ? 'wait' : 'pointer',
               fontSize: 12, fontWeight: 700,
               opacity: voting && !hasVoted ? 0.6 : 1,
-              transition: 'all 0.2s', fontFamily: "'Outfit', sans-serif",
+              transition: 'all 0.2s', fontFamily: "'Be Vietnam Pro', sans-serif",
               boxShadow: hasVoted ? 'none' : `0 4px 14px ${PURPLE}50`,
             }}
           >
@@ -371,7 +371,7 @@ export function VotePage() {
                 width: '100%', background: 'rgba(255,255,255,0.05)',
                 border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12,
                 padding: '10px 14px 10px 38px', color: '#fff', fontSize: 13,
-                outline: 'none', fontFamily: "'Outfit', sans-serif",
+                outline: 'none', fontFamily: "'Be Vietnam Pro', sans-serif",
               }}
             />
             {search && (
@@ -391,7 +391,7 @@ export function VotePage() {
             {filtered.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: '#4B5563' }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
-                <div style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 24 }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24 }}>
                   {lang === 'vi' ? 'Không tìm thấy novel' : 'No novels found'}
                 </div>
               </div>

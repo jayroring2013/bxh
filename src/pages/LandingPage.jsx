@@ -74,7 +74,7 @@ function TabCard({ tab, t, index }) {
 
         {/* Title */}
         <div style={{
-          fontFamily: "'Bebas Neue', cursive", fontSize: 22,
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22,
           color: '#fff', letterSpacing: 1, marginBottom: 6,
         }}>
           {t(tab.titleKey)}
@@ -137,8 +137,8 @@ export function LandingPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 34, height: 34, borderRadius: 9, background: PURPLE,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: "'Bebas Neue', cursive", fontSize: 18, color: '#fff' }}>NT</div>
-            <span style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 22, letterSpacing: 2 }}>
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, color: '#fff' }}>NT</div>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, letterSpacing: 2 }}>
               NOVEL<span style={{ color: PURPLE }}>TREND</span>
             </span>
           </div>
@@ -146,7 +146,7 @@ export function LandingPage() {
           <button onClick={toggleLang} style={{
             background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
             color: '#fff', padding: '6px 14px', borderRadius: 10, cursor: 'pointer',
-            fontSize: 13, fontWeight: 600, fontFamily: "'Outfit', sans-serif",
+            fontSize: 13, fontWeight: 600, fontFamily: "'Be Vietnam Pro', sans-serif",
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
             🌐 {lang === 'vi' ? 'EN' : 'VI'}
@@ -166,14 +166,14 @@ export function LandingPage() {
         <div style={{ position: 'absolute', top: -50, right: '20%', width: 400, height: 250,
           background: `radial-gradient(ellipse, ${CYAN}12 0%, transparent 70%)`, pointerEvents: 'none' }} />
 
-        <div style={{ fontFamily: "'Bebas Neue', cursive",
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: 'clamp(14px,2vw,18px)', color: PURPLE,
           letterSpacing: 4, marginBottom: 16 }}>
           NOVELTREND
         </div>
 
         <h1 style={{
-          fontFamily: "'Bebas Neue', cursive",
+          fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: 'clamp(36px,7vw,80px)',
           lineHeight: 1, letterSpacing: 2,
           marginBottom: 20, color: '#fff',
@@ -190,7 +190,7 @@ export function LandingPage() {
           display: 'inline-flex', alignItems: 'center', gap: 8,
           background: PURPLE, color: '#fff',
           padding: '14px 36px', borderRadius: 14,
-          fontFamily: "'Bebas Neue', cursive", fontSize: 18, letterSpacing: 1,
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, letterSpacing: 1,
           textDecoration: 'none', boxShadow: `0 8px 32px ${PURPLE}50`,
           transition: 'transform 0.2s, box-shadow 0.2s',
         }}>
@@ -216,7 +216,7 @@ export function LandingPage() {
         borderTop: '1px solid rgba(255,255,255,0.05)',
         padding: '20px 24px', textAlign: 'center', color: '#374151', fontSize: 12,
       }}>
-        <span style={{ fontFamily: "'Bebas Neue', cursive", color: PURPLE,
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: PURPLE,
           fontSize: 14, letterSpacing: 2 }}>NOVELTREND</span>
         {` · ${t('footer_powered')} RanobeDB, AniList & MangaDex · `}{new Date().getFullYear()}
       </footer>
