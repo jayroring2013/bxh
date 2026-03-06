@@ -71,47 +71,59 @@ function Section({ title, children, action }) {
 // ═══════════════════════════════════════════════════════════
 // Series search picker — searches novels/anime/manga live
 // ═══════════════════════════════════════════════════════════
+async function searchSeries(token, type, q) {
+  // Direct fetch — bypasses api() error throwing
+  const get = async (url) => {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${url}`, {
+      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
+    })
+    const text = await r.text()
+    try { return JSON.parse(text) } catch { return [] }
+  }
+  const enc = encodeURIComponent(q)
+  if (type === 'novel') {
+    const [r1, r2] = await Promise.all([
+      get(`novels?title=ilike.%25${enc}%25&select=id,title,romaji,cover_url&limit=6`),
+      get(`novels?romaji=ilike.%25${enc}%25&select=id,title,romaji,cover_url&limit=6`),
+    ])
+    const seen = new Set()
+    return [...(r1||[]),...(r2||[])].filter(r => { if(seen.has(r.id)) return false; seen.add(r.id); return true })
+      .slice(0,8).map(r => ({ id: String(r.id), title: r.title || r.romaji, cover: r.cover_url, type: 'novel' }))
+  } else if (type === 'anime') {
+    const [r1, r2] = await Promise.all([
+      get(`anime?title_english=ilike.%25${enc}%25&select=id,title_english,title_romaji,cover_large&limit=6`),
+      get(`anime?title_romaji=ilike.%25${enc}%25&select=id,title_english,title_romaji,cover_large&limit=6`),
+    ])
+    const seen = new Set()
+    return [...(r1||[]),...(r2||[])].filter(r => { if(seen.has(r.id)) return false; seen.add(r.id); return true })
+      .slice(0,8).map(r => ({ id: String(r.id), title: r.title_english || r.title_romaji, cover: r.cover_large, type: 'anime' }))
+  } else {
+    const [r1, r2] = await Promise.all([
+      get(`manga?title_en=ilike.%25${enc}%25&select=id,title_en,title_ja_ro,cover_url&limit=6`),
+      get(`manga?title_ja_ro=ilike.%25${enc}%25&select=id,title_en,title_ja_ro,cover_url&limit=6`),
+    ])
+    const seen = new Set()
+    return [...(r1||[]),...(r2||[])].filter(r => { if(seen.has(r.id)) return false; seen.add(r.id); return true })
+      .slice(0,8).map(r => ({ id: String(r.id), title: r.title_en || r.title_ja_ro, cover: r.cover_url, type: 'manga' }))
+  }
+}
+
 function SeriesPicker({ token, onPick }) {
   const [query,   setQuery]   = useState('')
   const [type,    setType]    = useState('novel')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
 
-  const search = async (q) => {
-    if (q.trim().length < 2) { setResults([]); return }
-    setLoading(true)
-    try {
-      let data = []
-      console.log('[Admin search]', type, q)
-      // Use separate calls to avoid OR encoding issues
-      if (type === 'novel') {
-        const r1 = await api(token, `novels?title=ilike.%25${encodeURIComponent(q)}%25&select=id,title,romaji,cover_url&limit=6`) || []
-        const r2 = await api(token, `novels?romaji=ilike.%25${encodeURIComponent(q)}%25&select=id,title,romaji,cover_url&limit=6`) || []
-        const seen = new Set(); const merged = []
-        ;[...r1,...r2].forEach(r => { if (!seen.has(r.id)) { seen.add(r.id); merged.push(r) } })
-        data = merged.slice(0,8).map(r => ({ id: String(r.id), title: r.title || r.romaji, cover: r.cover_url, type: 'novel' }))
-      } else if (type === 'anime') {
-        const r1 = await api(token, `anime?title_english=ilike.%25${encodeURIComponent(q)}%25&select=id,title_english,title_romaji,cover_large&limit=6`) || []
-        const r2 = await api(token, `anime?title_romaji=ilike.%25${encodeURIComponent(q)}%25&select=id,title_english,title_romaji,cover_large&limit=6`) || []
-        const seen = new Set(); const merged = []
-        ;[...r1,...r2].forEach(r => { if (!seen.has(r.id)) { seen.add(r.id); merged.push(r) } })
-        data = merged.slice(0,8).map(r => ({ id: String(r.id), title: r.title_english || r.title_romaji, cover: r.cover_large, type: 'anime' }))
-      } else {
-        const r1 = await api(token, `manga?title_en=ilike.%25${encodeURIComponent(q)}%25&select=id,title_en,title_ja_ro,cover_url&limit=6`) || []
-        const r2 = await api(token, `manga?title_ja_ro=ilike.%25${encodeURIComponent(q)}%25&select=id,title_en,title_ja_ro,cover_url&limit=6`) || []
-        const seen = new Set(); const merged = []
-        ;[...r1,...r2].forEach(r => { if (!seen.has(r.id)) { seen.add(r.id); merged.push(r) } })
-        data = merged.slice(0,8).map(r => ({ id: String(r.id), title: r.title_en || r.title_ja_ro, cover: r.cover_url, type: 'manga' }))
-      }
-      setResults(data)
-    } catch(e) { console.error('[Admin search error]', e); setResults([]) }
-    finally { setLoading(false) }
-  }
-
   useEffect(() => {
-    const t = setTimeout(() => search(query), 350)
-    return () => clearTimeout(t)
-  }, [query, type])
+    if (query.trim().length < 2) { setResults([]); return }
+    let cancelled = false
+    setLoading(true)
+    const t = setTimeout(async () => {
+      const data = await searchSeries(token, type, query.trim())
+      if (!cancelled) { setResults(data); setLoading(false) }
+    }, 300)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [query, type, token])
 
   const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
 
