@@ -1,42 +1,174 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import { PURPLE, CYAN, ROSE } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
 import { AppHeader, HeroBanner } from '../components/Shared.jsx'
 import { SCHEDULE_MOCK } from '../mockData.js'
 
-const TYPE_COLOR = { anime: CYAN, manga: ROSE, novel: PURPLE }
-const TYPE_ICON  = { anime: '🎌', manga: '📚', novel: '📖' }
-const DAY_NAMES  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const TYPE_COLOR  = { anime: CYAN, manga: ROSE, novel: PURPLE }
+const TYPE_ICON   = { anime: '🎌', manga: '📚', novel: '📖' }
+const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const DAY_NAMES_VI = ['CN','T2','T3','T4','T5','T6','T7']
 
+const toYMD = d => d.toISOString().slice(0, 10)   // "YYYY-MM-DD"
+const fromYMD = s => new Date(s + 'T00:00:00')
+const sameDay = (a, b) => toYMD(new Date(a)) === toYMD(new Date(b))
+
 function formatTime(iso) {
-  const d = new Date(iso)
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
-function formatDate(iso) {
-  const d = new Date(iso)
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
-}
-function getDayKey(iso) {
-  return new Date(iso).toDateString()
+function formatDate(iso, lang) {
+  return new Date(iso).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US',
+    { month: 'short', day: 'numeric' })
 }
 function isToday(iso) {
-  return new Date(iso).toDateString() === new Date().toDateString()
+  return sameDay(iso, new Date())
 }
 function isPast(iso) {
   return new Date(iso) < new Date()
+}
+
+// ── Date picker control ─────────────────────────────────────────
+function DateSelector({ lang, dateMode, setDateMode, singleDate, setSingleDate,
+  rangeStart, setRangeStart, rangeEnd, setRangeEnd }) {
+
+  const today  = toYMD(new Date())
+  const CYAN_  = CYAN
+
+  const modeLabel = {
+    all:    lang === 'vi' ? 'Tất cả'       : 'All dates',
+    single: lang === 'vi' ? 'Ngày cụ thể'  : 'Specific date',
+    range:  lang === 'vi' ? 'Khoảng thời gian' : 'Date range',
+  }
+
+  // Quick shortcuts
+  const shortcuts = [
+    { key: 'today',   label: lang === 'vi' ? 'Hôm nay' : 'Today' },
+    { key: 'week',    label: lang === 'vi' ? 'Tuần này' : 'This week' },
+    { key: 'month',   label: lang === 'vi' ? 'Tháng này' : 'This month' },
+  ]
+
+  const applyShortcut = key => {
+    const now = new Date()
+    if (key === 'today') {
+      setDateMode('single'); setSingleDate(today)
+    } else if (key === 'week') {
+      const end = new Date(now); end.setDate(end.getDate() + 6)
+      setDateMode('range'); setRangeStart(today); setRangeEnd(toYMD(end))
+    } else if (key === 'month') {
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      setDateMode('range'); setRangeStart(today); setRangeEnd(toYMD(end))
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      {/* Mode pills */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12, alignItems: 'center' }}>
+        {['all','single','range'].map(m => (
+          <button key={m} onClick={() => setDateMode(m)} style={{
+            background: dateMode === m ? `${CYAN_}20` : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${dateMode === m ? CYAN_+'50' : 'rgba(255,255,255,0.08)'}`,
+            color: dateMode === m ? CYAN_ : '#64748B',
+            padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
+            fontSize: 12, fontWeight: 600,
+            fontFamily: "'Be Vietnam Pro', sans-serif", transition: 'all 0.15s',
+          }}>{modeLabel[m]}</button>
+        ))}
+
+        <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
+
+        {/* Quick shortcuts */}
+        {shortcuts.map(s => (
+          <button key={s.key} onClick={() => applyShortcut(s.key)} style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            color: '#475569', padding: '6px 12px', borderRadius: 8,
+            cursor: 'pointer', fontSize: 11,
+            fontFamily: "'Be Vietnam Pro', sans-serif", transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = CYAN_; e.currentTarget.style.borderColor = CYAN_+'30' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Date inputs */}
+      {dateMode === 'single' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 12, color: '#475569',
+            fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+            {lang === 'vi' ? 'Ngày:' : 'Date:'}
+          </span>
+          <input type="date" value={singleDate} min={today}
+            onChange={e => setSingleDate(e.target.value)}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: `1px solid ${CYAN_}30`,
+              color: CYAN_, borderRadius: 8, padding: '6px 12px',
+              fontSize: 13, fontFamily: "'Be Vietnam Pro', sans-serif",
+              outline: 'none', cursor: 'pointer',
+              colorScheme: 'dark',
+            }} />
+          {singleDate !== today && (
+            <button onClick={() => setSingleDate(today)} style={{
+              background: 'none', border: 'none', color: '#374151',
+              cursor: 'pointer', fontSize: 11,
+              fontFamily: "'Be Vietnam Pro', sans-serif",
+            }}>{lang === 'vi' ? '↺ Hôm nay' : '↺ Today'}</button>
+          )}
+        </div>
+      )}
+
+      {dateMode === 'range' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, color: '#475569',
+            fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+            {lang === 'vi' ? 'Từ:' : 'From:'}
+          </span>
+          <input type="date" value={rangeStart}
+            onChange={e => setRangeStart(e.target.value)}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: `1px solid ${CYAN_}30`,
+              color: CYAN_, borderRadius: 8, padding: '6px 12px',
+              fontSize: 13, fontFamily: "'Be Vietnam Pro', sans-serif",
+              outline: 'none', cursor: 'pointer', colorScheme: 'dark',
+            }} />
+          <span style={{ fontSize: 12, color: '#374151' }}>
+            {lang === 'vi' ? 'đến' : 'to'}
+          </span>
+          <input type="date" value={rangeEnd} min={rangeStart}
+            onChange={e => setRangeEnd(e.target.value)}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: `1px solid ${CYAN_}30`,
+              color: CYAN_, borderRadius: 8, padding: '6px 12px',
+              fontSize: 13, fontFamily: "'Be Vietnam Pro', sans-serif",
+              outline: 'none', cursor: 'pointer', colorScheme: 'dark',
+            }} />
+          {rangeStart && rangeEnd && (
+            <span style={{ fontSize: 11, color: '#374151',
+              fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+              {(() => {
+                const diff = Math.round((fromYMD(rangeEnd) - fromYMD(rangeStart)) / 86400000) + 1
+                return lang === 'vi' ? `${diff} ngày` : `${diff} day${diff !== 1 ? 's' : ''}`
+              })()}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function ScheduleItem({ item, lang }) {
   const color = TYPE_COLOR[item.type]
   const past  = isPast(item.airsAt)
 
-  const subLabel = item.episode
-    ? `EP ${item.episode}`
-    : item.chapter
-    ? `CH ${item.chapter}`
-    : item.volume
-    ? `VOL ${item.volume}`
+  const subLabel = item.episode ? `EP ${item.episode}`
+    : item.chapter ? `CH ${item.chapter}`
+    : item.volume  ? `VOL ${item.volume}`
     : ''
 
   return (
@@ -45,10 +177,8 @@ function ScheduleItem({ item, lang }) {
       padding: '10px 14px', borderRadius: 12,
       background: past ? 'rgba(255,255,255,0.02)' : `${color}08`,
       border: `1px solid ${past ? 'rgba(255,255,255,0.05)' : color + '25'}`,
-      opacity: past ? 0.5 : 1,
-      transition: 'all 0.2s',
+      opacity: past ? 0.5 : 1, transition: 'all 0.2s',
     }}>
-      {/* Cover */}
       <div style={{ width: 36, height: 50, borderRadius: 6,
         background: `${color}20`, flexShrink: 0, overflow: 'hidden' }}>
         {item.cover
@@ -61,7 +191,6 @@ function ScheduleItem({ item, lang }) {
         }
       </div>
 
-      {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           color: past ? '#475569' : '#e2e8f0', lineHeight: 1.2,
@@ -70,22 +199,16 @@ function ScheduleItem({ item, lang }) {
         </div>
         <div style={{ display: 'flex', gap: 6, marginTop: 4, alignItems: 'center' }}>
           <span style={{ fontSize: 9, padding: '1px 7px', borderRadius: 20,
-            background: `${color}20`, color: color,
-            fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            background: `${color}20`, color, fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {item.type}
           </span>
-          {subLabel && (
-            <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>
-              {subLabel}
-            </span>
-          )}
+          {subLabel && <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>{subLabel}</span>}
         </div>
       </div>
 
-      {/* Time */}
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 700,
-          color: past ? '#374151' : color,
+        <div style={{ fontSize: 12, fontWeight: 700, color: past ? '#374151' : color,
           fontFamily: "'Be Vietnam Pro', sans-serif" }}>
           {formatTime(item.airsAt)}
         </div>
@@ -100,21 +223,39 @@ function ScheduleItem({ item, lang }) {
 }
 
 export function SchedulePage() {
-  const { lang, t }    = useLang()
-  const [typeFilter, setTypeFilter] = useState('all')
+  const { lang } = useLang()
+
+  const today = toYMD(new Date())
+  const [typeFilter,  setTypeFilter]  = useState('all')
+  const [dateMode,    setDateMode]    = useState('all')      // 'all' | 'single' | 'range'
+  const [singleDate,  setSingleDate]  = useState(today)
+  const [rangeStart,  setRangeStart]  = useState(today)
+  const [rangeEnd,    setRangeEnd]    = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() + 6); return toYMD(d)
+  })
 
   const filtered = useMemo(() => {
-    const items = typeFilter === 'all'
-      ? SCHEDULE_MOCK
-      : SCHEDULE_MOCK.filter(i => i.type === typeFilter)
+    let items = typeFilter === 'all' ? SCHEDULE_MOCK : SCHEDULE_MOCK.filter(i => i.type === typeFilter)
+
+    if (dateMode === 'single') {
+      items = items.filter(i => toYMD(new Date(i.airsAt)) === singleDate)
+    } else if (dateMode === 'range' && rangeStart && rangeEnd) {
+      const start = fromYMD(rangeStart)
+      const end   = new Date(fromYMD(rangeEnd).getTime() + 86399999) // end of day
+      items = items.filter(i => {
+        const d = new Date(i.airsAt)
+        return d >= start && d <= end
+      })
+    }
+
     return [...items].sort((a, b) => new Date(a.airsAt) - new Date(b.airsAt))
-  }, [typeFilter])
+  }, [typeFilter, dateMode, singleDate, rangeStart, rangeEnd])
 
   // Group by day
   const grouped = useMemo(() => {
     const map = new Map()
     filtered.forEach(item => {
-      const key = getDayKey(item.airsAt)
+      const key = toYMD(new Date(item.airsAt))
       if (!map.has(key)) map.set(key, [])
       map.get(key).push(item)
     })
@@ -123,9 +264,7 @@ export function SchedulePage() {
 
   const todayCount = filtered.filter(i => isToday(i.airsAt)).length
   const weekCount  = filtered.filter(i => {
-    const d = new Date(i.airsAt)
-    const now = new Date()
-    const diff = (d - now) / (1000 * 60 * 60 * 24)
+    const diff = (new Date(i.airsAt) - new Date()) / 86400000
     return diff >= 0 && diff <= 7
   }).length
 
@@ -145,24 +284,19 @@ export function SchedulePage() {
       <main style={{ maxWidth: 860, margin: '0 auto', padding: '24px 16px' }}>
 
         {/* Type filter */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
-          {['all', 'anime', 'manga', 'novel'].map(type => {
-            const color = type === 'all' ? PURPLE : TYPE_COLOR[type]
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {['all','anime','manga','novel'].map(type => {
+            const color  = type === 'all' ? PURPLE : TYPE_COLOR[type]
             const active = typeFilter === type
-            const labels = {
-              all:   lang === 'vi' ? 'Tất cả' : 'All',
-              anime: 'Anime', manga: 'Manga',
-              novel: lang === 'vi' ? 'Novel' : 'Novel',
-            }
+            const labels = { all: lang === 'vi' ? 'Tất cả' : 'All', anime: 'Anime', manga: 'Manga', novel: 'Novel' }
             return (
               <button key={type} onClick={() => setTypeFilter(type)} style={{
                 background: active ? `${color}22` : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${active ? color + '60' : 'rgba(255,255,255,0.08)'}`,
+                border: `1px solid ${active ? color+'60' : 'rgba(255,255,255,0.08)'}`,
                 color: active ? color : '#64748B',
                 padding: '7px 18px', borderRadius: 20, cursor: 'pointer',
                 fontSize: 12, fontWeight: 700,
-                fontFamily: "'Be Vietnam Pro', sans-serif",
-                transition: 'all 0.15s',
+                fontFamily: "'Be Vietnam Pro', sans-serif", transition: 'all 0.15s',
               }}>
                 {type !== 'all' && TYPE_ICON[type] + ' '}{labels[type]}
               </button>
@@ -170,38 +304,50 @@ export function SchedulePage() {
           })}
         </div>
 
+        {/* Date selector */}
+        <DateSelector lang={lang}
+          dateMode={dateMode} setDateMode={setDateMode}
+          singleDate={singleDate} setSingleDate={setSingleDate}
+          rangeStart={rangeStart} setRangeStart={setRangeStart}
+          rangeEnd={rangeEnd} setRangeEnd={setRangeEnd} />
+
+        {/* Result count */}
+        {dateMode !== 'all' && (
+          <div style={{ fontSize: 11, color: '#374151', marginBottom: 16,
+            fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+            {filtered.length > 0
+              ? lang === 'vi'
+                ? `${filtered.length} mục trong khoảng thời gian đã chọn`
+                : `${filtered.length} release${filtered.length !== 1 ? 's' : ''} in selected period`
+              : lang === 'vi' ? 'Không có mục nào' : 'No releases found'
+            }
+          </div>
+        )}
+
         {/* Grouped by day */}
         {[...grouped.entries()].map(([dayKey, items]) => {
-          const date    = new Date(dayKey)
-          const isToday_ = dayKey === new Date().toDateString()
-          const dayName = isToday_
+          const date     = fromYMD(dayKey)
+          const isToday_ = dayKey === today
+          const dayName  = isToday_
             ? (lang === 'vi' ? 'Hôm nay' : 'Today')
             : (lang === 'vi' ? DAY_NAMES_VI : DAY_NAMES)[date.getDay()]
 
           return (
             <div key={dayKey} style={{ marginBottom: 28 }}>
-              {/* Day header */}
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10,
-              }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                 <div style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: isToday_ ? 22 : 16,
-                  fontWeight: 700, letterSpacing: 1,
+                  fontSize: isToday_ ? 22 : 16, fontWeight: 700, letterSpacing: 1,
                   color: isToday_ ? CYAN : '#475569',
-                }}>
-                  {dayName}
-                </div>
+                }}>{dayName}</div>
                 <div style={{ fontSize: 11, color: '#374151',
                   fontFamily: "'Be Vietnam Pro', sans-serif" }}>
-                  {formatDate(items[0].airsAt)}
+                  {formatDate(items[0].airsAt, lang)}
                 </div>
                 {isToday_ && (
-                  <div style={{
-                    width: 6, height: 6, borderRadius: '50%',
+                  <div style={{ width: 6, height: 6, borderRadius: '50%',
                     background: CYAN, boxShadow: `0 0 8px ${CYAN}`,
-                    animation: 'pulse 1.5s infinite',
-                  }} />
+                    animation: 'pulse 1.5s infinite' }} />
                 )}
                 <div style={{ flex: 1, height: 1,
                   background: isToday_
@@ -211,24 +357,30 @@ export function SchedulePage() {
                   {items.length} {lang === 'vi' ? 'mục' : 'items'}
                 </span>
               </div>
-
-              {/* Items */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {items.map(item => (
-                  <ScheduleItem key={item.id} item={item} lang={lang} />
-                ))}
+                {items.map(item => <ScheduleItem key={item.id} item={item} lang={lang} />)}
               </div>
             </div>
           )
         })}
 
         {filtered.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#374151' }}>
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <div style={{ fontSize: 44, marginBottom: 12 }}>📅</div>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
               fontSize: 22, color: '#4B5563' }}>
-              {lang === 'vi' ? 'Không có lịch' : 'No releases scheduled'}
+              {lang === 'vi' ? 'Không có lịch phát hành' : 'No releases scheduled'}
             </div>
+            {dateMode !== 'all' && (
+              <button onClick={() => setDateMode('all')} style={{
+                marginTop: 14, background: 'none',
+                border: `1px solid ${CYAN}30`, color: CYAN,
+                padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
+                fontSize: 12, fontFamily: "'Be Vietnam Pro', sans-serif",
+              }}>
+                {lang === 'vi' ? '↺ Xem tất cả' : '↺ Show all dates'}
+              </button>
+            )}
           </div>
         )}
 
