@@ -17,40 +17,6 @@ export const EXTERNAL_LINKS = {
   'c52b2':  { official: 'https://mangaplus.shueisha.co.jp',          shop: 'https://www.amazon.com/s?k=jujutsu+kaisen+manga' },
 
 
-  // ── TEST ENTRIES — within 24h to trigger notifications ───────
-  // Novels matching voted series (titles must match user_lists exactly)
-  { id: 'sch_t1', type: 'novel', title: 'Classroom of the Elite',
-    cover: 'https://images.ranobedb.org/7dc6e1c8-d5a6-4ef8-a22c-1e98b55a94ec.jpg',
-    volume: 12, airsAt: d(0, 15, 0), status: 'upcoming', color: '#8B5CF6' },
-  { id: 'sch_t2', type: 'novel', title: 'The Devil Is a Part-Timer!',
-    cover: 'https://images.ranobedb.org/b4e8f2a1-3c7d-4b2e-9f1a-2e8d7c6b5a4f.jpg',
-    volume: 22, airsAt: d(0, 18, 30), status: 'upcoming', color: '#8B5CF6' },
-  { id: 'sch_t3', type: 'novel', title: 'Aria the Scarlet Ammo',
-    cover: null,
-    volume: 25, airsAt: d(0, 21, 0), status: 'upcoming', color: '#8B5CF6' },
-  { id: 'sch_t4', type: 'novel', title: 'The Guin Saga',
-    cover: null,
-    volume: 130, airsAt: d(1, 9, 0), status: 'upcoming', color: '#8B5CF6' },
-
-  // Anime — common titles users might have in their list
-  { id: 'sch_t5', type: 'anime', title: 'Attack on Titan',
-    cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-DcCggKPSvF3U.jpg',
-    episode: 88, airsAt: d(0, 20, 0), status: 'airing', color: '#06B6D4' },
-  { id: 'sch_t6', type: 'anime', title: 'Overlord',
-    cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx29803-HGjFGBFAaGPh.jpg',
-    episode: 14, airsAt: d(0, 22, 0), status: 'airing', color: '#06B6D4' },
-  { id: 'sch_t7', type: 'anime', title: 'Re:Zero Starting Life in Another World',
-    cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21355-Aq5q6laqmKMa.jpg',
-    episode: 17, airsAt: d(1, 0, 0), status: 'airing', color: '#06B6D4' },
-
-  // Manga — common titles
-  { id: 'sch_t8', type: 'manga', title: 'Demon Slayer',
-    cover: 'https://mangadex.org/covers/a96647f8-c5aa-4a57-8da6-f881e7e9c6cc/3b1ef9c3-0481-4f5e-a2a6-6c3c61e7f26f.jpg',
-    chapter: 210, airsAt: d(0, 16, 0), status: 'airing', color: '#F43F5E' },
-  { id: 'sch_t9', type: 'manga', title: 'Sword Art Online',
-    cover: null, chapter: 45, airsAt: d(0, 17, 0), status: 'airing', color: '#F43F5E' },
-  // ── END TEST ENTRIES ─────────────────────────────────────────
-
   // Novels (RanobeDB IDs)
   '1':      { shop: 'https://www.amazon.com/s?k=sword+art+online+light+novel', youtube: 'https://youtube.com/watch?v=6ohYYtxfDCg' },
   '2':      { shop: 'https://www.amazon.com/s?k=overlord+light+novel' },
@@ -91,6 +57,17 @@ export const SCHEDULE_MOCK = [
   { id: 'sch_15', type: 'novel', title: 'Overlord Vol.18',                 cover: null, volume: 18, airsAt: d(10, 0, 0), status: 'upcoming', color: '#8B5CF6' },
   { id: 'sch_16', type: 'novel', title: 'Re:Zero Vol.40',                  cover: null, volume: 40, airsAt: d(12, 0, 0), status: 'upcoming', color: '#8B5CF6' },
   { id: 'sch_17', type: 'novel', title: 'Sword Art Online Vol.28',         cover: null, volume: 28, airsAt: d(20, 0, 0), status: 'upcoming', color: '#8B5CF6' },
+
+  // ── TEST: within 24h, matches common series in user lists ────
+  { id: 'sch_t1', type: 'novel', title: 'Classroom of the Elite',          cover: null, volume: 12,  airsAt: d(0, 15, 0),  status: 'upcoming', color: '#8B5CF6' },
+  { id: 'sch_t2', type: 'novel', title: 'The Devil Is a Part-Timer!',      cover: null, volume: 22,  airsAt: d(0, 18, 30), status: 'upcoming', color: '#8B5CF6' },
+  { id: 'sch_t3', type: 'novel', title: 'Aria the Scarlet Ammo',           cover: null, volume: 25,  airsAt: d(0, 21, 0),  status: 'upcoming', color: '#8B5CF6' },
+  { id: 'sch_t4', type: 'novel', title: 'The Guin Saga',                   cover: null, volume: 130, airsAt: d(1, 9, 0),   status: 'upcoming', color: '#8B5CF6' },
+  { id: 'sch_t5', type: 'anime', title: 'Attack on Titan',                 cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-DcCggKPSvF3U.jpg', episode: 88, airsAt: d(0, 20, 0), status: 'airing', color: '#06B6D4' },
+  { id: 'sch_t6', type: 'anime', title: 'Overlord',                        cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx29803-HGjFGBFAaGPh.jpg', episode: 14, airsAt: d(0, 22, 0), status: 'airing', color: '#06B6D4' },
+  { id: 'sch_t7', type: 'anime', title: 'Re:Zero Starting Life in Another World', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21355-Aq5q6laqmKMa.jpg', episode: 17, airsAt: d(1, 0, 0), status: 'airing', color: '#06B6D4' },
+  { id: 'sch_t8', type: 'manga', title: 'Demon Slayer',                    cover: null, chapter: 210, airsAt: d(0, 16, 0), status: 'airing', color: '#F43F5E' },
+  { id: 'sch_t9', type: 'manga', title: 'Sword Art Online',                cover: null, chapter: 45,  airsAt: d(0, 17, 0), status: 'airing', color: '#F43F5E' },
 ]
 
 // ── Link config ───────────────────────────────────────────────
