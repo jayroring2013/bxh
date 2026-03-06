@@ -4,7 +4,7 @@ import { useAuth } from './context/AuthContext.jsx'
 
 export const STATUS_OPTIONS = [
   { key: 'reading',   color: '#06B6D4', vi: 'Đang đọc/xem', en: 'Reading / Watching' },
-  { key: 'planned',   color: '#A78BFA', vi: 'Dự định đọc/xem',   en: 'Plan to Read/Watch'       },
+  { key: 'planned',   color: '#A78BFA', vi: 'Dự định đọc',   en: 'Plan to Read'       },
   { key: 'completed', color: '#4ADE80', vi: 'Hoàn thành',    en: 'Completed'           },
   { key: 'onhold',    color: '#F59E0B', vi: 'Tạm dừng',      en: 'On Hold'             },
   { key: 'dropped',   color: '#F87171', vi: 'Bỏ dở',         en: 'Dropped'             },
@@ -114,6 +114,13 @@ export function useUserList() {
       e => e.list_id === listId && e.item_id === String(item_id) && e.item_type === item_type
     )
 
+    // Inherit rating/review from any other list entry for this item if not provided
+    const anyExisting = entries.find(
+      e => e.item_id === String(item_id) && e.item_type === item_type && (e.rating || e.review)
+    )
+    const inheritedRating = rating  || anyExisting?.rating  || null
+    const inheritedReview = review  || anyExisting?.review  || null
+
     const row = {
       list_id:   listId,
       user_id:   user.id,
@@ -122,14 +129,16 @@ export function useUserList() {
       title,
       cover_url: cover_url || null,
       status,
-      rating:    rating  || null,
-      review:    review  || null,
+      rating:    inheritedRating,
+      review:    inheritedReview,
     }
 
     if (existing) {
-      // Update
+      // Update — only overwrite rating/review if explicitly provided
       await api(token, `user_list_entries?id=eq.${existing.id}`, 'PATCH', {
-        status, rating: rating || null, review: review || null,
+        status,
+        rating: rating !== undefined ? (rating || null) : (existing.rating || null),
+        review: review !== undefined ? (review  || null) : (existing.review || null),
       }, { Prefer: 'return=minimal' })
     } else {
       await api(token, 'user_list_entries', 'POST', row)
