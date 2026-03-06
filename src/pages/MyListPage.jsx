@@ -439,19 +439,26 @@ export function MyListPage() {
         <EditEntryModal
           entry={editing} lang={lang}
           onSave={async (id, updates) => {
-            // Direct patch
             const { SUPABASE_URL, SUPABASE_ANON } = await import('../supabase.js')
             const token = localStorage.getItem('nt_auth_token')
+            const hdrs  = { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json', Prefer: 'return=minimal' }
+
+            // Update this entry
             await fetch(`${SUPABASE_URL}/rest/v1/user_list_entries?id=eq.${id}`, {
-              method: 'PATCH',
-              headers: {
-                apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json', Prefer: 'return=minimal',
-              },
-              body: JSON.stringify(updates),
+              method: 'PATCH', headers: hdrs, body: JSON.stringify(updates),
             })
+
+            // Sync rating+review to ALL other entries for the same item
+            if (updates.rating !== undefined || updates.review !== undefined) {
+              const ratingReview = { rating: updates.rating ?? null, review: updates.review ?? null }
+              await fetch(
+                `${SUPABASE_URL}/rest/v1/user_list_entries?item_id=eq.${editing.item_id}&item_type=eq.${editing.item_type}&id=neq.${id}`,
+                { method: 'PATCH', headers: hdrs, body: JSON.stringify(ratingReview) }
+              )
+            }
+
             show(lang === 'vi' ? 'Đã cập nhật!' : 'Updated!', 'success')
-            // Refresh entries in useList via refetch
             window.dispatchEvent(new CustomEvent('nt_refetch_list'))
           }}
           onRemove={async (id) => {
