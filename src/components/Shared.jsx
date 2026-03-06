@@ -186,6 +186,9 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
           🌐 {lang === 'vi' ? 'EN' : 'VI'}
         </button>
 
+        {/* Notification bell — only when logged in */}
+        {user && <NotificationBell />}
+
         {/* User button */}
         {user ? (
           <div style={{ position: 'relative', flexShrink: 0 }}>
