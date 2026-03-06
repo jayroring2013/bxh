@@ -14,6 +14,7 @@ import { VotePage }        from './pages/VotePage.jsx'
 import { MyListPage }      from './pages/MyListPage.jsx'
 import { SchedulePage }    from './pages/SchedulePage.jsx'
 import { RankingPage }     from './pages/RankingPage.jsx'
+import { AdminPage }      from './pages/AdminPage.jsx'
 
 function Router() {
   const hash   = useHash()
@@ -43,6 +44,7 @@ function Router() {
   if (hash.startsWith('#/list'))      return wrap(MyListPage)
   if (hash.startsWith('#/schedule'))   return wrap(SchedulePage)
   if (hash.startsWith('#/ranking'))    return wrap(RankingPage)
+  if (hash.startsWith('#/admin'))      return wrap(AdminPage)
   return wrap(LandingPage)
 }
 
