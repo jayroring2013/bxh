@@ -46,14 +46,18 @@ export function useNovels({ search, sort, status, genre }) {
       params.set('select', '*')
 
       const sortCol =
-          sort === 'num_books' || sort === 'popularity' ? 'num_books.desc'
-        : sort === 'score'     ? 'score.desc'
-        : sort === 'start_date_desc' ? 'start_date.desc'
-        : 'num_books.desc'
+          sort === 'Start date desc' ? 'start_date.desc'
+        : sort === 'Start date asc'  ? 'start_date.asc'
+        : sort === 'Title asc'       ? 'title.asc'
+        : sort === 'Title desc'      ? 'title.desc'
+        : sort === 'Num. books desc' ? 'num_books.desc'
+        : sort === 'Num. books asc'  ? 'num_books.asc'
+        : 'start_date.desc'
       params.set('order', sortCol)
 
       if (search.trim()) {
-        params.set('or', `(title.ilike.*${search.trim()}*,romaji.ilike.*${search.trim()}*)`)
+        const enc = encodeURIComponent(search.trim())
+        params.set('or', `(title.ilike.%25${enc}%25,romaji.ilike.%25${enc}%25)`)
       }
       if (status && status !== 'all') params.set('publication_status', `eq.${status}`)
       if (genre  && genre  !== 'all') params.set('genres', `cs.{"${genre}"}`)
