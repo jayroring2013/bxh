@@ -153,9 +153,9 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
             return (
               <a key={tab.path} href={tab.path}
                 className={`nav-tab${on ? ' nav-tab--active' : ''}`}
-                style={on ? { background: accent } : {}}>
-                <span>{tab.icon}</span>
-                <span style={{ display: on ? 'inline' : undefined }}>{t(tab.labelKey)}</span>
+                style={on ? { background: accent } : {}}
+                title={t(tab.labelKey)}>
+                {tab.icon}{on ? <span style={{marginLeft:5}}>{t(tab.labelKey)}</span> : null}
               </a>
             )
           })}
@@ -174,19 +174,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
           </div>
         )}
 
-        {/* Sort pills */}
-        {!hideSorts && sorts.length > 0 && (
-          <div className="app-header__sorts">
-            {sorts.map(s => (
-              <button key={s.id}
-                className={`sort-btn${activeSort === s.id ? ' sort-btn--active' : ''}`}
-                onClick={() => onSort(s.id)}
-                style={activeSort === s.id ? { background: accent } : {}}>
-                {s.label}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Sorts moved to sub-bar below — nothing here */}
 
         {/* Language toggle */}
         <button onClick={toggleLang} style={{
@@ -250,6 +238,26 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
     </header>
 
     {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
+    {/* Sub-bar: sort pills below header */}
+    {!hideSorts && sorts.length > 0 && (
+      <div style={{
+        background: 'rgba(0,0,0,0.3)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        padding: '8px 20px',
+        display: 'flex', gap: 6, flexWrap: 'wrap',
+        justifyContent: 'center',
+      }}>
+        {sorts.map(s => (
+          <button key={s.id}
+            className={`sort-btn${activeSort === s.id ? ' sort-btn--active' : ''}`}
+            onClick={() => onSort(s.id)}
+            style={activeSort === s.id ? { background: accent } : {}}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+    )}
     </>
   )
 }
