@@ -72,11 +72,12 @@ export const SCHEDULE_MOCK = [
 
 // ── Link config ───────────────────────────────────────────────
 export const LINK_CONFIG = {
-  shop:     { label: '🛒 Shop',     labelVi: '🛒 Mua',       color: '#F59E0B' },
-  youtube:  { label: '▶ YouTube',  labelVi: '▶ YouTube',    color: '#EF4444' },
+  shop:     { label: '🛒 Shop',     labelVi: '🛒 Mua',        color: '#F59E0B' },
+  youtube:  { label: '▶ YouTube',  labelVi: '▶ YouTube',     color: '#EF4444' },
   official: { label: '🔗 Official', labelVi: '🔗 Chính thức', color: '#06B6D4' },
-  anilist:  { label: '📊 AniList',  labelVi: '📊 AniList',   color: '#02a9ff' },
-  mangadex: { label: '📖 MangaDex', labelVi: '📖 MangaDex',  color: '#F87171' },
+  raw:      { label: '📄 Raw',      labelVi: '📄 Raw',        color: '#94A3B8' },
+  anilist:  { label: '📊 AniList',  labelVi: '📊 AniList',    color: '#02a9ff' },
+  mangadex: { label: '📖 MangaDex', labelVi: '📖 MangaDex',   color: '#F87171' },
 }
 
 // Get external links for an item — always includes type default + any specific overrides
