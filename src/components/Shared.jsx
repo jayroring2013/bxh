@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useLang } from '../context/LangContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { AuthModal } from './AuthModal.jsx'
+import { NotificationBell } from './NotificationBell.jsx'
 
 /* ── Skeleton ──────────────────────────────────────────────── */
 export const SkeletonCard = () => (
