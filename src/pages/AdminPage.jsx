@@ -82,17 +82,18 @@ function SeriesPicker({ token, onPick }) {
     setLoading(true)
     try {
       let data = []
+      const enc = encodeURIComponent(q)
       if (type === 'novel') {
         data = await api(token,
-          `novels?or=(title.ilike.*${encodeURIComponent(q)}*,romaji.ilike.*${encodeURIComponent(q)}*)&select=id,title,romaji,cover_url&limit=8`)
+          `novels?or=(title.ilike.%25${enc}%25,romaji.ilike.%25${enc}%25)&select=id,title,romaji,cover_url&limit=8`)
         data = (data || []).map(r => ({ id: String(r.id), title: r.title || r.romaji, cover: r.cover_url, type: 'novel' }))
       } else if (type === 'anime') {
         data = await api(token,
-          `anime?or=(title_english.ilike.*${encodeURIComponent(q)}*,title_romaji.ilike.*${encodeURIComponent(q)}*)&select=id,title_english,title_romaji,cover_large&limit=8`)
+          `anime?or=(title_english.ilike.%25${enc}%25,title_romaji.ilike.%25${enc}%25)&select=id,title_english,title_romaji,cover_large&limit=8`)
         data = (data || []).map(r => ({ id: String(r.id), title: r.title_english || r.title_romaji, cover: r.cover_large, type: 'anime' }))
       } else {
         data = await api(token,
-          `manga?or=(title_en.ilike.*${encodeURIComponent(q)}*,title_ja_ro.ilike.*${encodeURIComponent(q)}*)&select=id,title_en,title_ja_ro,cover_url&limit=8`)
+          `manga?or=(title_en.ilike.%25${enc}%25,title_ja_ro.ilike.%25${enc}%25)&select=id,title_en,title_ja_ro,cover_url&limit=8`)
         data = (data || []).map(r => ({ id: String(r.id), title: r.title_en || r.title_ja_ro, cover: r.cover_url, type: 'manga' }))
       }
       setResults(data)
@@ -190,15 +191,24 @@ function LinksTab({ token, toast }) {
 
   const save = async () => {
     try {
+      // Clean form — remove empty strings so DB gets null
+      const clean = Object.fromEntries(
+        Object.entries(form).map(([k,v]) => [k, v === '' ? null : v])
+      )
       if (editing === 'new') {
-        await api(token, 'item_links', 'POST', form)
+        const res = await api(token, 'item_links', 'POST', clean)
+        console.log('[Admin] insert result:', res)
         toast('Link entry created ✓')
       } else {
-        await api(token, `item_links?id=eq.${editing.id}`, 'PATCH', form)
+        const res = await api(token, `item_links?id=eq.${editing.id}`, 'PATCH', clean)
+        console.log('[Admin] update result:', res)
         toast('Link entry updated ✓')
       }
       setEditing(null); load()
-    } catch(e) { toast(e.message, false) }
+    } catch(e) {
+      console.error('[Admin] save error:', e)
+      toast(`Save failed: ${e.message}`, false)
+    }
   }
 
   const del = async (id) => {
