@@ -16,7 +16,7 @@ const MONTHS_VI = ['Th.1','Th.2','Th.3','Th.4','Th.5','Th.6','Th.7','Th.8','Th.9
 const rankColor = r => r === 1 ? GOLD : r === 2 ? SILVER : r === 3 ? BRONZE : '#475569'
 
 // ── Detail modal for a ranked novel ─────────────────────────────
-function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDetail }) {
+function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDetail, lang }) {
   const rc  = rankColor(rank)
   const votes = entry.vote_count || 0
 
@@ -102,7 +102,7 @@ function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDe
             background: `${PURPLE}20`, border: `1px solid ${PURPLE}40`,
             color: '#C4B5FD', borderRadius: 10, textDecoration: 'none',
             fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: 600,
-          }}>🗳️ Vote for this series</a>
+          }}>{lang === 'vi' ? '🗳️ Bình chọn series này' : '🗳️ Vote for this series'}</a>
         </div>
       </div>
     </ModalShell>
@@ -679,7 +679,8 @@ export function RankingPage() {
           prevRank={prevRanks[selected.entry.novel_id]}
           allHistory={history}
           onClose={() => setSelected(null)}
-          onOpenDetail={(id) => { setSelected(null); openNovelDetail(id) }} />
+          onOpenDetail={(id) => { setSelected(null); openNovelDetail(id) }}
+          lang={lang} />
       )}
       {detailLoading && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10000,
