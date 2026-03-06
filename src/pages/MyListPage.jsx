@@ -317,7 +317,7 @@ export function MyListPage() {
                   color: isActive ? '#fff' : '#64748B',
                   fontFamily: "'Be Vietnam Pro', sans-serif",
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>{list.name}</span>
+                }}>{list.is_default ? (lang === 'vi' ? 'Mặc định' : 'Default') : list.name}</span>
                 <span style={{ fontSize: 10, color: isActive ? '#A78BFA' : '#374151',
                   fontWeight: 700 }}>{count}</span>
                 {!list.is_default && (
