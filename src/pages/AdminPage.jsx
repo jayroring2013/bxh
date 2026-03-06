@@ -69,14 +69,98 @@ function Section({ title, children, action }) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// Series search picker — searches novels/anime/manga live
+// ═══════════════════════════════════════════════════════════
+function SeriesPicker({ token, onPick }) {
+  const [query,   setQuery]   = useState('')
+  const [type,    setType]    = useState('novel')
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const search = async (q) => {
+    if (!q.trim()) { setResults([]); return }
+    setLoading(true)
+    try {
+      let data = []
+      if (type === 'novel') {
+        data = await api(token,
+          `novels?or=(title.ilike.*${encodeURIComponent(q)}*,romaji.ilike.*${encodeURIComponent(q)}*)&select=id,title,romaji,cover_url&limit=8`)
+        data = (data || []).map(r => ({ id: String(r.id), title: r.title || r.romaji, cover: r.cover_url, type: 'novel' }))
+      } else if (type === 'anime') {
+        data = await api(token,
+          `anime?or=(title_english.ilike.*${encodeURIComponent(q)}*,title_romaji.ilike.*${encodeURIComponent(q)}*)&select=id,title_english,title_romaji,cover_large&limit=8`)
+        data = (data || []).map(r => ({ id: String(r.id), title: r.title_english || r.title_romaji, cover: r.cover_large, type: 'anime' }))
+      } else {
+        data = await api(token,
+          `manga?or=(title_en.ilike.*${encodeURIComponent(q)}*,title_ja_ro.ilike.*${encodeURIComponent(q)}*)&select=id,title_en,title_ja_ro,cover_url&limit=8`)
+        data = (data || []).map(r => ({ id: String(r.id), title: r.title_en || r.title_ja_ro, cover: r.cover_url, type: 'manga' }))
+      }
+      setResults(data)
+    } catch(e) { console.error(e) }
+    finally { setLoading(false) }
+  }
+
+  useEffect(() => {
+    const t = setTimeout(() => search(query), 350)
+    return () => clearTimeout(t)
+  }, [query, type])
+
+  const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+        {['novel','anime','manga'].map(t => (
+          <button key={t} onClick={() => { setType(t); setResults([]) }} style={{
+            ...btn(TYPE_COLOR[t], type !== t),
+            padding: '6px 14px', fontSize: 11, textTransform: 'capitalize',
+          }}>{t}</button>
+        ))}
+      </div>
+      <input value={query} onChange={e => setQuery(e.target.value)}
+        placeholder={`Search ${type} by title…`} style={inp} autoFocus />
+      {loading && <div style={{ color: '#475569', fontSize: 12, padding: '8px 0' }}>Searching…</div>}
+      {results.length > 0 && (
+        <div style={{ marginTop: 6, border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 10, overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
+          {results.map(r => (
+            <div key={r.id} onClick={() => onPick(r)}
+              style={{ display: 'flex', gap: 10, alignItems: 'center',
+                padding: '8px 12px', cursor: 'pointer',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                background: 'rgba(255,255,255,0.02)',
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+              {r.cover && <img src={r.cover} style={{ width: 28, height: 38, objectFit: 'cover',
+                borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif",
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                <div style={{ fontSize: 10, color: '#475569' }}>ID: {r.id}</div>
+              </div>
+              <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 700,
+                background: `${TYPE_COLOR[r.type]}20`, color: TYPE_COLOR[r.type],
+                textTransform: 'uppercase' }}>{r.type}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════
 // Tab: Series Links
 // ═══════════════════════════════════════════════════════════
 function LinksTab({ token, toast }) {
-  const [links,   setLinks]   = useState([])
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(null)   // null | 'new' | row object
-  const [search,  setSearch]  = useState('')
-  const [form,    setForm]    = useState({})
+  const [links,     setLinks]     = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [editing,   setEditing]   = useState(null)
+  const [form,      setForm]      = useState({})
+  const [listSearch,setListSearch]= useState('')
+  const [showPicker,setShowPicker]= useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -89,12 +173,17 @@ function LinksTab({ token, toast }) {
 
   useEffect(() => { load() }, [load])
 
-  const openNew = () => {
-    setForm({ item_id: '', item_type: 'novel', title: '', shop: '', youtube: '', official: '', raw: '', anilist: '', mangadex: '' })
+  const openNew = () => { setShowPicker(true) }
+
+  const pickSeries = (series) => {
+    // series = { id, title, cover, type } from SeriesPicker
+    setShowPicker(false)
+    setForm({ item_id: series.id, item_type: series.type, title: series.title,
+      cover_url: series.cover || '', shop: '', youtube: '', official: '', raw: '', anilist: '', mangadex: '' })
     setEditing('new')
   }
 
-  const openEdit = (row) => {
+  const openEdit = async (row) => {
     setForm({ ...row })
     setEditing(row)
   }
@@ -119,32 +208,35 @@ function LinksTab({ token, toast }) {
   }
 
   const filtered = links.filter(l =>
-    !search || l.title?.toLowerCase().includes(search.toLowerCase()) ||
-    l.item_id?.includes(search)
+    !listSearch || l.title?.toLowerCase().includes(listSearch.toLowerCase()) ||
+    l.item_id?.includes(listSearch)
   )
 
   const LINK_FIELDS = [
-    { key: 'shop',     label: '🛒 Shop',     color: GOLD   },
-    { key: 'youtube',  label: '▶ YouTube',  color: '#EF4444' },
-    { key: 'official', label: '🔗 Official', color: CYAN   },
-    { key: 'raw',      label: '📄 Raw',      color: '#94A3B8' },
-    { key: 'anilist',  label: '📊 AniList',  color: '#02a9ff' },
-    { key: 'mangadex', label: '📖 MangaDex', color: ROSE   },
+    { key: 'shop',     label: '🛒 Shop',     color: GOLD       },
+    { key: 'youtube',  label: '▶ YouTube',  color: '#EF4444'  },
+    { key: 'official', label: '🔗 Official', color: CYAN       },
+    { key: 'raw',      label: '📄 Raw',      color: '#94A3B8'  },
+    { key: 'anilist',  label: '📊 AniList',  color: '#02a9ff'  },
+    { key: 'mangadex', label: '📖 MangaDex', color: ROSE       },
   ]
+
+  const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
 
   return (
     <div>
       <Section title="Series Link Manager"
         action={<button style={btn(GREEN)} onClick={openNew}>+ Add Links</button>}>
 
-        <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search by title or ID…" style={{ ...inp, marginBottom: 14 }} />
+        {/* Filter existing entries */}
+        <input value={listSearch} onChange={e => setListSearch(e.target.value)}
+          placeholder="Filter saved entries by title or ID…" style={{ ...inp, marginBottom: 14 }} />
 
         {loading ? (
           <div style={{ color: '#475569', textAlign: 'center', padding: 32 }}>Loading…</div>
         ) : filtered.length === 0 ? (
           <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>
-            No entries yet. Click "+ Add Links" to attach links to a series.
+            {listSearch ? 'No matching entries.' : 'No entries yet. Click "+ Add Links" to attach links to a series.'}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -154,10 +246,14 @@ function LinksTab({ token, toast }) {
                 background: 'rgba(255,255,255,0.03)', borderRadius: 10,
                 border: '1px solid rgba(255,255,255,0.06)', padding: '10px 14px',
               }}>
+                {row.cover_url && (
+                  <img src={row.cover_url} style={{ width: 28, height: 38, objectFit: 'cover',
+                    borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
+                )}
                 <div style={{ flexShrink: 0 }}>
                   <div style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20,
-                    background: row.item_type === 'novel' ? `${PURPLE}20` : row.item_type === 'anime' ? `${CYAN}20` : `${ROSE}20`,
-                    color: row.item_type === 'novel' ? PURPLE : row.item_type === 'anime' ? CYAN : ROSE,
+                    background: `${TYPE_COLOR[row.item_type] || PURPLE}20`,
+                    color: TYPE_COLOR[row.item_type] || PURPLE,
                     fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-block' }}>
                     {row.item_type}
                   </div>
@@ -185,55 +281,65 @@ function LinksTab({ token, toast }) {
         )}
       </Section>
 
+      {/* Series picker modal */}
+      {showPicker && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => e.target === e.currentTarget && setShowPicker(false)}>
+          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
+            width: '100%', maxWidth: 500, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 16 }}>
+              Search & Select a Series
+            </div>
+            <SeriesPicker token={token} onPick={pickSeries} />
+            <button style={{ ...btn('#64748B', true), marginTop: 14, width: '100%' }}
+              onClick={() => setShowPicker(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
       {/* Edit / New modal */}
       {editing && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
-          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          zIndex: 9001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => e.target === e.currentTarget && setEditing(null)}>
           <div style={{ background: '#111827', borderRadius: 16, padding: 24,
             width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto',
             border: '1px solid rgba(255,255,255,0.1)' }}>
+
+            {/* Selected series header */}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20,
+              background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}>
+              {form.cover_url && (
+                <img src={form.cover_url} style={{ width: 36, height: 50, objectFit: 'cover',
+                  borderRadius: 6, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
+              )}
+              <div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: 16, fontWeight: 700, color: '#f1f5f9' }}>{form.title}</div>
+                <div style={{ fontSize: 11, color: '#475569' }}>
+                  {form.item_type} · ID: {form.item_id}
+                </div>
+              </div>
+            </div>
+
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>
-              {editing === 'new' ? '+ Add Series Links' : `Edit: ${editing.title || editing.item_id}`}
-            </div>
+              fontSize: 15, fontWeight: 700, color: '#94A3B8', letterSpacing: 1,
+              textTransform: 'uppercase', marginBottom: 14 }}>Link URLs</div>
 
-            {/* Core fields */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-              <div>
-                <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>ITEM ID *</label>
-                <input value={form.item_id || ''} onChange={e => setForm(p => ({...p, item_id: e.target.value}))}
-                  placeholder="e.g. 12345" style={{ ...inp, marginTop: 4 }} />
-              </div>
-              <div>
-                <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>TYPE *</label>
-                <select value={form.item_type || 'novel'} onChange={e => setForm(p => ({...p, item_type: e.target.value}))}
-                  style={{ ...inp, marginTop: 4 }}>
-                  <option value="novel">Novel</option>
-                  <option value="anime">Anime</option>
-                  <option value="manga">Manga</option>
-                </select>
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>TITLE (for display)</label>
-              <input value={form.title || ''} onChange={e => setForm(p => ({...p, title: e.target.value}))}
-                placeholder="Series title" style={{ ...inp, marginTop: 4 }} />
-            </div>
-
-            {/* Link fields */}
             {LINK_FIELDS.map(f => (
               <div key={f.key} style={{ marginBottom: 10 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: f.color }}>{f.label} URL</label>
                 <input value={form[f.key] || ''} onChange={e => setForm(p => ({...p, [f.key]: e.target.value}))}
-                  placeholder={`https://…`} style={{ ...inp, marginTop: 4 }} />
+                  placeholder="https://…" style={{ ...inp, marginTop: 4 }} />
               </div>
             ))}
 
             <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end' }}>
               <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
               <button style={btn(GREEN)} onClick={save}>
-                {editing === 'new' ? 'Create Entry' : 'Save Changes'}
+                {editing === 'new' ? 'Save Links' : 'Update Links'}
               </button>
             </div>
           </div>
@@ -258,8 +364,14 @@ function FeaturedTab({ token, toast }) {
 
   useEffect(() => { load() }, [load])
 
-  const openNew = () => {
-    setForm({ item_id: '', item_type: 'novel', title: '', cover_url: '', reason: '', sort_order: 0, active: true })
+  const [showPicker, setShowPicker] = useState(false)
+
+  const openNew = () => { setShowPicker(true) }
+
+  const pickSeries = (series) => {
+    setShowPicker(false)
+    setForm({ item_id: series.id, item_type: series.type, title: series.title,
+      cover_url: series.cover || '', reason: '', sort_order: items.length, active: true })
     setEditing('new')
   }
 
@@ -285,6 +397,23 @@ function FeaturedTab({ token, toast }) {
   return (
     <Section title="Featured Series"
       action={<button style={btn(GOLD)} onClick={openNew}>+ Add Featured</button>}>
+      {/* Series picker */}
+      {showPicker && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => e.target === e.currentTarget && setShowPicker(false)}>
+          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
+            width: '100%', maxWidth: 500, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 16 }}>
+              Search & Select a Series
+            </div>
+            <SeriesPicker token={token} onPick={pickSeries} />
+            <button style={{ ...btn('#64748B', true), marginTop: 14, width: '100%' }}
+              onClick={() => setShowPicker(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
       {items.length === 0 ? (
         <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No featured items.</div>
       ) : (
@@ -325,12 +454,20 @@ function FeaturedTab({ token, toast }) {
               fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>
               {editing === 'new' ? '+ Add Featured Item' : 'Edit Featured Item'}
             </div>
+            {/* Series info (read-only, set by picker) */}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16,
+              background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}>
+              {form.cover_url && <img src={form.cover_url} style={{ width: 32, height: 44,
+                objectFit: 'cover', borderRadius: 5, flexShrink: 0 }} />}
+              <div>
+                <div style={{ fontSize: 14, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 700 }}>{form.title}</div>
+                <div style={{ fontSize: 11, color: '#475569' }}>{form.item_type} · ID: {form.item_id}</div>
+              </div>
+            </div>
             {[
-              { key: 'item_id',   label: 'ITEM ID *',    ph: 'e.g. 12345' },
-              { key: 'title',     label: 'TITLE *',      ph: 'Series title' },
-              { key: 'cover_url', label: 'COVER URL',    ph: 'https://…' },
-              { key: 'reason',    label: 'REASON',       ph: "Editor's Pick, Trending…" },
-              { key: 'sort_order',label: 'SORT ORDER',   ph: '0 = first' },
+              { key: 'reason',    label: 'REASON',     ph: "Editor's Pick, Trending…" },
+              { key: 'sort_order',label: 'SORT ORDER', ph: '0 = first' },
             ].map(f => (
               <div key={f.key} style={{ marginBottom: 10 }}>
                 <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>{f.label}</label>
@@ -338,15 +475,6 @@ function FeaturedTab({ token, toast }) {
                   placeholder={f.ph} style={{ ...inp, marginTop: 4 }} />
               </div>
             ))}
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>TYPE</label>
-              <select value={form.item_type || 'novel'} onChange={e => setForm(p => ({...p, item_type: e.target.value}))}
-                style={{ ...inp, marginTop: 4 }}>
-                <option value="novel">Novel</option>
-                <option value="anime">Anime</option>
-                <option value="manga">Manga</option>
-              </select>
-            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <input type="checkbox" checked={form.active !== false}
                 onChange={e => setForm(p => ({...p, active: e.target.checked}))} id="active_chk" />
