@@ -67,14 +67,14 @@ export const LINK_CONFIG = {
   mangadex: { label: '📖 MangaDex', labelVi: '📖 MangaDex',  color: '#F87171' },
 }
 
-// Get external links for an item — falls back to type-based defaults
+// Get external links for an item — always includes type default + any specific overrides
 export function getExternalLinks(itemId, itemType) {
   const specific = EXTERNAL_LINKS[String(itemId)] || {}
-  // Always add type-based default links
   const defaults = {
     anime: { anilist: `https://anilist.co/anime/${itemId}` },
-    manga: { mangadex: `https://mangadex.org/title/${itemId}` },
-    novel: {},
+    manga: { mangadex: `https://mangadex.org/title/${itemId}`, official: 'https://mangaplus.shueisha.co.jp' },
+    novel: { shop: `https://www.amazon.com/s?k=${encodeURIComponent('light novel')}` },
   }
+  // Specific overrides take priority; defaults fill gaps
   return { ...defaults[itemType], ...specific }
 }
