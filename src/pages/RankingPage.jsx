@@ -89,20 +89,14 @@ function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDe
           <RankChart history={rankHistory} color={rc} />
         </div>
 
-        {/* Buttons row */}
-        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {/* Detail button */}
+        <div style={{ marginTop: 20, textAlign: 'center' }}>
           <button onClick={() => onOpenDetail(entry.novel_id)} style={{
-            padding: '10px 20px',
+            padding: '10px 28px',
             background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)',
             color: '#A5B4FC', borderRadius: 10, cursor: 'pointer',
             fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: 600,
-          }}>📖 Thông tin chi tiết</button>
-          <a href="#/vote" onClick={onClose} style={{
-            display: 'inline-block', padding: '10px 20px',
-            background: `${PURPLE}20`, border: `1px solid ${PURPLE}40`,
-            color: '#C4B5FD', borderRadius: 10, textDecoration: 'none',
-            fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: 600,
-          }}>{lang === 'vi' ? '🗳️ Bình chọn series này' : '🗳️ Vote for this series'}</a>
+          }}>📖 {lang === 'vi' ? 'Thông tin chi tiết' : 'Series Details'}</button>
         </div>
       </div>
     </ModalShell>
