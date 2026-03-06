@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getExternalLinks, LINK_CONFIG } from '../mockData.js'
+import { getExternalLinks, getExternalLinksAsync, LINK_CONFIG } from '../mockData.js'
 import { RANOBE, PURPLE, novelStatusColor } from '../constants.js'
 import { ModalShell, ModalBody } from './ModalLayout.jsx'
 
@@ -25,7 +25,14 @@ export function NovelModal({ series, onClose }) {
   const authors   = staff.filter(s => s.role_type === 'author').map(s => s.name).join(', ')
   const rating    = d.rating || null
   const mainBooks = (d.books || []).filter(b => b.book_type === 'main')
-  const extLinks  = Object.entries(getExternalLinks(series.id, 'novel')).filter(([,v]) => v)
+  const [extLinks, setExtLinks] = useState(
+    () => Object.entries(getExternalLinks(series.id, 'novel')).filter(([,v]) => v)
+  )
+  useEffect(() => {
+    getExternalLinksAsync(series.id, 'novel').then(l =>
+      setExtLinks(Object.entries(l).filter(([,v]) => v))
+    )
+  }, [series.id])
 
   const bg = 'linear-gradient(145deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%)'
 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { getExternalLinks, LINK_CONFIG } from '../mockData.js'
+import { getExternalLinks, getExternalLinksAsync, LINK_CONFIG } from '../mockData.js'
 import { ROSE, mangaStatusColor } from '../constants.js'
 import { ModalShell, ModalBody } from './ModalLayout.jsx'
 
@@ -29,7 +29,14 @@ export function MangaModal({ manga, stats, onClose }) {
   const genres    = (attrs.tags || []).filter(t => t.attributes.group === 'genre').map(t => t.attributes.name.en)
   const themes    = (attrs.tags || []).filter(t => t.attributes.group === 'theme').map(t => t.attributes.name.en)
   const mdUrl     = `https://mangadex.org/title/${manga.id}`
-  const extLinks  = Object.entries(getExternalLinks(manga.id, 'manga')).filter(([k,v]) => v && k !== 'mangadex')
+  const [extLinks, setExtLinks] = useState(
+    () => Object.entries(getExternalLinks(manga.id, 'manga')).filter(([k,v]) => v && k !== 'mangadex')
+  )
+  useEffect(() => {
+    getExternalLinksAsync(manga.id, 'manga').then(l =>
+      setExtLinks(Object.entries(l).filter(([k,v]) => v && k !== 'mangadex'))
+    )
+  }, [manga.id])
 
   const bg = 'linear-gradient(145deg,#1a0a0f 0%,#2d0a1a 60%,#1a0a0f 100%)'
 

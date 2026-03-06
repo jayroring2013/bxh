@@ -62,18 +62,21 @@ function ViewOnPopup({ links, title, onClose }) {
 }
 
 export function ViewOnButton({ itemId, itemType, title }) {
-  const { lang }     = useLang()
+  const { lang }        = useLang()
   const [open, setOpen] = useState(false)
   const [links, setLinks] = useState(() => getExternalLinks(itemId, itemType))
+  const [loaded, setLoaded] = useState(false)
 
-  // Fetch DB links async, overrides static defaults
+  // Always fetch DB links — may add buttons that weren't in static defaults
   useEffect(() => {
-    getExternalLinksAsync(itemId, itemType).then(setLinks)
+    getExternalLinksAsync(itemId, itemType).then(l => { setLinks(l); setLoaded(true) })
   }, [itemId, itemType])
 
   const count = Object.values(links).filter(Boolean).length
 
-  if (count === 0) return null
+  // Don't hide until DB fetch completes — avoids flash of missing buttons
+  if (loaded && count === 0) return null
+  if (!loaded && count === 0) return null
 
   const label = lang === 'vi' ? '🔗 Xem' : '🔗 View'
 

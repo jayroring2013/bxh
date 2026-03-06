@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { getExternalLinks, LINK_CONFIG } from '../mockData.js'
+import { getExternalLinks, getExternalLinksAsync, LINK_CONFIG } from '../mockData.js'
 import { CYAN, animeStatusColor, animeStatusLabel } from '../constants.js'
 import { ModalShell, ModalBody } from './ModalLayout.jsx'
 
@@ -25,7 +25,14 @@ export function AnimeModal({ anime, onClose }) {
   const url    = anime.site_url      || anime.siteUrl
   const start  = anime.start_date    || (anime.startDate?.year ? `${anime.startDate.year}-${String(anime.startDate.month||1).padStart(2,'0')}-${String(anime.startDate.day||1).padStart(2,'0')}` : null)
   const end    = anime.end_date      || (anime.endDate?.year   ? `${anime.endDate.year}-${String(anime.endDate.month||1).padStart(2,'0')}-${String(anime.endDate.day||1).padStart(2,'0')}` : null)
-  const extLinks = Object.entries(getExternalLinks(anime.id, 'anime')).filter(([k,v]) => v && k !== 'anilist')
+  const [extLinks, setExtLinks] = useState(
+    () => Object.entries(getExternalLinks(anime.id, 'anime')).filter(([k,v]) => v && k !== 'anilist')
+  )
+  useEffect(() => {
+    getExternalLinksAsync(anime.id, 'anime').then(l =>
+      setExtLinks(Object.entries(l).filter(([k,v]) => v && k !== 'anilist'))
+    )
+  }, [anime.id])
 
   const bg = 'linear-gradient(145deg,#0a0f1e 0%,#0c1a2e 60%,#0a0f1e 100%)'
 
