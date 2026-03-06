@@ -70,6 +70,7 @@ export function AuthProvider({ children }) {
   const applySession = (data) => {
     store.save(data.access_token, data.refresh_token, data.expires_in || 3600)
     setToken(data.access_token)
+    window.dispatchEvent(new CustomEvent('nt:auth', { detail: { token: data.access_token } }))
     setUser(data.user)
     scheduleRefresh(data.expires_in || 3600)
   }
@@ -130,6 +131,7 @@ export function AuthProvider({ children }) {
           if (userData) {
             setToken(savedToken)
             setUser(userData)
+            window.dispatchEvent(new CustomEvent('nt:auth', { detail: { token: savedToken } }))
             const remaining = Math.max(Math.floor((expiry - Date.now()) / 1000), 0)
             scheduleRefresh(remaining)
             setLoading(false)
