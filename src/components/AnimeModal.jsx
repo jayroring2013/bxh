@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getExternalLinks, LINK_CONFIG } from '../mockData.js'
 import { createPortal } from 'react-dom'
 import { CYAN, animeStatusColor, animeStatusLabel } from '../constants.js'
 
