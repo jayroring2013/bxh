@@ -82,19 +82,25 @@ function SeriesPicker({ token, onPick }) {
     setLoading(true)
     try {
       let data = []
-      const enc = encodeURIComponent(q)
+      // Use separate calls to avoid OR encoding issues
       if (type === 'novel') {
-        data = await api(token,
-          `novels?or=(title.ilike.%25${enc}%25,romaji.ilike.%25${enc}%25)&select=id,title,romaji,cover_url&limit=8`)
-        data = (data || []).map(r => ({ id: String(r.id), title: r.title || r.romaji, cover: r.cover_url, type: 'novel' }))
+        const r1 = await api(token, `novels?title=ilike.%25${encodeURIComponent(q)}%25&select=id,title,romaji,cover_url&limit=6`) || []
+        const r2 = await api(token, `novels?romaji=ilike.%25${encodeURIComponent(q)}%25&select=id,title,romaji,cover_url&limit=6`) || []
+        const seen = new Set(); const merged = []
+        ;[...r1,...r2].forEach(r => { if (!seen.has(r.id)) { seen.add(r.id); merged.push(r) } })
+        data = merged.slice(0,8).map(r => ({ id: String(r.id), title: r.title || r.romaji, cover: r.cover_url, type: 'novel' }))
       } else if (type === 'anime') {
-        data = await api(token,
-          `anime?or=(title_english.ilike.%25${enc}%25,title_romaji.ilike.%25${enc}%25)&select=id,title_english,title_romaji,cover_large&limit=8`)
-        data = (data || []).map(r => ({ id: String(r.id), title: r.title_english || r.title_romaji, cover: r.cover_large, type: 'anime' }))
+        const r1 = await api(token, `anime?title_english=ilike.%25${encodeURIComponent(q)}%25&select=id,title_english,title_romaji,cover_large&limit=6`) || []
+        const r2 = await api(token, `anime?title_romaji=ilike.%25${encodeURIComponent(q)}%25&select=id,title_english,title_romaji,cover_large&limit=6`) || []
+        const seen = new Set(); const merged = []
+        ;[...r1,...r2].forEach(r => { if (!seen.has(r.id)) { seen.add(r.id); merged.push(r) } })
+        data = merged.slice(0,8).map(r => ({ id: String(r.id), title: r.title_english || r.title_romaji, cover: r.cover_large, type: 'anime' }))
       } else {
-        data = await api(token,
-          `manga?or=(title_en.ilike.%25${enc}%25,title_ja_ro.ilike.%25${enc}%25)&select=id,title_en,title_ja_ro,cover_url&limit=8`)
-        data = (data || []).map(r => ({ id: String(r.id), title: r.title_en || r.title_ja_ro, cover: r.cover_url, type: 'manga' }))
+        const r1 = await api(token, `manga?title_en=ilike.%25${encodeURIComponent(q)}%25&select=id,title_en,title_ja_ro,cover_url&limit=6`) || []
+        const r2 = await api(token, `manga?title_ja_ro=ilike.%25${encodeURIComponent(q)}%25&select=id,title_en,title_ja_ro,cover_url&limit=6`) || []
+        const seen = new Set(); const merged = []
+        ;[...r1,...r2].forEach(r => { if (!seen.has(r.id)) { seen.add(r.id); merged.push(r) } })
+        data = merged.slice(0,8).map(r => ({ id: String(r.id), title: r.title_en || r.title_ja_ro, cover: r.cover_url, type: 'manga' }))
       }
       setResults(data)
     } catch(e) { console.error(e) }
@@ -191,17 +197,17 @@ function LinksTab({ token, toast }) {
 
   const save = async () => {
     try {
-      // Clean form — remove empty strings so DB gets null
+      // Only send columns that exist in item_links table
+      const COLS = ['item_id','item_type','title','shop','youtube','official','raw','anilist','mangadex']
       const clean = Object.fromEntries(
-        Object.entries(form).map(([k,v]) => [k, v === '' ? null : v])
+        COLS.map(k => [k, form[k] === '' ? null : (form[k] || null)])
       )
+      console.log('[Admin] saving:', clean)
       if (editing === 'new') {
-        const res = await api(token, 'item_links', 'POST', clean)
-        console.log('[Admin] insert result:', res)
+        await api(token, 'item_links', 'POST', clean)
         toast('Link entry created ✓')
       } else {
-        const res = await api(token, `item_links?id=eq.${editing.id}`, 'PATCH', clean)
-        console.log('[Admin] update result:', res)
+        await api(token, `item_links?id=eq.${editing.id}`, 'PATCH', clean)
         toast('Link entry updated ✓')
       }
       setEditing(null); load()
@@ -757,7 +763,7 @@ function UsersTab({ token, toast, currentUserId }) {
 export function AdminPage() {
   const { user, token } = useAuth()
   const { lang }        = useLang()
-  const { showToast }   = useToast()
+  const { show: showToast } = useToast()
   const [isAdmin, setIsAdmin]   = useState(null)   // null=checking
   const [activeTab, setActiveTab] = useState('links')
 
