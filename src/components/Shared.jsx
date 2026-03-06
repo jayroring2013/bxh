@@ -217,6 +217,10 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
                   display: 'block', padding: '8px 12px', color: '#fff', textDecoration: 'none',
                   borderRadius: 8, fontSize: 13, fontWeight: 600,
                 }}>🔖 {lang === 'vi' ? 'Danh sách của tôi' : 'My List'}</a>
+                <a href="#/admin" onClick={() => setShowUserMenu(false)} style={{
+                  display: 'block', padding: '8px 12px', color: '#A78BFA', textDecoration: 'none',
+                  borderRadius: 8, fontSize: 13, fontWeight: 600,
+                }}>⚙️ {lang === 'vi' ? 'Quản trị' : 'Admin Panel'}</a>
                 <button onClick={() => { signOut(); setShowUserMenu(false) }} style={{
                   display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
                   background: 'none', border: 'none', color: '#F87171', cursor: 'pointer',
