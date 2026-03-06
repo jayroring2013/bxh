@@ -4,6 +4,8 @@ import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
 import { AppHeader, HeroBanner } from '../components/Shared.jsx'
 import { ModalShell } from '../components/ModalLayout.jsx'
+import { NovelModal } from '../components/NovelModal.jsx'
+import { RANOBE } from '../constants.js'
 
 const GOLD   = '#FFD700'
 const SILVER = '#C0C0C0'
@@ -14,7 +16,7 @@ const MONTHS_VI = ['Th.1','Th.2','Th.3','Th.4','Th.5','Th.6','Th.7','Th.8','Th.9
 const rankColor = r => r === 1 ? GOLD : r === 2 ? SILVER : r === 3 ? BRONZE : '#475569'
 
 // ── Detail modal for a ranked novel ─────────────────────────────
-function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose }) {
+function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDetail }) {
   const rc  = rankColor(rank)
   const votes = entry.vote_count || 0
 
@@ -87,10 +89,16 @@ function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose }) {
           <RankChart history={rankHistory} color={rc} />
         </div>
 
-        {/* Link to vote page */}
-        <div style={{ marginTop: 20, textAlign: 'center' }}>
+        {/* Buttons row */}
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button onClick={() => onOpenDetail(entry.novel_id)} style={{
+            padding: '10px 20px',
+            background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)',
+            color: '#A5B4FC', borderRadius: 10, cursor: 'pointer',
+            fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: 600,
+          }}>📖 Thông tin chi tiết</button>
           <a href="#/vote" onClick={onClose} style={{
-            display: 'inline-block', padding: '10px 28px',
+            display: 'inline-block', padding: '10px 20px',
             background: `${PURPLE}20`, border: `1px solid ${PURPLE}40`,
             color: '#C4B5FD', borderRadius: 10, textDecoration: 'none',
             fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: 600,
@@ -189,6 +197,121 @@ function RankChart({ history, color }) {
           )
         })}
       </svg>
+    </div>
+  )
+}
+
+
+// ── Unified row: rank + change + cover + title + votes + sparkline ──
+function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick }) {
+  const prev     = prevRanks?.[entry.novel_id]
+  const movement = prev ? prev - rank : null
+  const isNew    = !prev
+  const isTop3   = rank <= 3
+  const rc       = rankColor(rank)
+  const votes    = entry.vote_count || 0
+
+  const moveColor = isNew ? CYAN : movement > 0 ? '#4ADE80' : movement < 0 ? '#F87171' : '#64748B'
+  const moveText  = isNew    ? '★ NEW'
+    : movement > 0 ? `▲ +${movement}`
+    : movement < 0 ? `▼ ${movement}`
+    : '—'
+
+  // Mini rank sparkline
+  const valid = (rankHistory || []).filter(v => v !== null)
+  let sparkEl = null
+  if (valid.length >= 2) {
+    const W = 64, H = 24
+    const maxR  = Math.max(...valid) + 1
+    const minR  = Math.max(1, Math.min(...valid) - 1)
+    const range = maxR - minR || 1
+    const pts   = (rankHistory || []).map((r, i) => {
+      if (r === null) return null
+      const x = (i / ((rankHistory.length || 1) - 1)) * W
+      const y = ((r - minR) / range) * H
+      return `${x},${y}`
+    }).filter(Boolean)
+    if (pts.length >= 2) {
+      const last = pts[pts.length - 1].split(',')
+      sparkEl = (
+        <svg width={W} height={H} style={{ overflow: 'visible', flexShrink: 0 }}>
+          <polyline points={pts.join(' ')} fill="none" stroke={moveColor}
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
+          <circle cx={last[0]} cy={last[1]} r="3" fill={moveColor} />
+        </svg>
+      )
+    }
+  }
+
+  return (
+    <div onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: isTop3 ? '13px 16px' : '10px 16px',
+      borderRadius: isTop3 ? 16 : 12, cursor: 'pointer',
+      background: isTop3
+        ? rank===1 ? 'linear-gradient(135deg,rgba(255,215,0,0.09),rgba(255,165,0,0.04))'
+        : rank===2 ? 'linear-gradient(135deg,rgba(192,192,192,0.08),rgba(168,168,168,0.04))'
+        : 'linear-gradient(135deg,rgba(205,127,50,0.08),rgba(160,82,45,0.04))'
+        : 'rgba(255,255,255,0.02)',
+      border: `1px solid ${isTop3 ? rc+'30' : 'rgba(255,255,255,0.05)'}`,
+      transition: 'all 0.15s',
+    }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = rc+'50'; e.currentTarget.style.background = `${rc}0a` }}
+    onMouseLeave={e => {
+      e.currentTarget.style.borderColor = isTop3 ? rc+'30' : 'rgba(255,255,255,0.05)'
+      e.currentTarget.style.background = isTop3
+        ? rank===1 ? 'linear-gradient(135deg,rgba(255,215,0,0.09),rgba(255,165,0,0.04))'
+        : rank===2 ? 'linear-gradient(135deg,rgba(192,192,192,0.08),rgba(168,168,168,0.04))'
+        : 'linear-gradient(135deg,rgba(205,127,50,0.08),rgba(160,82,45,0.04))'
+        : 'rgba(255,255,255,0.02)'
+    }}>
+
+      {/* Rank badge */}
+      <div style={{
+        width: isTop3 ? 40 : 32, height: isTop3 ? 40 : 32, flexShrink: 0,
+        borderRadius: isTop3 ? 11 : 8,
+        background: isTop3 ? `linear-gradient(135deg,${rc},${rc}88)` : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${isTop3 ? rc+'60' : 'rgba(255,255,255,0.08)'}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontSize: isTop3 ? 18 : 14, fontWeight: 900,
+        color: isTop3 ? (rank===1 ? '#000' : '#fff') : '#475569',
+      }}>{rank}</div>
+
+      {/* Cover */}
+      {entry.cover_url && (
+        <div style={{ width: 32, height: 44, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
+          <img src={entry.cover_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={e => e.target.style.display='none'} />
+        </div>
+      )}
+
+      {/* Title */}
+      <div style={{ flex: 1, minWidth: 0,
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontSize: isTop3 ? 15 : 13, color: '#f1f5f9', lineHeight: 1.2,
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {entry.novel_title || 'Unknown'}
+      </div>
+
+      {/* Change badge */}
+      <div style={{ fontSize: 11, fontWeight: 700, color: moveColor,
+        flexShrink: 0, minWidth: 60, textAlign: 'center',
+        fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+        {moveText}
+      </div>
+
+      {/* Votes */}
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
+        fontSize: isTop3 ? 20 : 16, fontWeight: 900, color: isTop3 ? rc : '#64748B',
+        flexShrink: 0, minWidth: 40, textAlign: 'right' }}>
+        {votes}
+      </div>
+
+      {/* Sparkline */}
+      <div style={{ width: 64, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+        {sparkEl}
+      </div>
     </div>
   )
 }
@@ -381,9 +504,21 @@ export function RankingPage() {
   const [votes,   setVotes]   = useState([])
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState('rank')
   const [monthOffset, setMonthOffset] = useState(0)
   const [selected, setSelected] = useState(null)  // entry for modal
+  const [novelDetail, setNovelDetail] = useState(null)   // full series for NovelModal
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  const openNovelDetail = async (novelId) => {
+    setDetailLoading(true)
+    try {
+      const res = await fetch(`${RANOBE}/series/${novelId}`)
+      const data = await res.json()
+      const series = data?.series || data
+      if (series?.id) setNovelDetail(series)
+    } catch {}
+    setDetailLoading(false)
+  }
 
   const now        = new Date()
   const targetDate = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1)
@@ -420,7 +555,9 @@ export function RankingPage() {
   }, [month, year])
 
   const prevRanks = useMemo(() => {
-    const prev = history[0] || []
+    // history is built oldest-first (3moAgo, 2moAgo, 1moAgo)
+    // We want the most recent previous month = last item
+    const prev = history[history.length - 1] || []
     const map  = {}
     prev.forEach((e, i) => { map[e.novel_id] = i + 1 })
     return map
@@ -442,8 +579,6 @@ export function RankingPage() {
 
   const T = {
     title:  lang === 'vi' ? 'BẢNG XẾP HẠNG' : 'RANKING DASHBOARD',
-    rank:   lang === 'vi' ? 'Xếp hạng'       : 'Rankings',
-    chart:  lang === 'vi' ? 'Biểu đồ'        : 'Chart',
     prev:   lang === 'vi' ? '← Tháng trước'  : '← Prev',
     next:   lang === 'vi' ? 'Tháng sau →'    : 'Next →',
     votes:  lang === 'vi' ? 'phiếu'          : 'votes',
@@ -488,18 +623,7 @@ export function RankingPage() {
             )}
           </div>
 
-          <div style={{ display: 'flex', borderRadius: 10, overflow: 'hidden',
-            border: '1px solid rgba(255,255,255,0.08)' }}>
-            {[{k:'rank',l:'🏆 ' + T.rank},{k:'chart',l:'📊 ' + T.chart}].map(({k,l}) => (
-              <button key={k} onClick={() => setViewMode(k)} style={{
-                background: viewMode===k ? `${GOLD}20` : 'transparent',
-                border: 'none', color: viewMode===k ? GOLD : '#475569',
-                padding: '7px 16px', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                fontFamily: "'Be Vietnam Pro', sans-serif",
-                borderRight: k==='rank' ? '1px solid rgba(255,255,255,0.08)' : 'none',
-              }}>{l}</button>
-            ))}
-          </div>
+
         </div>
 
         {/* Content */}
@@ -522,28 +646,21 @@ export function RankingPage() {
               </a>
             </div>
           </div>
-        ) : viewMode === 'rank' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {votes.map((entry, i) => (
-              <RankRow key={entry.novel_id} entry={entry} rank={i+1}
-                prevRanks={prevRanks}
-                onClick={() => setSelected({ entry, rank: i+1 })} />
-            ))}
-          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {/* Header */}
-            <div style={{ display: 'flex', gap: 10, padding: '0 14px 8px',
-              fontSize: 9, fontWeight: 700, letterSpacing: 1, color: '#374151' }}>
-              <span style={{ width: 24 }}>#</span>
-              <span style={{ width: 30 }}></span>
+            {/* Column header */}
+            <div style={{ display: 'flex', gap: 10, padding: '0 16px 8px',
+              fontSize: 9, fontWeight: 700, letterSpacing: 1, color: '#374151',
+              borderBottom: '1px solid rgba(255,255,255,0.04)', marginBottom: 4 }}>
+              <span style={{ width: 42, flexShrink: 0 }}>#</span>
+              <span style={{ width: 34, flexShrink: 0 }}></span>
               <span style={{ flex: 1 }}>SERIES</span>
-              <span style={{ minWidth: 52, textAlign: 'center' }}>CHANGE</span>
-              <span style={{ minWidth: 28, textAlign: 'right' }}>VOTES</span>
+              <span style={{ minWidth: 60, textAlign: 'center' }}>CHANGE</span>
+              <span style={{ minWidth: 40, textAlign: 'right' }}>VOTES</span>
               <span style={{ width: 72, textAlign: 'center' }}>TREND</span>
             </div>
             {votes.map((entry, i) => (
-              <ChartRow key={entry.novel_id} entry={entry} rank={i+1}
+              <UnifiedRow key={entry.novel_id} entry={entry} rank={i+1}
                 prevRanks={prevRanks}
                 rankHistory={rankHistories[entry.novel_id]}
                 onClick={() => setSelected({ entry, rank: i+1 })} />
@@ -559,7 +676,19 @@ export function RankingPage() {
           rank={selected.rank}
           prevRank={prevRanks[selected.entry.novel_id]}
           allHistory={history}
-          onClose={() => setSelected(null)} />
+          onClose={() => setSelected(null)}
+          onOpenDetail={(id) => { setSelected(null); openNovelDetail(id) }} />
+      )}
+      {detailLoading && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000,
+          background: 'rgba(0,0,0,0.7)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ color: '#C4B5FD', fontFamily: "'Be Vietnam Pro'",
+            fontSize: 14 }}>Loading...</div>
+        </div>
+      )}
+      {novelDetail && (
+        <NovelModal series={novelDetail} onClose={() => setNovelDetail(null)} />
       )}
     </div>
   )
