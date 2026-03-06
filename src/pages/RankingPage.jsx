@@ -3,7 +3,7 @@ import { PURPLE, CYAN } from '../constants.js'
 import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
 import { AppHeader, HeroBanner } from '../components/Shared.jsx'
-import { ModalShell } from '../components/ModalLayout.jsx'
+import { ModalShell, useIsMobile } from '../components/ModalLayout.jsx'
 import { NovelModal } from '../components/NovelModal.jsx'
 import { RANOBE } from '../constants.js'
 
