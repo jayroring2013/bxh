@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { getExternalLinks, getExternalLinksAsync, LINK_CONFIG } from '../mockData.js'
 import { CYAN, animeStatusColor, animeStatusLabel } from '../constants.js'
 import { ModalShell, ModalBody } from './ModalLayout.jsx'
