@@ -83,11 +83,18 @@ export function NotificationProvider({ children }) {
 
     // Check which upcoming items match user's followed series
     const matched = upcoming.filter(schedItem =>
-      userItems.some(u =>
-        u.item_type === schedItem.type &&
-        (u.item_id === String(schedItem.id) ||
-         u.title?.toLowerCase() === schedItem.title?.toLowerCase())
-      )
+      userItems.some(u => {
+        if (u.item_type !== schedItem.type) return false
+        // Match by ID or by title (case-insensitive, partial ok)
+        const uTitle = (u.title || '').toLowerCase()
+        const sTitle = (schedItem.title || '').toLowerCase()
+        return (
+          u.item_id === String(schedItem.id) ||
+          uTitle === sTitle ||
+          uTitle.includes(sTitle) ||
+          sTitle.includes(uTitle)
+        )
+      })
     )
 
     const notifs = matched.map(item => ({
