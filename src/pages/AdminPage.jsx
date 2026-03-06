@@ -29,6 +29,7 @@ const api = async (token, path, method = 'GET', body = null) => {
 
 // ── Tabs ─────────────────────────────────────────────────────────
 const TABS = [
+  { id: 'series',        icon: '📚', label: 'Series Manager' },
   { id: 'links',         icon: '🔗', label: 'Series Links'   },
   { id: 'featured',      icon: '⭐', label: 'Featured'       },
   { id: 'announcements', icon: '📢', label: 'Announcements'  },
@@ -64,6 +65,452 @@ function Section({ title, children, action }) {
         {action}
       </div>
       <div style={{ padding: 18 }}>{children}</div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════
+// Tab: Series Manager — add/edit/delete anime, manga, novels
+// ═══════════════════════════════════════════════════════════
+
+const ANIME_STATUSES  = ['FINISHED','RELEASING','NOT_YET_RELEASED','CANCELLED','HIATUS']
+const ANIME_FORMATS   = ['TV','TV_SHORT','MOVIE','SPECIAL','OVA','ONA','MUSIC','MANGA','NOVEL','ONE_SHOT']
+const ANIME_SEASONS   = ['WINTER','SPRING','SUMMER','FALL']
+const MANGA_STATUSES  = ['ongoing','completed','hiatus','cancelled']
+const NOVEL_STATUSES  = ['publishing','finished','hiatus','cancelled']
+
+const TAG_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
+
+// Shared tag input for genres/themes arrays
+function TagInput({ value = [], onChange, placeholder }) {
+  const [input, setInput] = useState('')
+  const tags = Array.isArray(value) ? value : []
+  const add = () => {
+    const v = input.trim()
+    if (v && !tags.includes(v)) { onChange([...tags, v]); setInput('') }
+  }
+  return (
+    <div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+        {tags.map(t => (
+          <span key={t} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 20,
+            padding: '2px 10px', fontSize: 11, color: '#94A3B8', display: 'flex',
+            alignItems: 'center', gap: 4 }}>
+            {t}
+            <button onClick={() => onChange(tags.filter(x => x !== t))}
+              style={{ background: 'none', border: 'none', color: '#64748B',
+                cursor: 'pointer', fontSize: 12, padding: 0, lineHeight: 1 }}>×</button>
+          </span>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add())}
+          placeholder={placeholder || 'Add tag…'} style={{ ...inp, flex: 1 }} />
+        <button style={btn(PURPLE)} onClick={add}>Add</button>
+      </div>
+    </div>
+  )
+}
+
+function SeriesTab({ token, toast }) {
+  const [seriesType, setSeriesType] = useState('anime')
+  const [items,      setItems]      = useState([])
+  const [loading,    setLoading]    = useState(false)
+  const [search,     setSearch]     = useState('')
+  const [editing,    setEditing]    = useState(null)   // null | 'new' | row
+  const [form,       setForm]       = useState({})
+  const [delConfirm, setDelConfirm] = useState(null)
+
+  const F = (k, v) => setForm(p => ({...p, [k]: v}))
+
+  const load = useCallback(async (q = '') => {
+    setLoading(true)
+    try {
+      let url = ''
+      const enc = encodeURIComponent(q)
+      if (seriesType === 'anime') {
+        url = q
+          ? `anime?or=(title_english.ilike.%25${enc}%25,title_romaji.ilike.%25${enc}%25)&order=popularity.desc&limit=30`
+          : `anime?order=popularity.desc&limit=30`
+      } else if (seriesType === 'manga') {
+        url = q
+          ? `manga?or=(title_en.ilike.%25${enc}%25,title_ja_ro.ilike.%25${enc}%25)&order=follows.desc&limit=30`
+          : `manga?order=follows.desc&limit=30`
+      } else {
+        url = q
+          ? `novels?or=(title.ilike.%25${enc}%25,romaji.ilike.%25${enc}%25)&order=score.desc&limit=30`
+          : `novels?order=score.desc&limit=30`
+      }
+      const data = await api(token, url)
+      setItems(Array.isArray(data) ? data : [])
+    } catch(e) { toast(`Load failed: ${e.message}`, false) }
+    finally { setLoading(false) }
+  }, [token, seriesType])
+
+  useEffect(() => {
+    const t = setTimeout(() => load(search), 400)
+    return () => clearTimeout(t)
+  }, [search, seriesType, load])
+
+  const openNew = () => {
+    if (seriesType === 'anime') {
+      setForm({ id: '', title_english: '', title_romaji: '', title_native: '',
+        cover_large: '', banner_image: '', description: '', genres: [],
+        status: 'FINISHED', format: 'TV', episodes: '', duration: '',
+        season: '', season_year: '', start_date: '', end_date: '',
+        average_score: '', studio: '', site_url: '' })
+    } else if (seriesType === 'manga') {
+      setForm({ id: '', title_en: '', title_ja_ro: '', title_ja: '',
+        cover_url: '', description_en: '', status: 'ongoing',
+        author: '', year: '', chapters: '', volumes: '',
+        last_chapter: '', genres: [], themes: [],
+        demographic: '', rating: '' })
+    } else {
+      setForm({ id: '', title: '', romaji: '', title_orig: '',
+        cover_url: '', description: '', publication_status: 'publishing',
+        num_books: '', start_date: '', end_date: '',
+        genres: [], score: '' })
+    }
+    setEditing('new')
+  }
+
+  const openEdit = (row) => {
+    setForm({ ...row,
+      genres: row.genres || [],
+      themes: row.themes || [],
+    })
+    setEditing(row)
+  }
+
+  const getTable = () => seriesType === 'anime' ? 'anime' : seriesType === 'manga' ? 'manga' : 'novels'
+  const getId    = () => seriesType === 'anime' ? form.id : seriesType === 'manga' ? form.id : form.id
+
+  const save = async () => {
+    try {
+      const table = getTable()
+      // Cast numeric fields
+      const clean = { ...form }
+      const numFields = ['id','episodes','duration','season_year','average_score','mean_score',
+        'popularity','favourites','year','chapters','volumes','num_books',
+        'start_date','end_date','score','score_count','follows']
+      numFields.forEach(k => { if (clean[k] === '' || clean[k] === null) clean[k] = null
+        else if (clean[k] !== undefined) clean[k] = isNaN(+clean[k]) ? clean[k] : +clean[k] })
+
+      if (editing === 'new') {
+        await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+          method: 'POST',
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=representation' },
+          body: JSON.stringify(clean),
+        }).then(async r => { if (!r.ok) throw new Error(await r.text()) })
+        toast(`${seriesType} added ✓`)
+      } else {
+        await api(token, `${table}?id=eq.${editing.id}`, 'PATCH', clean)
+        toast('Updated ✓')
+      }
+      setEditing(null); load(search)
+    } catch(e) { toast(`Save failed: ${e.message}`, false) }
+  }
+
+  const del = async (row) => {
+    try {
+      await api(token, `${getTable()}?id=eq.${row.id}`, 'DELETE')
+      toast('Deleted'); setDelConfirm(null); load(search)
+    } catch(e) { toast(e.message, false) }
+  }
+
+  const getTitle = (row) => row.title_english || row.title_romaji ||
+    row.title_en || row.title_ja_ro || row.title || row.romaji || '(no title)'
+  const getCover = (row) => row.cover_large || row.cover_url || ''
+
+  return (
+    <div>
+      <Section title="Series Manager"
+        action={<button style={btn(GREEN)} onClick={openNew}>+ Add {seriesType}</button>}>
+
+        {/* Type selector */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          {['anime','manga','novel'].map(t => (
+            <button key={t} onClick={() => { setSeriesType(t); setSearch('') }} style={{
+              ...btn(TAG_COLOR[t], seriesType !== t),
+              padding: '6px 16px', textTransform: 'capitalize',
+            }}>{t}</button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          placeholder={`Search ${seriesType} by title…`}
+          style={{ ...inp, marginBottom: 12 }} />
+
+        {loading ? (
+          <div style={{ color: '#475569', textAlign: 'center', padding: 24 }}>Loading…</div>
+        ) : items.length === 0 ? (
+          <div style={{ color: '#374151', textAlign: 'center', padding: 24 }}>No results.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {items.map(row => (
+              <div key={row.id} style={{
+                display: 'flex', gap: 10, alignItems: 'center',
+                background: 'rgba(255,255,255,0.02)', borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.06)', padding: '8px 12px',
+              }}>
+                {getCover(row) && (
+                  <img src={getCover(row)} style={{ width: 28, height: 40, objectFit: 'cover',
+                    borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, color: '#f1f5f9',
+                    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {getTitle(row)}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#374151' }}>
+                    ID: {row.id}
+                    {row.status && <span style={{ marginLeft: 8, color: '#475569' }}>{row.status}</span>}
+                    {(row.episodes || row.chapters || row.num_books) &&
+                      <span style={{ marginLeft: 8, color: '#475569' }}>
+                        {row.episodes ? `${row.episodes} eps` :
+                         row.chapters ? `${row.chapters} ch` :
+                         `${row.num_books} vols`}
+                      </span>}
+                  </div>
+                </div>
+                <button style={btn(CYAN, true)} onClick={() => openEdit(row)}>Edit</button>
+                <button style={btn(ROSE, true)} onClick={() => setDelConfirm(row)}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Delete confirm */}
+      {delConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#111827', borderRadius: 16, padding: 28,
+            maxWidth: 380, width: '100%', border: '1px solid rgba(248,113,113,0.3)', textAlign: 'center' }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: 18, color: '#f1f5f9', marginBottom: 8 }}>Delete Series?</div>
+            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 20 }}>
+              "{getTitle(delConfirm)}" will be permanently removed.
+              It will reappear on the next sync if it's still in the source database.
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button style={btn('#64748B', true)} onClick={() => setDelConfirm(null)}>Cancel</button>
+              <button style={btn(ROSE)} onClick={() => del(delConfirm)}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit / New modal */}
+      {editing && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          zIndex: 9001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => e.target === e.currentTarget && setEditing(null)}>
+          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
+            width: '100%', maxWidth: 620, maxHeight: '92vh', overflowY: 'auto',
+            border: '1px solid rgba(255,255,255,0.1)' }}>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between',
+              alignItems: 'center', marginBottom: 20 }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 18, fontWeight: 700, color: '#f1f5f9' }}>
+                {editing === 'new' ? `Add ${seriesType}` : `Edit: ${getTitle(form)}`}
+              </div>
+              <button onClick={() => setEditing(null)} style={{ background: 'none',
+                border: 'none', color: '#475569', fontSize: 20, cursor: 'pointer' }}>×</button>
+            </div>
+
+            {/* ── ANIME FIELDS ── */}
+            {seriesType === 'anime' && (<>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[
+                  { k: 'id',            label: 'AniList ID *',    req: true  },
+                  { k: 'title_english', label: 'English Title'               },
+                  { k: 'title_romaji',  label: 'Romaji Title'                },
+                  { k: 'title_native',  label: 'Native Title'                },
+                  { k: 'studio',        label: 'Studio'                      },
+                  { k: 'episodes',      label: 'Episodes'                    },
+                  { k: 'duration',      label: 'Ep Duration (min)'           },
+                  { k: 'average_score', label: 'Score (0–100)'               },
+                  { k: 'season_year',   label: 'Year'                        },
+                  { k: 'start_date',    label: 'Start Date (YYYY-MM-DD)'     },
+                  { k: 'end_date',      label: 'End Date (YYYY-MM-DD)'       },
+                  { k: 'site_url',      label: 'AniList URL'                 },
+                ].map(f => (
+                  <div key={f.k}>
+                    <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700 }}>{f.label}</label>
+                    <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)}
+                      style={{ ...inp, marginTop: 3 }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                <div>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Status</label>
+                  <select value={form.status || ''} onChange={e => F('status', e.target.value)}
+                    style={{ ...inp, marginTop: 3 }}>
+                    {ANIME_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Format</label>
+                  <select value={form.format || ''} onChange={e => F('format', e.target.value)}
+                    style={{ ...inp, marginTop: 3 }}>
+                    {ANIME_FORMATS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Season</label>
+                  <select value={form.season || ''} onChange={e => F('season', e.target.value)}
+                    style={{ ...inp, marginTop: 3 }}>
+                    <option value="">—</option>
+                    {ANIME_SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Cover URL</label>
+                <input value={form.cover_large || ''} onChange={e => F('cover_large', e.target.value)}
+                  style={{ ...inp, marginTop: 3 }} placeholder="https://…" />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Description</label>
+                <textarea value={form.description || ''} onChange={e => F('description', e.target.value)}
+                  rows={3} style={{ ...inp, marginTop: 3, resize: 'vertical' }} />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>Genres</label>
+                <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Action" />
+              </div>
+            </>)}
+
+            {/* ── MANGA FIELDS ── */}
+            {seriesType === 'manga' && (<>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[
+                  { k: 'id',          label: 'MangaDex UUID *', req: true },
+                  { k: 'title_en',    label: 'English Title'              },
+                  { k: 'title_ja_ro', label: 'Romaji Title'               },
+                  { k: 'title_ja',    label: 'Japanese Title'             },
+                  { k: 'author',      label: 'Author'                     },
+                  { k: 'year',        label: 'Year'                       },
+                  { k: 'chapters',    label: 'Chapters'                   },
+                  { k: 'volumes',     label: 'Volumes'                    },
+                  { k: 'last_chapter',label: 'Latest Chapter'             },
+                  { k: 'rating',      label: 'Rating (0–10)'              },
+                  { k: 'follows',     label: 'Follows'                    },
+                ].map(f => (
+                  <div key={f.k}>
+                    <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700 }}>{f.label}</label>
+                    <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)}
+                      style={{ ...inp, marginTop: 3 }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                <div>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Status</label>
+                  <select value={form.status || ''} onChange={e => F('status', e.target.value)}
+                    style={{ ...inp, marginTop: 3 }}>
+                    {MANGA_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Demographic</label>
+                  <select value={form.demographic || ''} onChange={e => F('demographic', e.target.value)}
+                    style={{ ...inp, marginTop: 3 }}>
+                    {['','shounen','shoujo','seinen','josei'].map(s => <option key={s} value={s}>{s || '—'}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Cover URL</label>
+                <input value={form.cover_url || ''} onChange={e => F('cover_url', e.target.value)}
+                  style={{ ...inp, marginTop: 3 }} placeholder="https://…" />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Description</label>
+                <textarea value={form.description_en || ''} onChange={e => F('description_en', e.target.value)}
+                  rows={3} style={{ ...inp, marginTop: 3, resize: 'vertical' }} />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>Genres</label>
+                <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Action" />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>Themes</label>
+                <TagInput value={form.themes} onChange={v => F('themes', v)} placeholder="e.g. Isekai" />
+              </div>
+            </>)}
+
+            {/* ── NOVEL FIELDS ── */}
+            {seriesType === 'novel' && (<>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[
+                  { k: 'id',         label: 'RanobeDB ID *', req: true },
+                  { k: 'title',      label: 'Title'                    },
+                  { k: 'romaji',     label: 'Romaji Title'             },
+                  { k: 'title_orig', label: 'Original Title'           },
+                  { k: 'num_books',  label: 'Volumes'                  },
+                  { k: 'start_date', label: 'Start Year'               },
+                  { k: 'end_date',   label: 'End Year'                 },
+                  { k: 'score',      label: 'Score (0–10)'             },
+                ].map(f => (
+                  <div key={f.k}>
+                    <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700 }}>{f.label}</label>
+                    <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)}
+                      style={{ ...inp, marginTop: 3 }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Publication Status</label>
+                <select value={form.publication_status || ''} onChange={e => F('publication_status', e.target.value)}
+                  style={{ ...inp, marginTop: 3 }}>
+                  {NOVEL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Cover URL</label>
+                <input value={form.cover_url || ''} onChange={e => F('cover_url', e.target.value)}
+                  style={{ ...inp, marginTop: 3 }} placeholder="https://…" />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Description</label>
+                <textarea value={form.description || ''} onChange={e => F('description', e.target.value)}
+                  rows={3} style={{ ...inp, marginTop: 3, resize: 'vertical' }} />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>Genres</label>
+                <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Fantasy" />
+              </div>
+            </>)}
+
+            {/* Cover preview */}
+            {(form.cover_large || form.cover_url) && (
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <img src={form.cover_large || form.cover_url}
+                  style={{ width: 50, height: 70, objectFit: 'cover', borderRadius: 6 }}
+                  onError={e => e.target.style.display='none'} />
+                <span style={{ fontSize: 11, color: '#475569' }}>Cover preview</span>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
+              <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
+              <button style={btn(GREEN)} onClick={save}>
+                {editing === 'new' ? `Add ${seriesType}` : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -787,7 +1234,7 @@ export function AdminPage() {
   const { lang }        = useLang()
   const { show: showToast } = useToast()
   const [isAdmin, setIsAdmin]   = useState(null)   // null=checking
-  const [activeTab, setActiveTab] = useState('links')
+  const [activeTab, setActiveTab] = useState('series')
 
   const toast = (msg, ok = true) => showToast(msg, ok)
 
@@ -880,6 +1327,7 @@ export function AdminPage() {
 
       {/* Tab content */}
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
+        {activeTab === 'series'        && <SeriesTab token={token} toast={toast} />}
         {activeTab === 'links'         && <LinksTab token={token} toast={toast} />}
         {activeTab === 'featured'      && <FeaturedTab token={token} toast={toast} />}
         {activeTab === 'announcements' && <AnnouncementsTab token={token} toast={toast} />}
