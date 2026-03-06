@@ -87,6 +87,24 @@ export function getExternalLinks(itemId, itemType) {
     manga: { mangadex: `https://mangadex.org/title/${itemId}`, official: 'https://mangaplus.shueisha.co.jp' },
     novel: { shop: `https://www.amazon.com/s?k=${encodeURIComponent('light novel')}` },
   }
-  // Specific overrides take priority; defaults fill gaps
   return { ...defaults[itemType], ...specific }
+}
+
+// Async version: fetches from Supabase item_links table, falls back to static
+import { SUPABASE_URL, SUPABASE_ANON } from './supabase.js'
+export async function getExternalLinksAsync(itemId, itemType) {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/item_links?item_id=eq.${itemId}&item_type=eq.${itemType}&select=shop,youtube,official,raw,anilist,mangadex&limit=1`,
+      { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
+    )
+    const data = await res.json()
+    if (Array.isArray(data) && data.length > 0) {
+      const row = data[0]
+      // Remove null/empty fields, merge with defaults
+      const dbLinks = Object.fromEntries(Object.entries(row).filter(([,v]) => v))
+      return { ...getExternalLinks(itemId, itemType), ...dbLinks }
+    }
+  } catch {}
+  return getExternalLinks(itemId, itemType)
 }
