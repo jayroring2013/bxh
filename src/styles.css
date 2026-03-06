@@ -746,19 +746,21 @@ input::placeholder {
   min-height: 290px;
   overflow: hidden;
   border-radius: 0 0 0 16px;
+  background: #0a0f1e;
 }
 
 .modal-cover img {
-  width: 100%;
+  width: 190px;
   height: 100%;
   object-fit: cover;
-  position: absolute;
-  inset: 0;
+  display: block;
+  min-height: 290px;
 }
 
 .modal-cover__placeholder {
-  position: absolute;
-  inset: 0;
+  width: 190px;
+  height: 100%;
+  min-height: 290px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -768,7 +770,8 @@ input::placeholder {
 .modal-cover__fade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, transparent 60%, #0a0f1e 100%) !important;
+  background: linear-gradient(to right, transparent 50%, #0a0f1e 100%) !important;
+  pointer-events: none;
 }
 
 .modal-content {
