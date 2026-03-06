@@ -17,6 +17,7 @@ const rankColor = r => r === 1 ? GOLD : r === 2 ? SILVER : r === 3 ? BRONZE : '#
 
 // ── Detail modal for a ranked novel ─────────────────────────────
 function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDetail, lang }) {
+  const mobile = useIsMobile()
   const rc  = rankColor(rank)
   const votes = entry.vote_count || 0
 
@@ -34,23 +35,24 @@ function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDe
   return (
     <ModalShell onClose={onClose} accentColor={rc}
       bg="linear-gradient(145deg,#0a0f1e 0%,#111827 100%)">
-      <div style={{ padding: 28 }}>
+      <div style={{ padding: mobile ? 16 : 28 }}>
         {/* Header */}
-        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: 24 }}>
+        <div style={{ display: 'flex', gap: mobile ? 10 : 16, alignItems: 'flex-start', marginBottom: mobile ? 16 : 24 }}>
           {/* Rank badge */}
           <div style={{
-            width: 56, height: 56, borderRadius: 14, flexShrink: 0,
+            width: mobile ? 40 : 56, height: mobile ? 40 : 56,
+            borderRadius: mobile ? 10 : 14, flexShrink: 0,
             background: rank <= 3 ? `linear-gradient(135deg,${rc},${rc}88)` : 'rgba(255,255,255,0.06)',
             border: `2px solid ${rc}60`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: 26, fontWeight: 900,
+            fontSize: mobile ? 18 : 26, fontWeight: 900,
             color: rank === 1 ? '#000' : '#fff',
           }}>#{rank}</div>
 
           {/* Cover */}
           {entry.cover_url && (
-            <div style={{ width: 70, height: 98, borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
+            <div style={{ width: mobile ? 50 : 70, height: mobile ? 70 : 98, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
               <img src={entry.cover_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={e => e.target.style.display='none'} />
             </div>
@@ -59,24 +61,24 @@ function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDe
           {/* Title + stats */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 22, color: '#f1f5f9', margin: '0 0 8px', lineHeight: 1.2 }}>
+              fontSize: mobile ? 16 : 22, color: '#f1f5f9', margin: '0 0 6px', lineHeight: 1.2 }}>
               {entry.novel_title}
             </h2>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: mobile ? 10 : 16, flexWrap: 'wrap' }}>
               <div>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: 28, fontWeight: 900, color: rc }}>{votes}</div>
-                <div style={{ fontSize: 10, color: '#475569', fontWeight: 700, letterSpacing: 1 }}>VOTES</div>
+                  fontSize: mobile ? 20 : 28, fontWeight: 900, color: rc }}>{votes}</div>
+                <div style={{ fontSize: 9, color: '#475569', fontWeight: 700, letterSpacing: 1 }}>VOTES</div>
               </div>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 700,
+                <div style={{ fontSize: mobile ? 13 : 18, fontWeight: 700,
                   color: isNew ? CYAN : movement > 0 ? '#4ADE80' : movement < 0 ? '#F87171' : '#64748B' }}>
                   {isNew ? '★ NEW'
                     : movement > 0 ? `▲ +${movement}`
                     : movement < 0 ? `▼ ${movement}`
                     : '— SAME'}
                 </div>
-                <div style={{ fontSize: 10, color: '#475569', fontWeight: 700, letterSpacing: 1 }}>VS LAST MONTH</div>
+                <div style={{ fontSize: 9, color: '#475569', fontWeight: 700, letterSpacing: 1 }}>VS LAST MONTH</div>
               </div>
             </div>
           </div>
@@ -86,16 +88,16 @@ function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDe
         <div style={{ marginBottom: 8 }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1,
             color: '#475569', marginBottom: 12 }}>RANK PROGRESSION</div>
-          <RankChart history={rankHistory} color={rc} />
+          <RankChart history={rankHistory} color={rc} mobile={mobile} />
         </div>
 
         {/* Detail button */}
-        <div style={{ marginTop: 20, textAlign: 'center' }}>
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
           <button onClick={() => onOpenDetail(entry.novel_id)} style={{
-            padding: '10px 28px',
+            padding: mobile ? '8px 20px' : '10px 28px',
             background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)',
             color: '#A5B4FC', borderRadius: 10, cursor: 'pointer',
-            fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: 600,
+            fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: mobile ? 12 : 13, fontWeight: 600,
           }}>📖 {lang === 'vi' ? 'Thông tin chi tiết' : 'Series Details'}</button>
         </div>
       </div>
@@ -104,7 +106,7 @@ function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDe
 }
 
 // ── Rank chart: shows rank number over months ────────────────────
-function RankChart({ history, color }) {
+function RankChart({ history, color, mobile }) {
   // history = array of rank numbers (null = not ranked that month)
   // Lower rank number = better (1 is top)
   const valid = history.filter(v => v !== null)
@@ -116,7 +118,8 @@ function RankChart({ history, color }) {
     )
   }
 
-  const W = 500, H = 100
+  const W = mobile ? Math.min(280, (typeof window !== 'undefined' ? window.innerWidth - 80 : 280)) : 500
+  const H = mobile ? 90 : 100
   const maxRank = Math.max(...valid) + 1
   const minRank = Math.max(1, Math.min(...valid) - 1)
   const range   = maxRank - minRank || 1
@@ -198,6 +201,7 @@ function RankChart({ history, color }) {
 
 // ── Unified row: rank + change + cover + title + votes + sparkline ──
 function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
+  const mobile   = useIsMobile()
   const prev     = prevRanks?.[entry.novel_id]
   const movement = prev ? prev - rank : null
   const isNew    = !prev
@@ -206,16 +210,20 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
   const votes    = entry.vote_count || 0
 
   const moveColor = isNew ? CYAN : movement > 0 ? '#4ADE80' : movement < 0 ? '#F87171' : '#64748B'
-  const moveText  = isNew    ? '★ NEW'
+  const moveText  = isNew          ? '★ NEW'
     : movement > 0 ? `▲ +${movement}`
     : movement < 0 ? `▼ ${movement}`
+    : '—'
+  const moveTextShort = isNew      ? 'NEW'
+    : movement > 0 ? `+${movement}`
+    : movement < 0 ? `${movement}`
     : '—'
 
   // Mini rank sparkline
   const valid = (rankHistory || []).filter(v => v !== null)
   let sparkEl = null
   if (valid.length >= 2) {
-    const W = 64, H = 24
+    const W = mobile ? 40 : 64, H = 20
     const maxR  = Math.max(...valid) + 1
     const minR  = Math.max(1, Math.min(...valid) - 1)
     const range = maxR - minR || 1
@@ -230,37 +238,104 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
       sparkEl = (
         <svg width={W} height={H} style={{ overflow: 'visible', flexShrink: 0 }}>
           <polyline points={pts.join(' ')} fill="none" stroke={moveColor}
-            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
-          <circle cx={last[0]} cy={last[1]} r="3" fill={moveColor} />
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+          <circle cx={last[0]} cy={last[1]} r="2.5" fill={moveColor} />
         </svg>
       )
     }
   }
 
+  const rowBg = isTop3
+    ? rank===1 ? 'linear-gradient(135deg,rgba(255,215,0,0.09),rgba(255,165,0,0.04))'
+    : rank===2 ? 'linear-gradient(135deg,rgba(192,192,192,0.08),rgba(168,168,168,0.04))'
+    : 'linear-gradient(135deg,rgba(205,127,50,0.08),rgba(160,82,45,0.04))'
+    : 'rgba(255,255,255,0.02)'
+
+  // ── MOBILE layout ─────────────────────────────────
+  if (mobile) {
+    return (
+      <div onClick={onClick} style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
+        background: rowBg,
+        border: `1px solid ${isTop3 ? rc+'30' : 'rgba(255,255,255,0.05)'}`,
+      }}>
+        {/* Rank badge */}
+        <div style={{
+          width: isTop3 ? 34 : 26, height: isTop3 ? 34 : 26, flexShrink: 0,
+          borderRadius: isTop3 ? 9 : 7,
+          background: isTop3 ? `linear-gradient(135deg,${rc},${rc}88)` : 'rgba(255,255,255,0.04)',
+          border: `1px solid ${isTop3 ? rc+'60' : 'rgba(255,255,255,0.08)'}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: isTop3 ? 15 : 12, fontWeight: 900,
+          color: isTop3 ? (rank===1 ? '#000' : '#fff') : '#475569',
+        }}>{rank}</div>
+
+        {/* Cover */}
+        {entry.cover_url && (
+          <div style={{ width: 28, height: 40, borderRadius: 5, overflow: 'hidden', flexShrink: 0 }}>
+            <img src={entry.cover_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={e => e.target.style.display='none'} />
+          </div>
+        )}
+
+        {/* Title + change row */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: isTop3 ? 14 : 12, color: '#f1f5f9', lineHeight: 1.2,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>{entry.novel_title || 'Unknown'}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: moveColor,
+              fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+              {isNew ? '★ ' : movement > 0 ? '▲ ' : movement < 0 ? '▼ ' : ''}{moveTextShort}
+            </span>
+          </div>
+        </div>
+
+        {/* Votes */}
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: isTop3 ? 18 : 15, fontWeight: 900, color: isTop3 ? rc : '#64748B',
+          flexShrink: 0, textAlign: 'right' }}>{votes}</div>
+
+        {/* Sparkline */}
+        {sparkEl && (
+          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+            {sparkEl}
+          </div>
+        )}
+
+        {/* Vote button */}
+        <a href="#/vote" onClick={e => e.stopPropagation()} style={{
+          flexShrink: 0, padding: '4px 8px', borderRadius: 7,
+          background: `${GOLD}15`, border: `1px solid ${GOLD}35`,
+          color: GOLD, fontSize: 10, fontWeight: 700,
+          fontFamily: "'Be Vietnam Pro', sans-serif", textDecoration: 'none',
+          whiteSpace: 'nowrap',
+        }}>
+          {lang === 'vi' ? 'Bầu' : 'Vote'}
+        </a>
+      </div>
+    )
+  }
+
+  // ── DESKTOP layout ────────────────────────────────
   return (
     <div onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 10,
       padding: isTop3 ? '13px 16px' : '10px 16px',
       borderRadius: isTop3 ? 16 : 12, cursor: 'pointer',
-      background: isTop3
-        ? rank===1 ? 'linear-gradient(135deg,rgba(255,215,0,0.09),rgba(255,165,0,0.04))'
-        : rank===2 ? 'linear-gradient(135deg,rgba(192,192,192,0.08),rgba(168,168,168,0.04))'
-        : 'linear-gradient(135deg,rgba(205,127,50,0.08),rgba(160,82,45,0.04))'
-        : 'rgba(255,255,255,0.02)',
+      background: rowBg,
       border: `1px solid ${isTop3 ? rc+'30' : 'rgba(255,255,255,0.05)'}`,
       transition: 'all 0.15s',
     }}
     onMouseEnter={e => { e.currentTarget.style.borderColor = rc+'50'; e.currentTarget.style.background = `${rc}0a` }}
     onMouseLeave={e => {
       e.currentTarget.style.borderColor = isTop3 ? rc+'30' : 'rgba(255,255,255,0.05)'
-      e.currentTarget.style.background = isTop3
-        ? rank===1 ? 'linear-gradient(135deg,rgba(255,215,0,0.09),rgba(255,165,0,0.04))'
-        : rank===2 ? 'linear-gradient(135deg,rgba(192,192,192,0.08),rgba(168,168,168,0.04))'
-        : 'linear-gradient(135deg,rgba(205,127,50,0.08),rgba(160,82,45,0.04))'
-        : 'rgba(255,255,255,0.02)'
+      e.currentTarget.style.background = rowBg
     }}>
-
-      {/* Rank badge */}
       <div style={{
         width: isTop3 ? 40 : 32, height: isTop3 ? 40 : 32, flexShrink: 0,
         borderRadius: isTop3 ? 11 : 8,
@@ -272,7 +347,6 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
         color: isTop3 ? (rank===1 ? '#000' : '#fff') : '#475569',
       }}>{rank}</div>
 
-      {/* Cover */}
       {entry.cover_url && (
         <div style={{ width: 32, height: 44, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
           <img src={entry.cover_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -280,7 +354,6 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
         </div>
       )}
 
-      {/* Title */}
       <div style={{ flex: 1, minWidth: 0,
         fontFamily: "'Barlow Condensed', sans-serif",
         fontSize: isTop3 ? 15 : 13, color: '#f1f5f9', lineHeight: 1.2,
@@ -288,43 +361,27 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
         {entry.novel_title || 'Unknown'}
       </div>
 
-      {/* Change badge */}
       <div style={{ fontSize: 11, fontWeight: 700, color: moveColor,
         flexShrink: 0, minWidth: 60, textAlign: 'center',
-        fontFamily: "'Be Vietnam Pro', sans-serif" }}>
-        {moveText}
-      </div>
+        fontFamily: "'Be Vietnam Pro', sans-serif" }}>{moveText}</div>
 
-      {/* Votes */}
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
         fontSize: isTop3 ? 20 : 16, fontWeight: 900, color: isTop3 ? rc : '#64748B',
-        flexShrink: 0, minWidth: 40, textAlign: 'right' }}>
-        {votes}
-      </div>
+        flexShrink: 0, minWidth: 40, textAlign: 'right' }}>{votes}</div>
 
-      {/* Sparkline */}
       <div style={{ width: 64, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
         {sparkEl}
       </div>
 
-      {/* Vote button — stops propagation so row click (detail) doesn't fire */}
-      <a href="#/vote"
-        onClick={e => e.stopPropagation()}
-        style={{
-          flexShrink: 0,
-          padding: '5px 12px',
-          borderRadius: 8,
-          background: `${GOLD}15`,
-          border: `1px solid ${GOLD}35`,
-          color: GOLD,
-          fontSize: 11, fontWeight: 700,
-          fontFamily: "'Be Vietnam Pro', sans-serif",
-          textDecoration: 'none',
-          whiteSpace: 'nowrap',
-          transition: 'all 0.15s',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = `${GOLD}28`; e.currentTarget.style.borderColor = `${GOLD}60` }}
-        onMouseLeave={e => { e.currentTarget.style.background = `${GOLD}15`; e.currentTarget.style.borderColor = `${GOLD}35` }}>
+      <a href="#/vote" onClick={e => e.stopPropagation()} style={{
+        flexShrink: 0, padding: '5px 12px', borderRadius: 8,
+        background: `${GOLD}15`, border: `1px solid ${GOLD}35`,
+        color: GOLD, fontSize: 11, fontWeight: 700,
+        fontFamily: "'Be Vietnam Pro', sans-serif", textDecoration: 'none',
+        whiteSpace: 'nowrap', transition: 'all 0.15s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = `${GOLD}28`; e.currentTarget.style.borderColor = `${GOLD}60` }}
+      onMouseLeave={e => { e.currentTarget.style.background = `${GOLD}15`; e.currentTarget.style.borderColor = `${GOLD}35` }}>
         {lang === 'vi' ? 'Bình chọn' : 'Vote'}
       </a>
     </div>
@@ -520,6 +577,7 @@ export function RankingPage() {
   const [voterCount, setVoterCount] = useState(0)
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
+  const isMobile = useIsMobile()
   const [monthOffset, setMonthOffset] = useState(0)
   const [selected, setSelected] = useState(null)  // entry for modal
   const [novelDetail, setNovelDetail] = useState(null)   // full series for NovelModal
@@ -682,7 +740,8 @@ export function RankingPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {/* Column header */}
+            {/* Column header — desktop only */}
+            {!isMobile && (
             <div style={{ display: 'flex', gap: 10, padding: '0 16px 8px',
               fontSize: 9, fontWeight: 700, letterSpacing: 1, color: '#374151',
               borderBottom: '1px solid rgba(255,255,255,0.04)', marginBottom: 4 }}>
@@ -693,6 +752,7 @@ export function RankingPage() {
               <span style={{ minWidth: 40, textAlign: 'right' }}>VOTES</span>
               <span style={{ width: 72, textAlign: 'center' }}>TREND</span>
             </div>
+            )}
             {votes.map((entry, i) => (
               <UnifiedRow key={entry.novel_id} entry={entry} rank={i+1}
                 prevRanks={prevRanks}
