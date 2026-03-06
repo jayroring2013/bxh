@@ -203,7 +203,7 @@ function RankChart({ history, color }) {
 
 
 // ── Unified row: rank + change + cover + title + votes + sparkline ──
-function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick }) {
+function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
   const prev     = prevRanks?.[entry.novel_id]
   const movement = prev ? prev - rank : null
   const isNew    = !prev
@@ -312,6 +312,27 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick }) {
       <div style={{ width: 64, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
         {sparkEl}
       </div>
+
+      {/* Vote button — stops propagation so row click (detail) doesn't fire */}
+      <a href="#/vote"
+        onClick={e => e.stopPropagation()}
+        style={{
+          flexShrink: 0,
+          padding: '5px 12px',
+          borderRadius: 8,
+          background: `${GOLD}15`,
+          border: `1px solid ${GOLD}35`,
+          color: GOLD,
+          fontSize: 11, fontWeight: 700,
+          fontFamily: "'Be Vietnam Pro', sans-serif",
+          textDecoration: 'none',
+          whiteSpace: 'nowrap',
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = `${GOLD}28`; e.currentTarget.style.borderColor = `${GOLD}60` }}
+        onMouseLeave={e => { e.currentTarget.style.background = `${GOLD}15`; e.currentTarget.style.borderColor = `${GOLD}35` }}>
+        {lang === 'vi' ? 'Bình chọn' : 'Vote'}
+      </a>
     </div>
   )
 }
@@ -502,6 +523,7 @@ function ChartRow({ entry, rank, prevRanks, rankHistory, onClick }) {
 export function RankingPage() {
   const { lang }  = useLang()
   const [votes,   setVotes]   = useState([])
+  const [voterCount, setVoterCount] = useState(0)
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [monthOffset, setMonthOffset] = useState(0)
@@ -536,6 +558,19 @@ export function RankingPage() {
         )
         const data = await res.json()
         setVotes(Array.isArray(data) ? data : [])
+
+        // Fetch distinct voter count for this month
+        try {
+          const vr = await fetch(
+            `${SUPABASE_URL}/rest/v1/vote_log?month=eq.${month}&year=eq.${year}&select=user_id`,
+            { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
+          )
+          const vd = await vr.json()
+          if (Array.isArray(vd)) {
+            const distinct = new Set(vd.map(r => r.user_id)).size
+            setVoterCount(distinct)
+          }
+        } catch { setVoterCount(0) }
 
         const hist = []
         // Fetch 3 months, oldest first (i=3 = 3mo ago, i=1 = last month)
@@ -583,7 +618,8 @@ export function RankingPage() {
     title:  lang === 'vi' ? 'BẢNG XẾP HẠNG' : 'RANKING DASHBOARD',
     prev:   lang === 'vi' ? '← Tháng trước'  : '← Prev',
     next:   lang === 'vi' ? 'Tháng sau →'    : 'Next →',
-    votes:  lang === 'vi' ? 'phiếu'          : 'votes',
+    voters: lang === 'vi' ? 'người bình chọn' : 'voters',
+    series: lang === 'vi' ? 'series'          : 'series',
     noData: lang === 'vi' ? 'Chưa có phiếu bầu tháng này' : 'No votes this month yet',
   }
 
@@ -594,7 +630,9 @@ export function RankingPage() {
         activeSort="" onSort={() => {}} hideSearch hideSorts />
 
       <HeroBanner title={T.title}
-        sub={`${monthLabel} ${year} · ${votes.length} ${T.votes}`}
+        sub={lang === 'vi'
+          ? `${monthLabel} ${year} · ${voterCount} người bình chọn · ${votes.length} series`
+          : `${monthLabel} ${year} · ${voterCount} voter${voterCount !== 1 ? 's' : ''} · ${votes.length} series`}
         accent={GOLD} src="Ranking" />
 
       <main style={{ maxWidth: 780, margin: '0 auto', padding: '24px 16px' }}>
@@ -665,6 +703,7 @@ export function RankingPage() {
               <UnifiedRow key={entry.novel_id} entry={entry} rank={i+1}
                 prevRanks={prevRanks}
                 rankHistory={rankHistories[entry.novel_id]}
+                lang={lang}
                 onClick={() => setSelected({ entry, rank: i+1 })} />
             ))}
           </div>
