@@ -156,7 +156,20 @@ export function NovelModal({ series, onClose }) {
                   🌐 Web Novel
                 </a>
               )}
-</div>
+              {Object.entries(getExternalLinks(series.id, 'novel'))
+                .filter(([, v]) => v)
+                .map(([k, v]) => {
+                  const cfg = LINK_CONFIG[k]
+                  if (!cfg) return null
+                  return (
+                    <a key={k} href={v} target="_blank" rel="noreferrer" className="modal-link"
+                      style={{ background: `${cfg.color}18`, borderColor: `${cfg.color}35`, color: cfg.color }}>
+                      ↗ {cfg.label}
+                    </a>
+                  )
+                })
+              }
+            </div>
           </div>
         </div>
       </div>

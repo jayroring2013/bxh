@@ -135,7 +135,20 @@ export function MangaModal({ manga, stats, onClose }) {
                 style={{ background: `${ROSE}20`, borderColor: `${ROSE}40`, color: '#FDA4AF' }}>
                 ↗ View on MangaDex
               </a>
-</div>
+              {Object.entries(getExternalLinks(manga.id, 'manga'))
+                .filter(([k, v]) => v && k !== 'mangadex')
+                .map(([k, v]) => {
+                  const cfg = LINK_CONFIG[k]
+                  if (!cfg) return null
+                  return (
+                    <a key={k} href={v} target="_blank" rel="noreferrer" className="modal-link"
+                      style={{ background: `${cfg.color}18`, borderColor: `${cfg.color}35`, color: cfg.color }}>
+                      ↗ {cfg.label}
+                    </a>
+                  )
+                })
+              }
+            </div>
           </div>
         </div>
       </div>

@@ -103,14 +103,27 @@ export function AnimeModal({ anime, onClose }) {
               </div>
             )}
 
-            {url && (
-              <div className="modal-links">
+            <div className="modal-links">
+              {url && (
                 <a href={url} target="_blank" rel="noreferrer" className="modal-link"
                   style={{ background: `${CYAN}20`, borderColor: `${CYAN}40`, color: '#67E8F9' }}>
                   ↗ View on AniList
                 </a>
-              </div>
-            )}
+              )}
+              {Object.entries(getExternalLinks(anime.id, 'anime'))
+                .filter(([k, v]) => v && k !== 'anilist')
+                .map(([k, v]) => {
+                  const cfg = LINK_CONFIG[k]
+                  if (!cfg) return null
+                  return (
+                    <a key={k} href={v} target="_blank" rel="noreferrer" className="modal-link"
+                      style={{ background: `${cfg.color}18`, borderColor: `${cfg.color}35`, color: cfg.color }}>
+                      ↗ {cfg.label}
+                    </a>
+                  )
+                })
+              }
+            </div>
           </div>
         </div>
       </div>
