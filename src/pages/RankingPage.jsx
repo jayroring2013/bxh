@@ -307,16 +307,7 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
           </div>
         )}
 
-        {/* Vote button */}
-        <a href="#/vote" onClick={e => e.stopPropagation()} style={{
-          flexShrink: 0, padding: '4px 8px', borderRadius: 7,
-          background: `${GOLD}15`, border: `1px solid ${GOLD}35`,
-          color: GOLD, fontSize: 10, fontWeight: 700,
-          fontFamily: "'Be Vietnam Pro', sans-serif", textDecoration: 'none',
-          whiteSpace: 'nowrap',
-        }}>
-          {lang === 'vi' ? 'Bầu' : 'Vote'}
-        </a>
+
       </div>
     )
   }
@@ -373,17 +364,7 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
         {sparkEl}
       </div>
 
-      <a href="#/vote" onClick={e => e.stopPropagation()} style={{
-        flexShrink: 0, padding: '5px 12px', borderRadius: 8,
-        background: `${GOLD}15`, border: `1px solid ${GOLD}35`,
-        color: GOLD, fontSize: 11, fontWeight: 700,
-        fontFamily: "'Be Vietnam Pro', sans-serif", textDecoration: 'none',
-        whiteSpace: 'nowrap', transition: 'all 0.15s',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.background = `${GOLD}28`; e.currentTarget.style.borderColor = `${GOLD}60` }}
-      onMouseLeave={e => { e.currentTarget.style.background = `${GOLD}15`; e.currentTarget.style.borderColor = `${GOLD}35` }}>
-        {lang === 'vi' ? 'Bình chọn' : 'Vote'}
-      </a>
+
     </div>
   )
 }
