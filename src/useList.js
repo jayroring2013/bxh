@@ -4,7 +4,7 @@ import { useAuth } from './context/AuthContext.jsx'
 
 export const STATUS_OPTIONS = [
   { key: 'reading',   color: '#06B6D4', vi: 'Đang đọc/xem', en: 'Reading / Watching' },
-  { key: 'planned',   color: '#A78BFA', vi: 'Dự định đọc',   en: 'Plan to Read'       },
+  { key: 'planned',   color: '#A78BFA', vi: 'Dự định đọc/xem',   en: 'Plan to Read/Watch'       },
   { key: 'completed', color: '#4ADE80', vi: 'Hoàn thành',    en: 'Completed'           },
   { key: 'onhold',    color: '#F59E0B', vi: 'Tạm dừng',      en: 'On Hold'             },
   { key: 'dropped',   color: '#F87171', vi: 'Bỏ dở',         en: 'Dropped'             },
@@ -33,11 +33,7 @@ const api = async (token, path, method = 'GET', body = null, extra = {}) => {
   return text ? JSON.parse(text) : null
 }
 
-const DEFAULT_NAMES = {
-  novel: 'My Novels',
-  anime: 'My Anime',
-  manga: 'My Manga',
-}
+const DEFAULT_LIST_NAME = 'Default'
 
 // ── Main hook ─────────────────────────────────────────────────
 export function useUserList() {
@@ -92,10 +88,10 @@ export function useUserList() {
   }, [token, user?.id])
 
   // ── Create a new custom list ──
-  const createList = async (name, item_type = 'all') => {
+  const createList = async (name) => {
     if (!token) throw new Error('Not logged in')
     const rows = await api(token, 'user_lists', 'POST', {
-      user_id: user.id, name, is_default: false, item_type,
+      user_id: user.id, name, is_default: false, item_type: 'all',
     })
     await fetchAll()
     return Array.isArray(rows) ? rows[0] : rows
@@ -155,9 +151,9 @@ export function useUserList() {
     entries.filter(e => e.item_id === String(item_id) && e.item_type === item_type)
 
   // ── Get the default list for a given type ──
-  const getDefaultList = (item_type) =>
-    lists.find(l => l.is_default && l.item_type === item_type)
-      || lists.find(l => l.name === DEFAULT_NAMES[item_type])
+  const getDefaultList = (_item_type) =>
+    lists.find(l => l.is_default)
+      || lists.find(l => l.name === DEFAULT_LIST_NAME)
       || lists[0]
       || null
 
