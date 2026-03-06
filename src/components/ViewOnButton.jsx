@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { getExternalLinks, LINK_CONFIG } from '../mockData.js'
+import { getExternalLinks, getExternalLinksAsync, LINK_CONFIG } from '../mockData.js'
 import { useLang } from '../context/LangContext.jsx'
 
 function ViewOnPopup({ links, title, onClose }) {
@@ -64,8 +64,14 @@ function ViewOnPopup({ links, title, onClose }) {
 export function ViewOnButton({ itemId, itemType, title }) {
   const { lang }     = useLang()
   const [open, setOpen] = useState(false)
-  const links           = getExternalLinks(itemId, itemType)
-  const count           = Object.values(links).filter(Boolean).length
+  const [links, setLinks] = useState(() => getExternalLinks(itemId, itemType))
+
+  // Fetch DB links async, overrides static defaults
+  useEffect(() => {
+    getExternalLinksAsync(itemId, itemType).then(setLinks)
+  }, [itemId, itemType])
+
+  const count = Object.values(links).filter(Boolean).length
 
   if (count === 0) return null
 
