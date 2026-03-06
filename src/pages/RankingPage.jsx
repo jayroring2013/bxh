@@ -328,7 +328,7 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
       e.currentTarget.style.background = rowBg
     }}>
       <div style={{
-        width: isTop3 ? 40 : 32, height: isTop3 ? 40 : 32, flexShrink: 0,
+        width: 36, height: 36, flexShrink: 0,
         borderRadius: isTop3 ? 11 : 8,
         background: isTop3 ? `linear-gradient(135deg,${rc},${rc}88)` : 'rgba(255,255,255,0.04)',
         border: `1px solid ${isTop3 ? rc+'60' : 'rgba(255,255,255,0.08)'}`,
@@ -339,7 +339,7 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
       }}>{rank}</div>
 
       {entry.cover_url && (
-        <div style={{ width: 32, height: 44, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
+        <div style={{ width: 36, height: 48, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
           <img src={entry.cover_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={e => e.target.style.display='none'} />
         </div>
@@ -353,12 +353,12 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
       </div>
 
       <div style={{ fontSize: 11, fontWeight: 700, color: moveColor,
-        flexShrink: 0, minWidth: 60, textAlign: 'center',
+        flexShrink: 0, width: 80, textAlign: 'center',
         fontFamily: "'Be Vietnam Pro', sans-serif" }}>{moveText}</div>
 
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
         fontSize: isTop3 ? 20 : 16, fontWeight: 900, color: isTop3 ? rc : '#64748B',
-        flexShrink: 0, minWidth: 40, textAlign: 'right' }}>{votes}</div>
+        flexShrink: 0, width: 50, textAlign: 'right' }}>{votes}</div>
 
       <div style={{ width: 64, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
         {sparkEl}
@@ -726,12 +726,12 @@ export function RankingPage() {
             <div style={{ display: 'flex', gap: 10, padding: '0 16px 8px',
               fontSize: 9, fontWeight: 700, letterSpacing: 1, color: '#374151',
               borderBottom: '1px solid rgba(255,255,255,0.04)', marginBottom: 4 }}>
-              <span style={{ width: 42, flexShrink: 0 }}>#</span>
-              <span style={{ width: 34, flexShrink: 0 }}></span>
+              <span style={{ width: 36, flexShrink: 0 }}>#</span>
+              <span style={{ width: 36, flexShrink: 0 }}></span>{/* cover spacer */}
               <span style={{ flex: 1 }}>SERIES</span>
-              <span style={{ minWidth: 60, textAlign: 'center' }}>CHANGE</span>
-              <span style={{ minWidth: 40, textAlign: 'right' }}>VOTES</span>
-              <span style={{ width: 72, textAlign: 'center' }}>TREND</span>
+              <span style={{ width: 80, textAlign: 'center', flexShrink: 0 }}>CHANGE</span>
+              <span style={{ width: 50, textAlign: 'right', flexShrink: 0 }}>VOTES</span>
+              <span style={{ width: 64, textAlign: 'center', flexShrink: 0 }}>TREND</span>
             </div>
             )}
             {votes.map((entry, i) => (
