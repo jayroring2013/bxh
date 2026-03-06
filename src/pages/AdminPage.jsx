@@ -78,10 +78,11 @@ function SeriesPicker({ token, onPick }) {
   const [loading, setLoading] = useState(false)
 
   const search = async (q) => {
-    if (!q.trim()) { setResults([]); return }
+    if (q.trim().length < 2) { setResults([]); return }
     setLoading(true)
     try {
       let data = []
+      console.log('[Admin search]', type, q)
       // Use separate calls to avoid OR encoding issues
       if (type === 'novel') {
         const r1 = await api(token, `novels?title=ilike.%25${encodeURIComponent(q)}%25&select=id,title,romaji,cover_url&limit=6`) || []
@@ -103,7 +104,7 @@ function SeriesPicker({ token, onPick }) {
         data = merged.slice(0,8).map(r => ({ id: String(r.id), title: r.title_en || r.title_ja_ro, cover: r.cover_url, type: 'manga' }))
       }
       setResults(data)
-    } catch(e) { console.error(e) }
+    } catch(e) { console.error('[Admin search error]', e); setResults([]) }
     finally { setLoading(false) }
   }
 
@@ -204,11 +205,20 @@ function LinksTab({ token, toast }) {
       )
       console.log('[Admin] saving:', clean)
       if (editing === 'new') {
-        await api(token, 'item_links', 'POST', clean)
-        toast('Link entry created ✓')
+        // Upsert — if item_id+item_type already exists, update it instead
+        await fetch(`${SUPABASE_URL}/rest/v1/item_links`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=representation',
+          },
+          body: JSON.stringify(clean),
+        }).then(async r => { if (!r.ok) throw new Error(await r.text()) })
+        toast('Links saved ✓')
       } else {
         await api(token, `item_links?id=eq.${editing.id}`, 'PATCH', clean)
-        toast('Link entry updated ✓')
+        toast('Links updated ✓')
       }
       setEditing(null); load()
     } catch(e) {
