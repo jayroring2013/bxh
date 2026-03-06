@@ -412,14 +412,16 @@ input::placeholder {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 11px;
+  padding: 6px 10px;
   border-radius: 9px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: #64748B;
   transition: all 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  min-width: 34px;
+  justify-content: center;
 }
 
 .nav-tab--active {
@@ -730,14 +732,20 @@ input::placeholder {
 
 .modal-body {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 0;
 }
 
 .modal-cover {
   width: 190px;
+  min-width: 190px;
   flex-shrink: 0;
   position: relative;
+  align-self: stretch;
   min-height: 290px;
+  overflow: hidden;
+  border-radius: 0 0 0 16px;
 }
 
 .modal-cover img {
@@ -760,12 +768,14 @@ input::placeholder {
 .modal-cover__fade {
   position: absolute;
   inset: 0;
+  background: linear-gradient(to right, transparent 60%, #0a0f1e 100%) !important;
 }
 
 .modal-content {
   flex: 1;
-  min-width: 260px;
+  min-width: 0;
   padding: 28px 24px 24px;
+  overflow: hidden;
 }
 
 .modal-tags {
