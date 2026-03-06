@@ -22,7 +22,7 @@ function NovelDetailModal({ entry, rank, prevRank, allHistory, onClose, onOpenDe
 
   // Build rank history across months (most recent last)
   const rankHistory = useMemo(() => {
-    return [...allHistory].reverse().map((monthData, mi) => {
+    return allHistory.map((monthData, mi) => {  // already oldest→newest
       const idx = monthData.findIndex(e => e.novel_id === entry.novel_id)
       return idx >= 0 ? idx + 1 : null
     }).concat([rank])
@@ -538,7 +538,8 @@ export function RankingPage() {
         setVotes(Array.isArray(data) ? data : [])
 
         const hist = []
-        for (let i = 1; i <= 3; i++) {
+        // Fetch 3 months, oldest first (i=3 = 3mo ago, i=1 = last month)
+        for (let i = 3; i >= 1; i--) {
           const d2  = new Date(now.getFullYear(), now.getMonth() - monthOffset - i, 1)
           const r2  = await fetch(
             `${SUPABASE_URL}/rest/v1/novel_votes?month=eq.${d2.getMonth()+1}&year=eq.${d2.getFullYear()}&order=vote_count.desc&limit=30`,
@@ -547,6 +548,7 @@ export function RankingPage() {
           const d2d = await r2.json()
           hist.push(Array.isArray(d2d) ? d2d : [])
         }
+        // hist = [3mo ago, 2mo ago, last month] — newest last
         setHistory(hist)
       } catch {}
       setLoading(false)
@@ -567,7 +569,7 @@ export function RankingPage() {
   const rankHistories = useMemo(() => {
     const map = {}
     votes.forEach((v, i) => {
-      const pts = [...history].reverse().map(monthData => {
+      const pts = history.map(monthData => {  // already oldest→newest
         const idx = monthData.findIndex(e => e.novel_id === v.novel_id)
         return idx >= 0 ? idx + 1 : null
       })
