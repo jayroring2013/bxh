@@ -12,13 +12,13 @@ const GOLD   = '#F59E0B'
 const GREEN  = '#4ADE80'
 
 const api = async (token, path, method = 'GET', body = null) => {
+  const headers = {
+    apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  }
+  if (method === 'POST') headers.Prefer = 'return=representation'
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method,
-    headers: {
-      apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      Prefer: method === 'POST' ? 'return=representation' : undefined,
-    },
+    method, headers,
     body: body ? JSON.stringify(body) : undefined,
   })
   if (res.status === 204 || method === 'DELETE') return null
@@ -139,8 +139,8 @@ function SeriesTab({ token, toast }) {
           : `manga?order=follows.desc&limit=30`
       } else {
         url = q
-          ? `novels?or=(title.ilike.%25${enc}%25,romaji.ilike.%25${enc}%25)&order=score.desc&limit=30`
-          : `novels?order=score.desc&limit=30`
+          ? `novels?title=ilike.%25${enc}%25&order=num_books.desc.nullslast,id.desc&limit=30`
+          : `novels?order=num_books.desc.nullslast,id.desc&limit=30`
       }
       const data = await api(token, url)
       setItems(Array.isArray(data) ? data : [])
