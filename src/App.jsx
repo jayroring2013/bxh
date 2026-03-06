@@ -4,6 +4,7 @@ import { useHash } from './hooks.js'
 import { LangProvider }    from './context/LangContext.jsx'
 import { AuthProvider }    from './context/AuthContext.jsx'
 import { ToastProvider }   from './context/ToastContext.jsx'
+import { NotificationProvider } from './context/NotificationContext.jsx'
 import { ErrorBoundary }   from './components/ErrorBoundary.jsx'
 import { LandingPage }     from './pages/LandingPage.jsx'
 import { NovelsPage }      from './pages/NovelsPage.jsx'
@@ -50,9 +51,11 @@ export default function App() {
     <ErrorBoundary>
       <LangProvider>
         <AuthProvider>
+          <NotificationProvider>
           <ToastProvider>
             <Router />
           </ToastProvider>
+          </NotificationProvider>
         </AuthProvider>
       </LangProvider>
     </ErrorBoundary>
