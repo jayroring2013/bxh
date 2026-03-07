@@ -213,7 +213,7 @@ function ScheduleDetailModal({ item, onClose, lang }) {
         : (typeof detail.description === 'object'
             ? detail.description?.en
             : detail.description) || '')
-    : ''
+    : item.description || ''
 
   const metaItems = []
   if (item.type === 'anime' && detail) {
@@ -468,7 +468,8 @@ export function SchedulePage() {
     publisher: r.publisher || null,
     price:  r.price     || null,
     source: r.source    || null,
-    item_id: r.item_id  || null,
+    item_id:     r.item_id     || null,
+    description: r.description || null,
   })).filter(r => r.airsAt), [scheduleData])
 
   const today = toYMD(new Date())
