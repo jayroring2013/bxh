@@ -648,7 +648,6 @@ export function SchedulePage() {
             : '⚡ Schedule data will be auto-updated from AniList & MangaDex in production.'}
         </div>
       </main>
-    </div>
 
       {detailItem && (
         <ScheduleDetailModal
@@ -657,5 +656,6 @@ export function SchedulePage() {
           onClose={() => setDetailItem(null)}
         />
       )}
+    </div>
   )
 }
