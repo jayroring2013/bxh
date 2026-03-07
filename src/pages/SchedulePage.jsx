@@ -162,7 +162,210 @@ function DateSelector({ lang, dateMode, setDateMode, singleDate, setSingleDate,
   )
 }
 
-function ScheduleItem({ item, lang }) {
+
+// ── Schedule Detail Modal ───────────────────────────────────────────────────
+function ScheduleDetailModal({ item, onClose, lang }) {
+  const [detail, setDetail] = useState(null)
+  const [loading, setLoading] = useState(!!item.item_id)
+  const color = TYPE_COLOR[item.type]
+
+  useEffect(() => {
+    const esc = e => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', esc)
+    return () => window.removeEventListener('keydown', esc)
+  }, [])
+
+  useEffect(() => {
+    if (!item.item_id) { setLoading(false); return }
+    const table = item.type === 'anime' ? 'anime'
+                : item.type === 'manga' ? 'manga'
+                : 'novels'
+    fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${item.item_id}&limit=1`, {
+      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }
+    })
+      .then(r => r.json())
+      .then(d => { if (d?.[0]) setDetail(d[0]) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [item.item_id, item.type])
+
+  const priceLabel = item.price
+    ? new Intl.NumberFormat('vi-VN').format(item.price) + '₫'
+    : null
+
+  // Extract fields from detail row based on type
+  const title   = detail
+    ? (item.type === 'anime' ? (detail.title_english || detail.title_romaji)
+     : item.type === 'manga' ? (detail.title_en || detail.title_ja_ro)
+     : (detail.title || detail.romaji))
+    : item.title
+
+  const cover   = detail
+    ? (item.type === 'anime' ? detail.cover_large
+     : detail.cover_url)
+    : item.cover
+
+  const desc    = detail
+    ? (item.type === 'anime'
+        ? (detail.description || '').replace(/<[^>]*>/g, '')
+        : item.type === 'manga'
+        ? (detail.description_en || '')
+        : (typeof detail.description === 'object'
+            ? detail.description?.en
+            : detail.description) || '')
+    : ''
+
+  const metaItems = []
+  if (item.type === 'anime' && detail) {
+    if (detail.studio)        metaItems.push({ label: lang === 'vi' ? 'Studio' : 'Studio',    value: detail.studio })
+    if (detail.episodes)      metaItems.push({ label: lang === 'vi' ? 'Số tập' : 'Episodes',  value: detail.episodes })
+    if (detail.average_score) metaItems.push({ label: lang === 'vi' ? 'Điểm' : 'Score',       value: `${detail.average_score}/100` })
+    if (detail.season && detail.season_year) metaItems.push({ label: 'Season', value: `${detail.season} ${detail.season_year}` })
+  } else if (item.type === 'manga' && detail) {
+    if (detail.author)  metaItems.push({ label: lang === 'vi' ? 'Tác giả' : 'Author',   value: detail.author })
+    if (detail.status)  metaItems.push({ label: lang === 'vi' ? 'Trạng thái' : 'Status', value: detail.status })
+    if (detail.chapters)metaItems.push({ label: lang === 'vi' ? 'Số chương' : 'Chapters', value: detail.chapters })
+    if (detail.rating)  metaItems.push({ label: lang === 'vi' ? 'Điểm' : 'Rating',      value: `${detail.rating}/10` })
+  } else if (item.type === 'novel') {
+    if (item.publisher) metaItems.push({ label: lang === 'vi' ? 'NXB' : 'Publisher',   value: item.publisher })
+    if (detail?.num_books) metaItems.push({ label: lang === 'vi' ? 'Số tập' : 'Volumes', value: detail.num_books })
+    if (detail?.score)  metaItems.push({ label: lang === 'vi' ? 'Điểm' : 'Score',      value: `${detail.score}/10` })
+    if (priceLabel)     metaItems.push({ label: lang === 'vi' ? 'Giá' : 'Price',        value: priceLabel })
+  }
+
+  const genres = detail
+    ? (detail.genres || [])
+    : []
+
+  const shopLabel = item.source === 'fahasa' ? 'Fahasa'
+                  : item.source === 'anilist' ? 'AniList'
+                  : lang === 'vi' ? 'Đặt mua' : 'Shop'
+
+  return (
+    <div onClick={e => e.target === e.currentTarget && onClose()}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: 'linear-gradient(145deg,#0d1117,#1a1a2e)',
+        borderRadius: 18, width: '100%', maxWidth: 560, maxHeight: '90vh',
+        overflowY: 'auto', border: `1px solid ${color}30`,
+        boxShadow: `0 24px 60px rgba(0,0,0,0.8), 0 0 40px ${color}10` }}>
+
+        {/* Cover banner */}
+        <div style={{ position: 'relative', height: 180, overflow: 'hidden',
+          borderRadius: '18px 18px 0 0', background: `${color}15`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {cover
+            ? <img src={cover} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => e.target.style.display='none'} />
+            : <div style={{ fontSize: 64 }}>{TYPE_ICON[item.type]}</div>}
+          {/* Gradient overlay */}
+          <div style={{ position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(13,17,23,0.95) 0%, transparent 50%)' }} />
+          {/* Close */}
+          <button onClick={onClose} style={{ position: 'absolute', top: 12, right: 12,
+            background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%',
+            width: 32, height: 32, color: '#94A3B8', cursor: 'pointer',
+            fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+          {/* Type badge */}
+          <span style={{ position: 'absolute', top: 12, left: 12,
+            fontSize: 9, padding: '3px 9px', borderRadius: 20,
+            background: `${color}30`, color, fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: 0.8,
+            border: `1px solid ${color}40` }}>
+            {item.type}
+          </span>
+        </div>
+
+        <div style={{ padding: '16px 20px 24px' }}>
+          {/* Title */}
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 22, fontWeight: 700, color: '#f1f5f9',
+            lineHeight: 1.2, marginBottom: 4 }}>
+            {loading ? '…' : title}
+          </div>
+          {item.volume && (
+            <div style={{ fontSize: 12, color, fontWeight: 600, marginBottom: 12 }}>
+              {item.volume}
+            </div>
+          )}
+
+          {/* Release date */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
+            <span style={{ fontSize: 11, color: '#64748B' }}>
+              {lang === 'vi' ? '📅 Ngày phát hành:' : '📅 Release date:'}
+            </span>
+            <span style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 600 }}>
+              {new Date(item.airsAt).toLocaleDateString(
+                lang === 'vi' ? 'vi-VN' : 'en-US',
+                { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' }
+              )}
+            </span>
+          </div>
+
+          {/* Meta grid */}
+          {metaItems.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr',
+              gap: '8px 16px', marginBottom: 14,
+              background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: 12 }}>
+              {metaItems.map(m => (
+                <div key={m.label}>
+                  <div style={{ fontSize: 9, color: '#475569', fontWeight: 700,
+                    textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.label}</div>
+                  <div style={{ fontSize: 12, color: '#cbd5e1', marginTop: 2 }}>{m.value}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Genres */}
+          {genres.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+              {genres.map(g => (
+                <span key={g} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20,
+                  background: `${color}15`, color, border: `1px solid ${color}25` }}>{g}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Description */}
+          {loading
+            ? <div style={{ color: '#374151', fontSize: 12 }}>
+                {lang === 'vi' ? 'Đang tải...' : 'Loading details…'}
+              </div>
+            : desc
+            ? <p style={{ fontSize: 12, color: '#94A3B8', lineHeight: 1.7,
+                marginBottom: 16, maxHeight: 140, overflowY: 'auto',
+                paddingRight: 4 }}>
+                {desc.length > 600 ? desc.slice(0, 600) + '…' : desc}
+              </p>
+            : null}
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            {item.shopUrl && (
+              <a href={item.shopUrl} target="_blank" rel="noreferrer"
+                style={{ flex: 1, textAlign: 'center', padding: '9px 16px',
+                  borderRadius: 10, background: color, color: '#fff',
+                  fontWeight: 700, fontSize: 13, textDecoration: 'none',
+                  fontFamily: "'Barlow Condensed', sans-serif" }}>
+                🛒 {shopLabel}
+              </a>
+            )}
+            <button onClick={onClose}
+              style={{ padding: '9px 16px', borderRadius: 10,
+                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                color: '#64748B', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+              {lang === 'vi' ? 'Đóng' : 'Close'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ScheduleItem({ item, lang, onOpen }) {
   const color = TYPE_COLOR[item.type]
   const past  = isPast(item.airsAt)
 
@@ -179,8 +382,8 @@ function ScheduleItem({ item, lang }) {
       border: `1px solid ${past ? 'rgba(255,255,255,0.05)' : color + '25'}`,
       opacity: past ? 0.6 : 1, transition: 'all 0.2s',
     }}>
-      <div style={{ width: 36, height: 50, borderRadius: 6,
-        background: `${color}20`, flexShrink: 0, overflow: 'hidden' }}>
+      <div onClick={onOpen} style={{ width: 36, height: 50, borderRadius: 6,
+        background: `${color}20`, flexShrink: 0, overflow: 'hidden', cursor: 'pointer' }}>
         {item.cover
           ? <img src={item.cover} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={e => e.target.style.display='none'} />
@@ -192,9 +395,10 @@ function ScheduleItem({ item, lang }) {
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+        <div onClick={onOpen} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           color: past ? '#475569' : '#e2e8f0', lineHeight: 1.2,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          cursor: 'pointer' }}>
           {item.title}
         </div>
         <div style={{ display: 'flex', gap: 6, marginTop: 4, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -215,7 +419,9 @@ function ScheduleItem({ item, lang }) {
             style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6,
               background: `${color}20`, color, border: `1px solid ${color}40`,
               textDecoration: 'none', fontWeight: 600 }}>
-            {lang === 'vi' ? 'Đặt mua' : 'Pre-order'}
+            {item.source === 'fahasa' ? 'Fahasa'
+              : item.source === 'anilist' ? 'AniList'
+              : lang === 'vi' ? 'Đặt mua' : 'Pre-order'}
           </a>
         )}
         {past && (
@@ -262,10 +468,12 @@ export function SchedulePage() {
     publisher: r.publisher || null,
     price:  r.price     || null,
     source: r.source    || null,
+    item_id: r.item_id  || null,
   })).filter(r => r.airsAt), [scheduleData])
 
   const today = toYMD(new Date())
   const [typeFilter,  setTypeFilter]  = useState('all')
+  const [detailItem,  setDetailItem]  = useState(null)
   const [dateMode,    setDateMode]    = useState('all')      // 'all' | 'single' | 'range'
   const [singleDate,  setSingleDate]  = useState(today)
   const [rangeStart,  setRangeStart]  = useState(today)
@@ -408,7 +616,7 @@ export function SchedulePage() {
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {items.map(item => <ScheduleItem key={item.id} item={item} lang={lang} />)}
+                {items.map(item => <ScheduleItem key={item.id} item={item} lang={lang} onOpen={() => setDetailItem(item)} />)}
               </div>
             </div>
           )
@@ -441,5 +649,13 @@ export function SchedulePage() {
         </div>
       </main>
     </div>
+
+      {detailItem && (
+        <ScheduleDetailModal
+          item={detailItem}
+          lang={lang}
+          onClose={() => setDetailItem(null)}
+        />
+      )}
   )
 }
