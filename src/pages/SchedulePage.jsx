@@ -288,7 +288,7 @@ export function SchedulePage() {
     }
 
     return [...items].sort((a, b) => new Date(a.airsAt) - new Date(b.airsAt))
-  }, [typeFilter, dateMode, singleDate, rangeStart, rangeEnd])
+  }, [SCHEDULE, typeFilter, dateMode, singleDate, rangeStart, rangeEnd])
 
   // Group by day
   const grouped = useMemo(() => {
