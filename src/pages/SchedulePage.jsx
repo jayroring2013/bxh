@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { PURPLE, CYAN, ROSE } from '../constants.js'
+import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
 import { AppHeader, HeroBanner } from '../components/Shared.jsx'
-import { SCHEDULE_MOCK } from '../mockData.js'
 
 const TYPE_COLOR  = { anime: CYAN, manga: ROSE, novel: PURPLE }
 const TYPE_ICON   = { anime: '🎌', manga: '📚', novel: '📖' }
@@ -166,10 +166,10 @@ function ScheduleItem({ item, lang }) {
   const color = TYPE_COLOR[item.type]
   const past  = isPast(item.airsAt)
 
-  const subLabel = item.episode ? `EP ${item.episode}`
-    : item.chapter ? `CH ${item.chapter}`
-    : item.volume  ? `VOL ${item.volume}`
-    : ''
+  const subLabel = item.volume || (item.episode ? `Ep.${item.episode}` : '')
+  const priceLabel = item.price
+    ? new Intl.NumberFormat('vi-VN').format(item.price) + '₫'
+    : null
 
   return (
     <div style={{
@@ -177,7 +177,7 @@ function ScheduleItem({ item, lang }) {
       padding: '10px 14px', borderRadius: 12,
       background: past ? 'rgba(255,255,255,0.02)' : `${color}08`,
       border: `1px solid ${past ? 'rgba(255,255,255,0.05)' : color + '25'}`,
-      opacity: past ? 0.5 : 1, transition: 'all 0.2s',
+      opacity: past ? 0.6 : 1, transition: 'all 0.2s',
     }}>
       <div style={{ width: 36, height: 50, borderRadius: 6,
         background: `${color}20`, flexShrink: 0, overflow: 'hidden' }}>
@@ -197,24 +197,30 @@ function ScheduleItem({ item, lang }) {
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {item.title}
         </div>
-        <div style={{ display: 'flex', gap: 6, marginTop: 4, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 6, marginTop: 4, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 9, padding: '1px 7px', borderRadius: 20,
             background: `${color}20`, color, fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {item.type}
           </span>
           {subLabel && <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>{subLabel}</span>}
+          {item.publisher && <span style={{ fontSize: 10, color: '#374151' }}>{item.publisher}</span>}
+          {priceLabel && <span style={{ fontSize: 10, color: '#FBBF24', fontWeight: 600 }}>{priceLabel}</span>}
         </div>
       </div>
 
-      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: past ? '#374151' : color,
-          fontFamily: "'Be Vietnam Pro', sans-serif" }}>
-          {formatTime(item.airsAt)}
-        </div>
+      <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+        {item.shopUrl && !past && (
+          <a href={item.shopUrl} target="_blank" rel="noreferrer"
+            style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6,
+              background: `${color}20`, color, border: `1px solid ${color}40`,
+              textDecoration: 'none', fontWeight: 600 }}>
+            {lang === 'vi' ? 'Đặt mua' : 'Pre-order'}
+          </a>
+        )}
         {past && (
-          <div style={{ fontSize: 9, color: '#374151', marginTop: 2 }}>
-            {lang === 'vi' ? 'Đã phát' : 'Released'}
+          <div style={{ fontSize: 9, color: '#374151' }}>
+            {lang === 'vi' ? 'Đã phát hành' : 'Released'}
           </div>
         )}
       </div>
@@ -224,6 +230,39 @@ function ScheduleItem({ item, lang }) {
 
 export function SchedulePage() {
   const { lang } = useLang()
+
+  const [scheduleData, setScheduleData] = useState([])
+  const [loadingData,  setLoadingData]  = useState(true)
+
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/release_schedule?order=release_date.asc&limit=500`,
+          { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
+        )
+        const data = await res.json()
+        setScheduleData(Array.isArray(data) ? data : [])
+      } catch(e) { console.error('Schedule fetch failed:', e) }
+      finally { setLoadingData(false) }
+    }
+    fetchSchedule()
+  }, [])
+
+  // Normalize DB rows to internal shape
+  const SCHEDULE = useMemo(() => scheduleData.map(r => ({
+    id:     r.id,
+    type:   r.item_type,
+    title:  r.title,
+    airsAt: r.release_date ? r.release_date + 'T00:00:00' : null,
+    cover:  r.cover_url || null,
+    ep:     r.episode   || null,
+    volume: r.volume    || null,
+    shopUrl: r.shop_url || null,
+    publisher: r.publisher || null,
+    price:  r.price     || null,
+    source: r.source    || null,
+  })).filter(r => r.airsAt), [scheduleData])
 
   const today = toYMD(new Date())
   const [typeFilter,  setTypeFilter]  = useState('all')
@@ -235,7 +274,7 @@ export function SchedulePage() {
   })
 
   const filtered = useMemo(() => {
-    let items = typeFilter === 'all' ? SCHEDULE_MOCK : SCHEDULE_MOCK.filter(i => i.type === typeFilter)
+    let items = typeFilter === 'all' ? SCHEDULE : SCHEDULE.filter(i => i.type === typeFilter)
 
     if (dateMode === 'single') {
       items = items.filter(i => toYMD(new Date(i.airsAt)) === singleDate)
@@ -267,6 +306,17 @@ export function SchedulePage() {
     const diff = (new Date(i.airsAt) - new Date()) / 86400000
     return diff >= 0 && diff <= 7
   }).length
+
+  if (loadingData) return (
+    <div className="page-enter">
+      <AppHeader activeTab="#/schedule" accent={CYAN}
+        searchInput="" onSearch={() => {}} sorts={[]}
+        activeSort="" onSort={() => {}} hideSearch hideSorts />
+      <div style={{ textAlign: 'center', padding: 80, color: '#475569' }}>
+        {lang === 'vi' ? 'Đang tải lịch phát hành…' : 'Loading schedule…'}
+      </div>
+    </div>
+  )
 
   return (
     <div className="page-enter">
