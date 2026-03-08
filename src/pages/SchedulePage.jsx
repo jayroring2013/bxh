@@ -387,13 +387,13 @@ function ScheduleItem({ item, lang, onOpen }) {
             textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {item.type}
           </span>
-          {item.publisher && <span style={{ fontSize: 10, color: '#374151' }}>{item.publisher}</span>}
-          {item.edition && (
+          {(item.publisher || item.author) && <span style={{ fontSize: 10, color: '#374151' }}>{item.publisher || item.author}</span>}
+          {edition && (
             <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 20,
               background: 'rgba(139,92,246,0.2)', color: '#a78bfa',
               border: '1px solid rgba(139,92,246,0.4)', fontWeight: 700,
               letterSpacing: 0.3 }}>
-              {item.edition}
+              {edition}
             </span>
           )}
           {priceLabel && <span style={{ fontSize: 10, color: '#FBBF24', fontWeight: 600 }}>{priceLabel}</span>}
@@ -470,6 +470,7 @@ export function SchedulePage() {
       shopUrl:     shopLink?.url || null,
       shopLabel:   shopLink?.label || null,
       publisher:   s.publisher || null,
+      author:      s.author     || null,
       price:       r.price     || null,
       source:      r.source    || 'fahasa',
       series_id:   s.id        || null,
