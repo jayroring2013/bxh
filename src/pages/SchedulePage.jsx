@@ -346,8 +346,9 @@ function ScheduleDetailModal({ item, onClose, lang }) {
 }
 
 function ScheduleItem({ item, lang, onOpen }) {
-  const color = TYPE_COLOR[item.type]
-  const past  = isPast(item.airsAt)
+  const color   = TYPE_COLOR[item.type]
+  const past    = isPast(item.airsAt)
+  const edition = item.is_special ? (lang === 'vi' ? 'Đặc Biệt' : 'Special') : null
 
   const priceLabel = item.price
     ? new Intl.NumberFormat('vi-VN').format(item.price) + '₫'
@@ -387,6 +388,14 @@ function ScheduleItem({ item, lang, onOpen }) {
             {item.type}
           </span>
           {item.publisher && <span style={{ fontSize: 10, color: '#374151' }}>{item.publisher}</span>}
+          {item.edition && (
+            <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 20,
+              background: 'rgba(139,92,246,0.2)', color: '#a78bfa',
+              border: '1px solid rgba(139,92,246,0.4)', fontWeight: 700,
+              letterSpacing: 0.3 }}>
+              {item.edition}
+            </span>
+          )}
           {priceLabel && <span style={{ fontSize: 10, color: '#FBBF24', fontWeight: 600 }}>{priceLabel}</span>}
         </div>
       </div>
@@ -468,6 +477,7 @@ export function SchedulePage() {
       // pass series data for detail modal
       series:      s,
       is_special:  r.is_special || false,
+      // edition label computed in ScheduleItem from is_special
     }
   }).filter(r => r.airsAt), [scheduleData])
 
