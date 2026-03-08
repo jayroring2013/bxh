@@ -203,7 +203,7 @@ function ScheduleDetailModal({ item, onClose, lang }) {
   const cover   = item.cover || d_info.cover_url || null
 
   const d_desc  = detail || item.series || {}
-  const desc    = (d_desc.description || item.description || '').replace(/<[^>]*>/g, '')''
+  const desc    = (d_desc.description || item.description || '').replace(/<[^>]*>/g, '')
 
   const metaItems = []
   const d = detail || item.series || {}
