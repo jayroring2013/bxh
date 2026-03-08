@@ -176,70 +176,50 @@ function ScheduleDetailModal({ item, onClose, lang }) {
   }, [])
 
   useEffect(() => {
-    if (!item.item_id) { setLoading(false); return }
-    const table = item.type === 'anime' ? 'anime'
-                : item.type === 'manga' ? 'manga'
-                : 'novels'
-    fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${item.item_id}&limit=1`, {
+    // series data is already embedded in item.series from the joined fetch
+    if (item.series && Object.keys(item.series).length > 0) {
+      setDetail(item.series)
+      setLoading(false)
+      return
+    }
+    // Fallback: fetch from series table by series_id
+    if (!item.series_id) { setLoading(false); return }
+    fetch(`${SUPABASE_URL}/rest/v1/series?id=eq.${item.series_id}&limit=1`, {
       headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` }
     })
       .then(r => r.json())
       .then(d => { if (d?.[0]) setDetail(d[0]) })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [item.item_id, item.type])
+  }, [item.series_id])
 
   const priceLabel = item.price
     ? new Intl.NumberFormat('vi-VN').format(item.price) + '₫'
     : null
 
   // Extract fields from detail row based on type
-  const title   = detail
-    ? (item.type === 'anime' ? (detail.title_english || detail.title_romaji)
-     : item.type === 'manga' ? (detail.title_en || detail.title_ja_ro)
-     : (detail.title || detail.romaji))
-    : item.title
+  const d_info  = detail || item.series || {}
+  const title   = d_info.title || item.series_title || item.title
+  const cover   = item.cover || d_info.cover_url || null
 
-  const cover   = detail
-    ? (item.type === 'anime' ? detail.cover_large
-     : detail.cover_url)
-    : item.cover
-
-  const desc    = detail
-    ? (item.type === 'anime'
-        ? (detail.description || '').replace(/<[^>]*>/g, '')
-        : item.type === 'manga'
-        ? (detail.description_en || '')
-        : (typeof detail.description === 'object'
-            ? detail.description?.en
-            : detail.description) || '')
-    : item.description || ''
+  const d_desc  = detail || item.series || {}
+  const desc    = (d_desc.description || item.description || '').replace(/<[^>]*>/g, '')''
 
   const metaItems = []
-  if (item.type === 'anime' && detail) {
-    if (detail.studio)        metaItems.push({ label: lang === 'vi' ? 'Studio' : 'Studio',    value: detail.studio })
-    if (detail.episodes)      metaItems.push({ label: lang === 'vi' ? 'Số tập' : 'Episodes',  value: detail.episodes })
-    if (detail.average_score) metaItems.push({ label: lang === 'vi' ? 'Điểm' : 'Score',       value: `${detail.average_score}/100` })
-    if (detail.season && detail.season_year) metaItems.push({ label: 'Season', value: `${detail.season} ${detail.season_year}` })
-  } else if (item.type === 'manga' && detail) {
-    if (detail.author)  metaItems.push({ label: lang === 'vi' ? 'Tác giả' : 'Author',   value: detail.author })
-    if (detail.status)  metaItems.push({ label: lang === 'vi' ? 'Trạng thái' : 'Status', value: detail.status })
-    if (detail.chapters)metaItems.push({ label: lang === 'vi' ? 'Số chương' : 'Chapters', value: detail.chapters })
-    if (detail.rating)  metaItems.push({ label: lang === 'vi' ? 'Điểm' : 'Rating',      value: `${detail.rating}/10` })
-  } else if (item.type === 'novel') {
-    if (item.publisher) metaItems.push({ label: lang === 'vi' ? 'NXB' : 'Publisher',   value: item.publisher })
-    if (detail?.num_books) metaItems.push({ label: lang === 'vi' ? 'Số tập' : 'Volumes', value: detail.num_books })
-    if (detail?.score)  metaItems.push({ label: lang === 'vi' ? 'Điểm' : 'Score',      value: `${detail.score}/10` })
-    if (priceLabel)     metaItems.push({ label: lang === 'vi' ? 'Giá' : 'Price',        value: priceLabel })
-  }
+  const d = detail || item.series || {}
+  // Fields from series table (same shape for all types)
+  if (d.author || d.studio) metaItems.push({ label: lang === 'vi' ? 'Tác giả / Studio' : 'Author / Studio', value: d.author || d.studio })
+  if (d.publisher || item.publisher) metaItems.push({ label: lang === 'vi' ? 'NXB' : 'Publisher', value: d.publisher || item.publisher })
+  if (d.status)  metaItems.push({ label: lang === 'vi' ? 'Trạng thái' : 'Status', value: d.status })
+  if (d.score)   metaItems.push({ label: lang === 'vi' ? 'Điểm' : 'Score',        value: `${d.score}/10` })
+  if (priceLabel)metaItems.push({ label: lang === 'vi' ? 'Giá tập này' : 'Price', value: priceLabel })
 
-  const genres = detail
-    ? (detail.genres || [])
-    : []
+  const genres = Array.isArray(d.genres) ? d.genres : []
 
-  const shopLabel = item.source === 'fahasa' ? 'Fahasa'
+  const shopLabel = item.shopLabel
+                  || (item.source === 'fahasa' ? 'Fahasa'
                   : item.source === 'anilist' ? 'AniList'
-                  : lang === 'vi' ? 'Đặt mua' : 'Shop'
+                  : lang === 'vi' ? 'Đặt mua' : 'Shop')
 
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()}
@@ -419,9 +399,9 @@ function ScheduleItem({ item, lang, onOpen }) {
             style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6,
               background: `${color}20`, color, border: `1px solid ${color}40`,
               textDecoration: 'none', fontWeight: 600 }}>
-            {item.source === 'fahasa' ? 'Fahasa'
+            {item.shopLabel || (item.source === 'fahasa' ? 'Fahasa'
               : item.source === 'anilist' ? 'AniList'
-              : lang === 'vi' ? 'Đặt mua' : 'Pre-order'}
+              : lang === 'vi' ? 'Đặt mua' : 'Pre-order')}
           </a>
         )}
         {past && (
@@ -443,8 +423,15 @@ export function SchedulePage() {
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
+        // Join volumes ← series + volume_links in one request
         const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/release_schedule?order=release_date.asc&limit=500`,
+          `${SUPABASE_URL}/rest/v1/volumes`
+          + `?select=id,volume_label,volume_number,title,cover_url,description,release_date,price,is_special,source`
+          + `,series!inner(id,item_type,title,cover_url,description,publisher,author,studio,genres,score,external_id)`
+          + `,volume_links(id,link_type,label,url,affiliate_code)`
+          + `&release_date=not.is.null`
+          + `&order=release_date.asc`
+          + `&limit=500`,
           { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
         )
         const data = await res.json()
@@ -455,22 +442,36 @@ export function SchedulePage() {
     fetchSchedule()
   }, [])
 
-  // Normalize DB rows to internal shape
-  const SCHEDULE = useMemo(() => scheduleData.map(r => ({
-    id:     r.id,
-    type:   r.item_type,
-    title:  r.title,
-    airsAt: r.release_date ? r.release_date + 'T00:00:00' : null,
-    cover:  r.cover_url || null,
-    ep:     r.episode   || null,
-    volume: r.volume    || null,
-    shopUrl: r.shop_url || null,
-    publisher: r.publisher || null,
-    price:  r.price     || null,
-    source: r.source    || null,
-    item_id:     r.item_id     || null,
-    description: r.description || null,
-  })).filter(r => r.airsAt), [scheduleData])
+  // Normalize joined rows to internal shape
+  const SCHEDULE = useMemo(() => scheduleData.map(r => {
+    const s       = r.series || {}
+    const links   = r.volume_links || []
+    const shopLink= links.find(l => l.link_type === 'shop' && l.is_active !== false)
+    const cover   = r.cover_url || s.cover_url || null
+    // Build display title: series title + volume label
+    const volPart = r.volume_label && r.volume_label !== 'Standalone' ? r.volume_label : null
+    const displayTitle = volPart ? `${s.title} - ${volPart}` : s.title
+    return {
+      id:          r.id,
+      type:        s.item_type || 'novel',
+      title:       displayTitle,
+      series_title:s.title,
+      airsAt:      r.release_date ? r.release_date + 'T00:00:00' : null,
+      cover,
+      volume:      r.volume_label !== 'Standalone' ? r.volume_label : null,
+      subtitle:    r.title || null,           // volume subtitle
+      shopUrl:     shopLink?.url || null,
+      shopLabel:   shopLink?.label || null,
+      publisher:   s.publisher || null,
+      price:       r.price     || null,
+      source:      r.source    || 'fahasa',
+      series_id:   s.id        || null,
+      description: r.description || s.description || null,
+      // pass series data for detail modal
+      series:      s,
+      is_special:  r.is_special || false,
+    }
+  }).filter(r => r.airsAt), [scheduleData])
 
   const today = toYMD(new Date())
   const [typeFilter,  setTypeFilter]  = useState('all')
@@ -645,7 +646,7 @@ export function SchedulePage() {
 
         <div style={{ textAlign: 'center', marginTop: 32, fontSize: 11, color: '#1F2937' }}>
           {lang === 'vi'
-            ? '⚡ Dữ liệu lịch phát hành sẽ được cập nhật tự động từ AniList, MangaDex.'
+            ? '⚡ Dữ liệu lịch phát hành từ bảng volumes · series · volume_links.'
             : '⚡ Schedule data will be auto-updated from AniList & MangaDex in production.'}
         </div>
       </main>
