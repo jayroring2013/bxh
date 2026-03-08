@@ -479,13 +479,12 @@ export function SchedulePage() {
       series:      s,
       is_special:  r.is_special || false,
       edition:     (() => {
-        if (!r.is_special) return null
         const raw = r.title_raw || ''
         if (/bản sưu tầm/i.test(raw)) return 'Sưu Tầm'
         if (/bản đặc biệt/i.test(raw)) return 'Đặc Biệt'
         if (/bản giới hạn/i.test(raw)) return 'Giới Hạn'
         if (/boxset/i.test(raw))       return 'Boxset'
-        return 'Đặc Biệt'
+        return null
       })(),
       // edition label computed in ScheduleItem from is_special
     }
