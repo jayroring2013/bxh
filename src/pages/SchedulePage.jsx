@@ -349,7 +349,6 @@ function ScheduleItem({ item, lang, onOpen }) {
   const color = TYPE_COLOR[item.type]
   const past  = isPast(item.airsAt)
 
-  const subLabel = item.volume || (item.episode ? `Ep.${item.episode}` : '')
   const priceLabel = item.price
     ? new Intl.NumberFormat('vi-VN').format(item.price) + '₫'
     : null
@@ -387,7 +386,6 @@ function ScheduleItem({ item, lang, onOpen }) {
             textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {item.type}
           </span>
-          {subLabel && <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>{subLabel}</span>}
           {item.publisher && <span style={{ fontSize: 10, color: '#374151' }}>{item.publisher}</span>}
           {priceLabel && <span style={{ fontSize: 10, color: '#FBBF24', fontWeight: 600 }}>{priceLabel}</span>}
         </div>
