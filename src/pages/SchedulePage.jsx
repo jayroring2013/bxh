@@ -514,7 +514,11 @@ export function SchedulePage() {
       })
     }
 
-    return [...items].sort((a, b) => new Date(a.airsAt) - new Date(b.airsAt))
+    return [...items].sort((a, b) => {
+      const dateDiff = new Date(a.airsAt) - new Date(b.airsAt)
+      if (dateDiff !== 0) return dateDiff
+      return (a.series_title || a.title).localeCompare(b.series_title || b.title, 'vi')
+    })
   }, [SCHEDULE, typeFilter, dateMode, singleDate, rangeStart, rangeEnd])
 
   // Group by day
