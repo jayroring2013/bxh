@@ -72,8 +72,8 @@ export function AnimePage() {
 
   return (
     <div className="page-enter">
-      <AppHeader activeTab="#/anime" accent={CYAN} searchInput={searchInput}
-        onSearch={setSearchInput} sorts={ANIME_SORTS} activeSort={sort} onSort={setSort} />
+      <AppHeader activeTab="#/anime" accent={CYAN} searchInput=""
+        onSearch={() => {}} hideSearch sorts={ANIME_SORTS} activeSort={sort} onSort={setSort} />
 
       <HeroBanner title={heroTitle}
         sub={!loading && totalCount > 0 ? t('hero_found_anime', totalCount) : null}
