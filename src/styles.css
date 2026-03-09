@@ -514,7 +514,7 @@ input::placeholder {
   position: relative;
   overflow: hidden;
   background: linear-gradient(160deg, #0f0c29, #080d1a, #0a0a0f);
-  padding: 44px 24px 32px;
+  padding: 28px 24px 20px;
   text-align: center;
 }
 
@@ -530,10 +530,10 @@ input::placeholder {
 
 .hero-banner__title {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(26px, 5vw, 58px);
+  font-size: clamp(22px, 3.5vw, 38px);
   line-height: 1;
-  letter-spacing: 3px;
-  margin-bottom: 10px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
 }
 
 .hero-banner__tagline {
@@ -557,7 +557,7 @@ input::placeholder {
 .filter-bar {
   background: rgba(255, 255, 255, 0.02);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 12px 24px;
+  padding: 10px 20px;
 }
 
 .filter-bar__inner {
@@ -608,7 +608,7 @@ input::placeholder {
 .page-main {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 24px 20px;
 }
 
 /* ─── Empty state ───────────────────────────────────────────────── */
