@@ -26,7 +26,7 @@ function MiniCard({ series, accent }) {
         display: 'flex', flexDirection: 'column', gap: 6,
       }}>
       <div style={{
-        width: 130, height: 195, borderRadius: 12, overflow: 'hidden',
+        width: 156, height: 234, borderRadius: 12, overflow: 'hidden',
         background: '#0f172a', position: 'relative',
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
@@ -71,10 +71,10 @@ function VolumeCard({ vol, seriesId, accent }) {
 
   return (
     <div onClick={handleClick} style={{
-      width: 130, flexShrink: 0, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6,
+      width: 156, flexShrink: 0, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6,
     }}>
       <div style={{
-        width: 130, height: 195, borderRadius: 12, overflow: 'hidden',
+        width: 156, height: 234, borderRadius: 12, overflow: 'hidden',
         background: '#0f172a', position: 'relative',
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
@@ -237,7 +237,7 @@ export function SeriesDetailPage({ seriesId }) {
           {/* Cover */}
           <div style={{ flexShrink: 0, marginTop: 20 }}>
             <div style={{
-              width: 220, borderRadius: 16, overflow: 'hidden',
+              width: 264, borderRadius: 16, overflow: 'hidden',
               boxShadow: `0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)`,
               aspectRatio: '2/3', background: '#0f172a',
             }}>
@@ -427,7 +427,7 @@ export function SeriesDetailPage({ seriesId }) {
           count={volumes.length}>
           {loadingVols
             ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} style={{ width:130, height:195, borderRadius:12, flexShrink:0,
+                <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
                   background:'linear-gradient(90deg,#1f2937 25%,#374151 50%,#1f2937 75%)',
                   backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
               ))
