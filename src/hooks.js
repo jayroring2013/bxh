@@ -69,6 +69,7 @@ export function useNovels({ search, sort, status, genre }) {
           // Normalize Supabase rows to match RanobeDB shape
           const normalized = data.map(n => ({
             ...n,
+            description: typeof n.description === 'object' ? n.description?.en : n.description,
             book:   n.cover_url ? { image: { filename: n.cover_url.replace('https://images.ranobedb.org/', '') } } : null,
             tags:   (n.genres || []).map(g => ({ name: g, ttype: 'genre' })),
             rating: { score: n.score, count: n.score_count },
@@ -319,4 +320,95 @@ export function useManga({ search, sort, status, demographic, tag }) {
   const retry    = () => fetch_manga(0, true)
 
   return { manga, stats: {}, loading, loadingMore, error, offset, hasNext, totalCount, loadMore, retry }
+}
+
+/* ── Fetch novels from new series table ───────────────────── */
+export function useSeriesNovels({ search, sort, status, genre }) {
+  const [series,      setSeries]      = useState([])
+  const [loading,     setLoading]     = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [error,       setError]       = useState(null)
+  const [offset,      setOffset]      = useState(0)
+  const [hasMore,     setHasMore]     = useState(false)
+  const [totalCount,  setTotalCount]  = useState(0)
+  const LIMIT = 24
+
+  const fetchNovels = async (off, reset) => {
+    try {
+      reset ? setLoading(true) : setLoadingMore(true)
+      setError(null)
+
+      const sortCol =
+          sort === 'title_asc'   ? 'title.asc'
+        : sort === 'title_desc'  ? 'title.desc'
+        : sort === 'score_desc'  ? 'score.desc.nullslast'
+        : sort === 'newest'      ? 'created_at.desc'
+        : 'title.asc'
+
+      const params = new URLSearchParams()
+      params.set('item_type', 'eq.novel')
+      params.set('select', 'id,item_type,title,cover_url,description,publisher,author,studio,genres,score,status,external_id')
+      params.set('order', sortCol)
+      params.set('limit', LIMIT)
+      params.set('offset', off)
+
+      if (search.trim()) params.set('title', `ilike.%${search.trim()}%`)
+      if (status && status !== 'all') params.set('status', `eq.${status}`)
+      if (genre  && genre  !== 'all') params.set('genres', `cs.{"${genre}"}`)
+
+      // Get data + total count in parallel
+      const countParams = new URLSearchParams(params)
+      countParams.set('limit', 1)
+      countParams.set('offset', 0)
+
+      const [data, countRes] = await Promise.all([
+        sbFetch('series', params.toString()),
+        fetch(`${SUPABASE_URL}/rest/v1/series?${countParams}`, {
+          headers: {
+            apikey: SUPABASE_ANON,
+            Authorization: `Bearer ${SUPABASE_ANON}`,
+            Prefer: 'count=exact',
+          },
+        }),
+      ])
+
+      const total = parseInt(countRes.headers?.get?.('content-range')?.split('/')?.[1] || 0)
+      setSeries(prev => reset ? data : [...prev, ...data])
+      setHasMore(off + LIMIT < total)
+      setTotalCount(total || data.length)
+      setOffset(off)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  useEffect(() => {
+    setSeries([])
+    setOffset(0)
+    fetchNovels(0, true)
+  }, [search, sort, status, genre])
+
+  const loadMore = () => fetchNovels(offset + LIMIT, false)
+  const retry    = () => fetchNovels(0, true)
+
+  return { series, loading, loadingMore, error, hasMore, totalCount, loadMore, retry }
+}
+
+/* ── Fetch distinct genres for novel filter ───────────────── */
+export function useNovelGenres() {
+  const [genres, setGenres] = useState([])
+  useEffect(() => {
+    sbFetch('series', 'item_type=eq.novel&select=genres&limit=1000')
+      .then(rows => {
+        const seen = new Set()
+        rows.forEach(r => (r.genres || []).forEach(g => seen.add(g)))
+        const sorted = [...seen].sort()
+        setGenres(sorted.map(g => ({ id: g, name: g })))
+      })
+      .catch(() => {})
+  }, [])
+  return genres
 }
