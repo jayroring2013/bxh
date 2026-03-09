@@ -122,7 +122,7 @@ function SectionCarousel({ title, children, count }) {
           textTransform: 'uppercase' }}>
           {title}
           {count != null && (
-            <span style={{ fontSize: 12, color: '#5a4a3a', fontWeight: 500,
+            <span style={{ fontSize: 12, color: '#a08060', fontWeight: 500,
               marginLeft: 10, textTransform: 'none' }}>({count})</span>
           )}
         </h2>
@@ -169,7 +169,7 @@ export function SeriesDetailPage({ seriesId }) {
     <div className="page-enter">
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
         sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
-      <div style={{ textAlign:'center', padding: '80px 20px', color: '#5a4a3a',
+      <div style={{ textAlign:'center', padding: '80px 20px', color: '#a08060',
         fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
     </div>
   )
@@ -310,7 +310,7 @@ export function SeriesDetailPage({ seriesId }) {
                   fontFamily:"'Barlow Condensed',sans-serif" }}>
                   {loadingVols ? '…' : (volCount ?? '?')}
                 </div>
-                <div style={{ fontSize: 10, color: '#5a4a3a', fontWeight: 600, letterSpacing: 0.8,
+                <div style={{ fontSize: 10, color: '#a08060', fontWeight: 600, letterSpacing: 0.8,
                   textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   {lang==='vi'?'Tập':'Volumes'}
                 </div>
@@ -337,7 +337,7 @@ export function SeriesDetailPage({ seriesId }) {
                   fontFamily:"'Barlow Condensed',sans-serif" }}>
                   {series.publisher || '—'}
                 </div>
-                <div style={{ fontSize: 10, color: '#5a4a3a', fontWeight: 600, letterSpacing: 0.8,
+                <div style={{ fontSize: 10, color: '#a08060', fontWeight: 600, letterSpacing: 0.8,
                   textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   NPH
                 </div>
@@ -355,7 +355,7 @@ export function SeriesDetailPage({ seriesId }) {
                     ? `★ ${Number(series.score).toFixed(1)}`
                     : nuData?.nu_rating ? `★ ${nuData.nu_rating}` : 'N/A'}
                 </div>
-                <div style={{ fontSize: 10, color: '#5a4a3a', fontWeight: 600, letterSpacing: 0.8,
+                <div style={{ fontSize: 10, color: '#a08060', fontWeight: 600, letterSpacing: 0.8,
                   textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   NU_SCORE
                 </div>
@@ -369,26 +369,21 @@ export function SeriesDetailPage({ seriesId }) {
               const shown = (!isLong || descExpanded) ? desc : desc.slice(0, LIMIT) + '…'
               return (
                 <div style={{ maxWidth: 640, marginBottom: 20 }}>
-                  {isLong && !descExpanded && (
-                    <button onClick={() => setDescExpanded(true)} style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#8B5CF6', fontSize: 12, fontWeight: 600,
-                      padding: '0 0 8px', display: 'block',
-                      fontFamily:"'Be Vietnam Pro',sans-serif",
-                    }}>{lang === 'vi' ? '▼ Xem thêm' : '▼ Read more'}</button>
-                  )}
                   <p style={{
-                    fontSize: 13, color: '#b09070', lineHeight: 1.8,
+                    fontSize: 13, color: '#c8a882', lineHeight: 1.8,
                     fontFamily:"'Be Vietnam Pro',sans-serif", margin: 0,
                     whiteSpace: 'pre-line',
                   }}>{shown}</p>
-                  {isLong && descExpanded && (
-                    <button onClick={() => setDescExpanded(false)} style={{
+                  {isLong && (
+                    <button onClick={() => setDescExpanded(x => !x)} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: '#8B5CF6', fontSize: 12, fontWeight: 600,
-                      padding: '6px 0 0', display: 'block',
+                      padding: '8px 0 0', display: 'block',
                       fontFamily:"'Be Vietnam Pro',sans-serif",
-                    }}>{lang === 'vi' ? '▲ Thu gọn' : '▲ Show less'}</button>
+                    }}>{descExpanded
+                      ? (lang === 'vi' ? '▲ Thu gọn' : '▲ Show less')
+                      : (lang === 'vi' ? '▼ Xem thêm' : '▼ Read more')
+                    }</button>
                   )}
                 </div>
               )
