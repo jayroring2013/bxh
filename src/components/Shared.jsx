@@ -272,7 +272,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
 }
 
 /* ── Hero banner ───────────────────────────────────────────── */
-export function HeroBanner({ title, sub, accent, src, tagline, searchInput, onSearch, searchPlaceholder }) {
+export function HeroBanner({ title, sub, accent, src, tagline }) {
   const { t } = useLang()
   return (
     <div className="hero-banner">
@@ -281,24 +281,6 @@ export function HeroBanner({ title, sub, accent, src, tagline, searchInput, onSe
       <div className="hero-banner__title">{title}</div>
       {tagline && (
         <div className="hero-banner__tagline">{tagline}</div>
-      )}
-      {onSearch && (
-        <div className="hero-banner__search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ opacity: 0.4, flexShrink: 0 }}>
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          <input
-            value={searchInput || ''}
-            onChange={e => onSearch(e.target.value)}
-            placeholder={searchPlaceholder || (t ? t('search_novels') : 'Tìm kiếm...')}
-            style={{ border: 'none', background: 'none', outline: 'none', flex: 1,
-              color: '#fff', fontSize: 15, fontFamily: "'Be Vietnam Pro', sans-serif" }}
-          />
-          {searchInput && (
-            <button onClick={() => onSearch('')} style={{ background: 'none', border: 'none',
-              color: '#64748B', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>×</button>
-          )}
-        </div>
       )}
       <div className="hero-banner__sub">
         <span>{t('footer_powered')} <span style={{ color: accent }}>{src}</span></span>
