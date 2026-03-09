@@ -9,6 +9,15 @@ import { NovelModal } from '../components/NovelModal.jsx'
 export function NovelsPage({ genres }) {
   const { t, lang } = useLang()
   const [selected,    setSelected]    = useState(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [sort,        setSort]        = useState('Start date desc')
+  const [status,      setStatus]      = useState('all')
+  const [genre,       setGenre]       = useState('all')
+
+  const search = useDebounce(searchInput)
+
+  const { series, loading, loadingMore, error, hasMore, totalCount, loadMore, retry } =
+    useNovels({ search, sort, status, genre })
 
   useEffect(() => {
     const fn = e => {
@@ -23,15 +32,6 @@ export function NovelsPage({ genres }) {
     window.addEventListener('nt:open-series', fn)
     return () => window.removeEventListener('nt:open-series', fn)
   }, [series])
-  const [searchInput, setSearchInput] = useState('')
-  const [sort,        setSort]        = useState('Start date desc')
-  const [status,      setStatus]      = useState('all')
-  const [genre,       setGenre]       = useState('all')
-
-  const search = useDebounce(searchInput)
-
-  const { series, loading, loadingMore, error, hasMore, totalCount, loadMore, retry } =
-    useNovels({ search, sort, status, genre })
 
   const NOVEL_SORTS = [
     { id: 'Start date desc', label: t('sort_newest')   },
