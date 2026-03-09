@@ -166,7 +166,7 @@ function DateSelector({ lang, dateMode, setDateMode, singleDate, setSingleDate,
 // ── Schedule Detail Modal ───────────────────────────────────────────────────
 function ScheduleDetailModal({ item, onClose, lang }) {
   const [detail, setDetail] = useState(null)
-  const [loading, setLoading] = useState(!!item.item_id)
+  const [loading, setLoading] = useState(!!item.series_id)
   const color = TYPE_COLOR[item.type]
 
   useEffect(() => {
