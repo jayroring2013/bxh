@@ -607,27 +607,28 @@ export function SeriesDetailPage({ seriesId }) {
         </div>
       </div>
 
-      {/* ── Sidebar + content: sidebar left, carousels + tab panel right ── */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px 48px',
+      {/* ── Tabbed content ── */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px',
         display: 'flex', gap: 0, alignItems: 'flex-start' }}>
 
-        {/* Sidebar */}
+        {/* ── Sidebar tabs (SteamDB-style) ── */}
         <aside style={{
-          width: 190, flexShrink: 0, position: 'sticky', top: 72,
+          width: 200, flexShrink: 0, position: 'sticky', top: 72,
           borderRight: '1px solid rgba(255,248,240,0.06)',
-          marginRight: 32, paddingTop: 0,
+          paddingRight: 0, marginRight: 32,
         }}>
           {[
-            { key: 'info',      icon: 'ℹ️',  vi: 'Thông tin',        en: 'Information'  },
-            { key: 'relations', icon: '🔗',  vi: 'Series liên quan',  en: 'Relations',   badge: related.length || null },
-            { key: 'ranking',   icon: '🏆',  vi: 'Xếp hạng',         en: 'Rankings'     },
+            { key: 'volumes',      icon: '📚', vi: 'Danh sách tập',   en: 'Volumes',      badge: volumes.length || null },
+            { key: 'info',         icon: 'ℹ️',  vi: 'Thông tin',       en: 'Information'  },
+            { key: 'relations',    icon: '🔗',  vi: 'Series liên quan', en: 'Relations'   },
+            { key: 'ranking',      icon: '🏆',  vi: 'Xếp hạng',        en: 'Rankings'    },
+            { key: 'recs',         icon: '✨',  vi: 'Đề xuất',         en: 'You May Like' },
           ].map(tab => {
             const isActive = activeTab === tab.key
             return (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 14px',
-                background: isActive ? `${PURPLE}18` : 'none',
+                padding: '10px 14px', background: isActive ? `${PURPLE}18` : 'none',
                 border: 'none',
                 borderRight: isActive ? `3px solid ${PURPLE}` : '3px solid transparent',
                 borderRadius: '8px 0 0 8px',
@@ -657,34 +658,26 @@ export function SeriesDetailPage({ seriesId }) {
           })}
         </aside>
 
-        {/* Right column: carousels always visible, then tab panel below */}
+        {/* ── Tab content panel ── */}
         <main style={{ flex: 1, minWidth: 0 }}>
 
-          {/* Always-visible: Volumes carousel */}
-          <SectionCarousel
-            title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'}
-            count={volumes.length}>
-            {loadingVols
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
-                    background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
-                    backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
-                ))
-              : volumes.map(v => (
-                  <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />
-                ))
-            }
-          </SectionCarousel>
-
-          {/* Always-visible: Recommendations carousel */}
-          {recs.length > 0 && (
-            <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
-              {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+          {/* VOLUMES TAB */}
+          {activeTab === 'volumes' && (
+            <SectionCarousel
+              title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'}
+              count={volumes.length}>
+              {loadingVols
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
+                      background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
+                      backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
+                  ))
+                : volumes.map(v => (
+                    <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />
+                  ))
+              }
             </SectionCarousel>
           )}
-
-          {/* Divider before tab content */}
-          <div style={{ height: 1, background: 'rgba(255,248,240,0.07)', margin: '8px 0 28px' }} />
 
           {/* INFO TAB */}
           {activeTab === 'info' && (
@@ -730,9 +723,9 @@ export function SeriesDetailPage({ seriesId }) {
                 {lang === 'vi' ? 'Series liên quan' : 'Related Series'}
               </h3>
               {related.length > 0
-                ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+                ? <SectionCarousel title="">
                     {related.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
-                  </div>
+                  </SectionCarousel>
                 : <PlaceholderPanel icon="🔗" text={lang === 'vi' ? 'Chưa có dữ liệu về series liên quan' : 'No relation data yet'} />
               }
             </div>
@@ -747,6 +740,23 @@ export function SeriesDetailPage({ seriesId }) {
                 {lang === 'vi' ? 'Lịch sử xếp hạng' : 'Ranking History'}
               </h3>
               <PlaceholderPanel icon="🏆" text={lang === 'vi' ? 'Dữ liệu xếp hạng đang được cập nhật' : 'Ranking data coming soon'} />
+            </div>
+          )}
+
+          {/* RECOMMENDATIONS TAB */}
+          {activeTab === 'recs' && (
+            <div>
+              <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
+                fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
+                textTransform: 'uppercase' }}>
+                {lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}
+              </h3>
+              {recs.length > 0
+                ? <SectionCarousel title="">
+                    {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+                  </SectionCarousel>
+                : <PlaceholderPanel icon="✨" text={lang === 'vi' ? 'Chưa có đề xuất' : 'No recommendations yet'} />
+              }
             </div>
           )}
 
