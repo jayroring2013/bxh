@@ -174,7 +174,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
           {/* Cover */}
           <div style={{ flexShrink: 0, marginTop: 24 }}>
             <div style={{
-              width: 240, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
+              width: 288, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
               background: '#0f172a',
               boxShadow: `0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)`,
             }}>
