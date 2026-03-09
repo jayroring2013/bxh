@@ -412,20 +412,29 @@ input::placeholder {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 10px;
+  padding: 6px 11px;
   border-radius: 9px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #64748B;
-  transition: all 0.2s;
+  color: #4B5563;
+  transition: all 0.18s;
   white-space: nowrap;
   flex-shrink: 0;
   min-width: 34px;
   justify-content: center;
+  text-decoration: none;
 }
-
+.nav-tab:hover:not(.nav-tab--active) {
+  color: #94A3B8;
+  background: rgba(255,255,255,0.05);
+}
 .nav-tab--active {
   color: #fff;
+}
+.nav-tab__label {
+  font-size: 11px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  letter-spacing: 0.2px;
 }
 
 .app-header__search {
@@ -480,19 +489,24 @@ input::placeholder {
 .sort-btn {
   background: transparent;
   border: none;
-  color: #64748B;
-  padding: 6px 10px;
+  color: #4B5563;
+  padding: 5px 12px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: all 0.18s;
   font-family: 'Be Vietnam Pro', sans-serif;
+  letter-spacing: 0.2px;
 }
-
+.sort-btn:hover:not(.sort-btn--active) {
+  color: #94A3B8;
+  background: rgba(255,255,255,0.05);
+}
 .sort-btn--active {
   color: #fff;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.4);
 }
 
 /* ─── Hero banner ───────────────────────────────────────────────── */
@@ -522,9 +536,33 @@ input::placeholder {
   margin-bottom: 10px;
 }
 
-.hero-banner__sub {
+.hero-banner__tagline {
+  font-size: 14px;
   color: #64748B;
-  font-size: 13px;
+  margin-bottom: 20px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  letter-spacing: 0.3px;
+}
+.hero-banner__search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 520px;
+  margin: 0 auto 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 12px 18px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  color: #94A3B8;
+}
+.hero-banner__search:focus-within {
+  border-color: rgba(255,255,255,0.22);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
+}
+.hero-banner__sub {
+  color: #374151;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -987,4 +1025,37 @@ input::placeholder {
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(40px); }
   to   { opacity: 1; transform: translateX(0);    }
+}
+
+/* ─── Modal mobile responsive ───────────────────────────────────── */
+@media (max-width: 600px) {
+  .nt-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .nt-modal {
+    border-radius: 20px 20px 0 0;
+    max-height: 95vh;
+    width: 100vw;
+    overflow-y: auto;
+  }
+
+  /* On mobile: stack cover on top as banner, content below */
+  .nt-modal > div[style*="flex-direction: row"],
+  .nt-modal > div[style*="flexDirection: row"] {
+    flex-direction: column !important;
+  }
+
+  .modal-close {
+    position: fixed;
+    top: auto;
+    bottom: calc(95vh - 44px);
+    right: 14px;
+    float: none;
+    margin: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 10001;
+  }
 }
