@@ -12,7 +12,7 @@ const LINK_STYLES = {
   watch:    { color: '#06B6D4', label: 'Xem anime'   },
   trailer:  { color: '#EF4444', label: 'Trailer'     },
   official: { color: '#8B5CF6', label: 'Official'    },
-  raw:      { color: '#64748B', label: 'Raws'        },
+  raw:      { color: '#7a6045', label: 'Raws'        },
   anilist:  { color: '#02A9FF', label: 'AniList'     },
   mal:      { color: '#2E51A2', label: 'MyAnimeList' },
 }
@@ -22,12 +22,12 @@ function MiniCard({ series, accent }) {
   return (
     <div onClick={() => { window.location.hash = seriesUrl(series) }}
       style={{
-        width: 130, flexShrink: 0, cursor: 'pointer',
+        width: 156, flexShrink: 0, cursor: 'pointer',
         display: 'flex', flexDirection: 'column', gap: 6,
       }}>
       <div style={{
         width: 156, height: 234, borderRadius: 12, overflow: 'hidden',
-        background: '#0f172a', position: 'relative',
+        background: '#1a1410', position: 'relative',
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
       }}
@@ -45,7 +45,7 @@ function MiniCard({ series, accent }) {
         {series.publisher && (
           <div style={{
             position: 'absolute', bottom: 6, left: 6, right: 6,
-            fontSize: 9, fontWeight: 700, color: '#94A3B8',
+            fontSize: 9, fontWeight: 700, color: '#b09070',
             fontFamily: "'Be Vietnam Pro', sans-serif", letterSpacing: 0.5, textTransform: 'uppercase',
           }}>{series.publisher}</div>
         )}
@@ -75,7 +75,7 @@ function VolumeCard({ vol, seriesId, accent }) {
     }}>
       <div style={{
         width: 156, height: 234, borderRadius: 12, overflow: 'hidden',
-        background: '#0f172a', position: 'relative',
+        background: '#1a1410', position: 'relative',
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
       }}
@@ -98,7 +98,7 @@ function VolumeCard({ vol, seriesId, accent }) {
         }}>{label}</div>
       </div>
       {vol.release_date && (
-        <div style={{ fontSize: 10, color: '#64748B', fontFamily: "'Be Vietnam Pro', sans-serif",
+        <div style={{ fontSize: 10, color: '#7a6045', fontFamily: "'Be Vietnam Pro', sans-serif",
           textAlign: 'center' }}>
           {new Date(vol.release_date).toLocaleDateString('vi-VN', { month:'short', year:'numeric' })}
         </div>
@@ -114,7 +114,7 @@ function SectionCarousel({ title, children, count }) {
   if (!children || (Array.isArray(children) && children.length === 0)) return null
 
   return (
-    <section style={{ marginBottom: 48 }}>
+    <section style={{ marginBottom: 48, overflowX: 'clip' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
         marginBottom: 16 }}>
         <h2 style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize: 18,
@@ -122,7 +122,7 @@ function SectionCarousel({ title, children, count }) {
           textTransform: 'uppercase' }}>
           {title}
           {count != null && (
-            <span style={{ fontSize: 12, color: '#4B5563', fontWeight: 500,
+            <span style={{ fontSize: 12, color: '#5a4a3a', fontWeight: 500,
               marginLeft: 10, textTransform: 'none' }}>({count})</span>
           )}
         </h2>
@@ -131,7 +131,7 @@ function SectionCarousel({ title, children, count }) {
             <button key={a} onClick={() => scroll(i===0?-1:1)} style={{
               width: 28, height: 28, borderRadius: 8,
               border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.04)', color: '#64748B',
+              background: 'rgba(255,248,240,0.04)', color: '#7a6045',
               cursor: 'pointer', fontSize: 13, display:'flex',
               alignItems:'center', justifyContent:'center',
             }}>{a}</button>
@@ -139,14 +139,11 @@ function SectionCarousel({ title, children, count }) {
         </div>
       </div>
       <div ref={ref} style={{
-        display: 'flex', gap: 16, overflowX: 'auto',
-        padding: '6px 2px 16px 2px', scrollbarWidth: 'none',
+        display: 'flex', gap: 16, overflowX: 'auto', overflowY: 'visible',
+        padding: '8px 8px 20px', scrollbarWidth: 'none',
         msOverflowStyle: 'none',
       }}>
-        {/* Spacer to prevent first card from clipping its hover shadow */}
-        <div style={{ flexShrink: 0, width: 2 }} />
         {children}
-        <div style={{ flexShrink: 0, width: 2 }} />
       </div>
     </section>
   )
@@ -172,7 +169,7 @@ export function SeriesDetailPage({ seriesId }) {
     <div className="page-enter">
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
         sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
-      <div style={{ textAlign:'center', padding: '80px 20px', color: '#4B5563',
+      <div style={{ textAlign:'center', padding: '80px 20px', color: '#5a4a3a',
         fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
     </div>
   )
@@ -212,7 +209,7 @@ export function SeriesDetailPage({ seriesId }) {
 
       {/* ── Hero ── */}
       <div style={{
-        background: 'linear-gradient(160deg,#0f0c29,#080d1a,#0a0a0f)',
+        background: 'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)',
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Blurred bg from cover */}
@@ -233,7 +230,7 @@ export function SeriesDetailPage({ seriesId }) {
           {/* Back button */}
           <button onClick={goBack} style={{
             position:'absolute', top: 0, left: 24,
-            background:'none', border:'none', color:'#4B5563', cursor:'pointer',
+            background:'none', border:'none', color:'#5a4a3a', cursor:'pointer',
             fontSize: 12, fontWeight: 600, fontFamily:"'Be Vietnam Pro',sans-serif",
             display:'flex', alignItems:'center', gap: 4, padding: '4px 0',
           }}>← {lang === 'vi' ? 'Quay lại' : 'Back'}</button>
@@ -242,8 +239,8 @@ export function SeriesDetailPage({ seriesId }) {
           <div style={{ flexShrink: 0, marginTop: 20 }}>
             <div style={{
               width: 264, borderRadius: 16, overflow: 'hidden',
-              boxShadow: `0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)`,
-              aspectRatio: '2/3', background: '#0f172a',
+              boxShadow: `0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,248,240,0.07)`,
+              aspectRatio: '2/3', background: '#1a1410',
             }}>
               {cover
                 ? <img src={cover} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover' }}
@@ -294,7 +291,7 @@ export function SeriesDetailPage({ seriesId }) {
             }}>{title}</h1>
 
             {series.author && (
-              <div style={{ fontSize: 13, color: '#94A3B8', marginBottom: 16,
+              <div style={{ fontSize: 13, color: '#b09070', marginBottom: 16,
                 fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                 {lang === 'vi' ? 'Tác giả: ' : 'Author: '}
                 <span style={{ color: '#C4B5FD', fontWeight: 600 }}>{series.author}</span>
@@ -305,15 +302,15 @@ export function SeriesDetailPage({ seriesId }) {
             <div style={{ display:'flex', gap: 16, marginBottom: 20, flexWrap:'wrap' }}>
               {/* Volume count chip */}
               <div style={{
-                textAlign:'center', background:'rgba(255,255,255,0.04)',
-                border:'1px solid rgba(255,255,255,0.08)', borderRadius: 12,
+                textAlign:'center', background:'rgba(255,248,240,0.04)',
+                border:'1px solid rgba(255,248,240,0.08)', borderRadius: 12,
                 padding: '8px 16px', minWidth: 70,
               }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#C4B5FD',
                   fontFamily:"'Barlow Condensed',sans-serif" }}>
                   {loadingVols ? '…' : (volCount ?? '?')}
                 </div>
-                <div style={{ fontSize: 10, color: '#4B5563', fontWeight: 600, letterSpacing: 0.8,
+                <div style={{ fontSize: 10, color: '#5a4a3a', fontWeight: 600, letterSpacing: 0.8,
                   textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   {lang==='vi'?'Tập':'Volumes'}
                 </div>
@@ -327,20 +324,20 @@ export function SeriesDetailPage({ seriesId }) {
                   })), 80)
                 }}
                 style={{
-                  textAlign:'center', background:'rgba(255,255,255,0.04)',
-                  border:'1px solid rgba(255,255,255,0.08)', borderRadius: 12,
+                  textAlign:'center', background:'rgba(255,248,240,0.04)',
+                  border:'1px solid rgba(255,248,240,0.08)', borderRadius: 12,
                   padding: '8px 16px', minWidth: 70,
                   cursor: series.publisher ? 'pointer' : 'default',
                   transition: 'background 0.15s, border-color 0.15s',
                 }}
                 onMouseEnter={e => { if (series.publisher) { e.currentTarget.style.background='rgba(139,92,246,0.12)'; e.currentTarget.style.borderColor='rgba(139,92,246,0.35)' }}}
-                onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.08)' }}
+                onMouseLeave={e => { e.currentTarget.style.background='rgba(255,248,240,0.04)'; e.currentTarget.style.borderColor='rgba(255,248,240,0.08)' }}
               >
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#C4B5FD',
                   fontFamily:"'Barlow Condensed',sans-serif" }}>
                   {series.publisher || '—'}
                 </div>
-                <div style={{ fontSize: 10, color: '#4B5563', fontWeight: 600, letterSpacing: 0.8,
+                <div style={{ fontSize: 10, color: '#5a4a3a', fontWeight: 600, letterSpacing: 0.8,
                   textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   NPH
                 </div>
@@ -348,8 +345,8 @@ export function SeriesDetailPage({ seriesId }) {
 
               {/* NU Score chip */}
               <div style={{
-                textAlign:'center', background:'rgba(255,255,255,0.04)',
-                border:'1px solid rgba(255,255,255,0.08)', borderRadius: 12,
+                textAlign:'center', background:'rgba(255,248,240,0.04)',
+                border:'1px solid rgba(255,248,240,0.08)', borderRadius: 12,
                 padding: '8px 16px', minWidth: 70,
               }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#FBBF24',
@@ -358,7 +355,7 @@ export function SeriesDetailPage({ seriesId }) {
                     ? `★ ${Number(series.score).toFixed(1)}`
                     : nuData?.nu_rating ? `★ ${nuData.nu_rating}` : 'N/A'}
                 </div>
-                <div style={{ fontSize: 10, color: '#4B5563', fontWeight: 600, letterSpacing: 0.8,
+                <div style={{ fontSize: 10, color: '#5a4a3a', fontWeight: 600, letterSpacing: 0.8,
                   textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   NU_SCORE
                 </div>
@@ -381,7 +378,7 @@ export function SeriesDetailPage({ seriesId }) {
                     }}>{lang === 'vi' ? '▼ Xem thêm' : '▼ Read more'}</button>
                   )}
                   <p style={{
-                    fontSize: 13, color: '#94A3B8', lineHeight: 1.8,
+                    fontSize: 13, color: '#b09070', lineHeight: 1.8,
                     fontFamily:"'Be Vietnam Pro',sans-serif", margin: 0,
                     whiteSpace: 'pre-line',
                   }}>{shown}</p>
@@ -412,7 +409,7 @@ export function SeriesDetailPage({ seriesId }) {
               )}
 
               {links.map((lnk, i) => {
-                const cfg = LINK_STYLES[lnk.link_type] || { color:'#64748B', label: lnk.label || lnk.link_type }
+                const cfg = LINK_STYLES[lnk.link_type] || { color:'#7a6045', label: lnk.label || lnk.link_type }
                 return (
                   <a key={i} href={lnk.url} target="_blank" rel="noreferrer" style={{
                     fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 10,
@@ -437,7 +434,7 @@ export function SeriesDetailPage({ seriesId }) {
           {loadingVols
             ? Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
-                  background:'linear-gradient(90deg,#1f2937 25%,#374151 50%,#1f2937 75%)',
+                  background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
                   backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
               ))
             : volumes.map(v => (
