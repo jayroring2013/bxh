@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { PURPLE, novelStatusColor } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
 import { useSeriesById, useSeriesVolumes, useSeriesLinks, useRelatedSeries, useSeriesNuData, seriesUrl } from '../hooks.js'
@@ -161,6 +161,7 @@ export function SeriesDetailPage({ seriesId }) {
     series?.publisher
   )
 
+  const [descExpanded, setDescExpanded] = useState(false)
   const goBack = () => window.history.back()
 
   if (loading) return (
@@ -236,7 +237,7 @@ export function SeriesDetailPage({ seriesId }) {
           {/* Cover */}
           <div style={{ flexShrink: 0, marginTop: 20 }}>
             <div style={{
-              width: 180, borderRadius: 16, overflow: 'hidden',
+              width: 220, borderRadius: 16, overflow: 'hidden',
               boxShadow: `0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)`,
               aspectRatio: '2/3', background: '#0f172a',
             }}>
@@ -361,12 +362,31 @@ export function SeriesDetailPage({ seriesId }) {
             </div>
 
             {/* Description */}
-            {desc && (
-              <p style={{
-                fontSize: 13, color: '#94A3B8', lineHeight: 1.7, maxWidth: 640,
-                fontFamily:"'Be Vietnam Pro',sans-serif", margin: '0 0 20px',
-              }}>{desc}</p>
-            )}
+            {desc && (() => {
+              const LIMIT = 320
+              const isLong = desc.length > LIMIT
+              const shown = (!isLong || descExpanded) ? desc : desc.slice(0, LIMIT) + '…'
+              return (
+                <div style={{ maxWidth: 640, marginBottom: 20 }}>
+                  <p style={{
+                    fontSize: 13, color: '#94A3B8', lineHeight: 1.8,
+                    fontFamily:"'Be Vietnam Pro',sans-serif", margin: 0,
+                    whiteSpace: 'pre-line',
+                  }}>{shown}</p>
+                  {isLong && (
+                    <button onClick={() => setDescExpanded(x => !x)} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: '#8B5CF6', fontSize: 12, fontWeight: 600, padding: '6px 0 0',
+                      fontFamily:"'Be Vietnam Pro',sans-serif",
+                    }}>
+                      {descExpanded
+                        ? (lang === 'vi' ? '▲ Thu gọn' : '▲ Show less')
+                        : (lang === 'vi' ? '▼ Xem thêm' : '▼ Read more')}
+                    </button>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Actions row */}
             <div style={{ display:'flex', gap: 10, flexWrap:'wrap', alignItems:'center' }}>
