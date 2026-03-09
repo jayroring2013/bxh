@@ -514,11 +514,16 @@ export function useVolumeDetail(seriesId, volumeNumber) {
     Promise.all([
       sbFetch('volumes',
         `series_id=eq.${seriesId}&volume_number=eq.${volumeNumber}&select=*&limit=1`),
-      sbFetch('volume_links',
-        `series_id=eq.${seriesId}&volume_number=eq.${volumeNumber}&select=link_type,label,url&limit=20`),
-    ]).then(([vols, lnks]) => {
-      setVolume(vols[0] || null)
-      setLinks(Array.isArray(lnks) ? lnks : [])
+      // volume_links has volume_id FK — fetch after we have the volume's id
+      Promise.resolve(null), // placeholder, links fetched below
+    ]).then(([vols]) => {
+      const vol = vols[0] || null
+      setVolume(vol)
+      if (!vol?.id) { setLinks([]); return Promise.resolve([]) }
+      return sbFetch('volume_links',
+        `volume_id=eq.${vol.id}&select=link_type,label,url&limit=20`)
+    }).then(lnks => {
+      if (lnks) setLinks(Array.isArray(lnks) ? lnks : [])
       setLoading(false)
     }).catch(e => { setError(e.message); setLoading(false) })
   }, [seriesId, volumeNumber])
