@@ -390,7 +390,7 @@ export function useSeriesNovels({ search, sort, status, genre, publisher, limit 
     setSeries([])
     setOffset(0)
     fetchNovels(0, true)
-  }, [search, sort, status, genre])
+  }, [search, sort, status, genre, publisher])
 
   const loadMore = () => fetchNovels(offset + LIMIT, false)
   const retry    = () => fetchNovels(0, true)
