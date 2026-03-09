@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { PURPLE, novelStatusColor } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
-import { useSeriesById, useSeriesVolumes, useSeriesLinks, useRelatedSeries, seriesUrl } from '../hooks.js'
+import { useSeriesById, useSeriesVolumes, useSeriesLinks, useRelatedSeries, useSeriesNuData, seriesUrl } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
 import { QuickAddButton } from '../components/QuickAddButton.jsx'
 
@@ -154,6 +154,7 @@ export function SeriesDetailPage({ seriesId }) {
   const { series, loading, error } = useSeriesById(seriesId)
   const { volumes, loading: loadingVols } = useSeriesVolumes(seriesId)
   const links = useSeriesLinks(seriesId)
+  const { nuData } = useSeriesNuData(series?.title)
   const { related, recs } = useRelatedSeries(
     seriesId,
     series?.genres,
@@ -183,7 +184,11 @@ export function SeriesDetailPage({ seriesId }) {
 
   const cover  = series.cover_url
   const title  = series.title || 'Unknown'
-  const genres = Array.isArray(series.genres) ? series.genres : []
+  const genres = (() => {
+    if (Array.isArray(series.genres) && series.genres.length) return series.genres
+    if (nuData?.genres) return nuData.genres.split(',').map(g => g.trim()).filter(Boolean)
+    return []
+  })()
   const desc   = typeof series.description === 'object'
     ? (series.description?.vi || series.description?.en || '')
     : (series.description || '')
@@ -280,7 +285,7 @@ export function SeriesDetailPage({ seriesId }) {
               {[
                 { label: lang==='vi'?'Tập':'Volumes', value: loadingVols ? '…' : volumes.length || '?' },
                 { label: lang==='vi'?'Nhà XB':'Publisher', value: series.publisher || '—' },
-                { label: 'Score', value: series.score != null ? `★ ${Number(series.score).toFixed(1)}` : 'N/A', gold: true },
+                { label: 'Score', value: series.score != null ? `★ ${Number(series.score).toFixed(1)}` : (nuData?.nu_rating ? `★ ${nuData.nu_rating}` : 'N/A'), gold: true },
               ].map(({ label, value, gold }) => (
                 <div key={label} style={{
                   textAlign:'center', background:'rgba(255,255,255,0.04)',
@@ -301,6 +306,43 @@ export function SeriesDetailPage({ seriesId }) {
                 fontSize: 13, color: '#94A3B8', lineHeight: 1.7, maxWidth: 640,
                 fontFamily:"'Be Vietnam Pro',sans-serif", margin: '0 0 20px',
               }}>{desc}</p>
+            )}
+
+            {/* NU Votes badge */}
+            {nuData?.nu_votes > 0 && (
+              <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 14 }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                  background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)',
+                  color: '#FBBF24', fontFamily:"'Be Vietnam Pro',sans-serif",
+                  display: 'flex', alignItems: 'center', gap: 5,
+                }}>
+                  ★ {nuData.nu_rating} <span style={{ color:'#78716C', fontWeight:400 }}>/ 5.0</span>
+                  <span style={{ color:'#64748B', fontWeight:400, marginLeft:4 }}>
+                    ({nuData.nu_votes.toLocaleString()} {lang==='vi'?'lượt':'votes'} · NovelUpdates)
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Genre tags */}
+            {genres.length > 0 && (
+              <div style={{ display:'flex', flexWrap:'wrap', gap: 6, marginBottom: 18 }}>
+                {genres.slice(0, 12).map(g => (
+                  <span key={g} style={{
+                    fontSize: 11, padding: '3px 10px', borderRadius: 20,
+                    background: 'rgba(100,116,139,0.12)', border: '1px solid rgba(100,116,139,0.25)',
+                    color: '#94A3B8', fontFamily:"'Be Vietnam Pro',sans-serif", fontWeight: 500,
+                  }}>{g}</span>
+                ))}
+                {genres.length > 12 && (
+                  <span style={{
+                    fontSize: 11, padding: '3px 10px', borderRadius: 20,
+                    background: 'transparent', color: '#4B5563',
+                    fontFamily:"'Be Vietnam Pro',sans-serif",
+                  }}>+{genres.length - 12} more</span>
+                )}
+              </div>
             )}
 
             {/* Actions row */}
