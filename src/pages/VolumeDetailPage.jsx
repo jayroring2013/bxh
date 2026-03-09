@@ -147,7 +147,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
             position: 'absolute', inset: '-20px', zIndex: 0,
             backgroundImage: `url(${cover})`,
             backgroundSize: 'cover', backgroundPosition: 'center top',
-            filter: 'blur(28px) saturate(1.4) brightness(0.45)',
+            filter: 'blur(18px) saturate(1.2) brightness(0.6)',
           }} />
         )}
         {/* Layer 2: gradient to darken edges and ensure readability */}
@@ -244,15 +244,23 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
               const shown = (!isLong || descExpanded) ? desc : desc.slice(0, LIMIT) + '…'
               return (
                 <div style={{ marginBottom: 16 }}>
-                  <DescriptionText text={shown} />
-                  {isLong && (
-                    <button onClick={() => setDescExpanded(x => !x)} style={{
+                  {/* Button sits ABOVE the expandable text so it always expands downward */}
+                  {isLong && !descExpanded && (
+                    <button onClick={() => setDescExpanded(true)} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#8B5CF6', fontSize: 12, fontWeight: 600, padding: '4px 0 0',
+                      color: '#8B5CF6', fontSize: 12, fontWeight: 600,
+                      padding: '0 0 10px', display: 'block',
                       fontFamily: "'Be Vietnam Pro',sans-serif",
-                    }}>
-                      {descExpanded ? '▲ Thu gọn' : '▼ Xem thêm'}
-                    </button>
+                    }}>▼ Xem thêm</button>
+                  )}
+                  <DescriptionText text={shown} />
+                  {isLong && descExpanded && (
+                    <button onClick={() => setDescExpanded(false)} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: '#8B5CF6', fontSize: 12, fontWeight: 600,
+                      padding: '6px 0 0', display: 'block',
+                      fontFamily: "'Be Vietnam Pro',sans-serif",
+                    }}>▲ Thu gọn</button>
                   )}
                 </div>
               )
