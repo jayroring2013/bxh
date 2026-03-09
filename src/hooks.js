@@ -12,6 +12,35 @@ export function useHash() {
   }, [])
   return hash
 }
+/* ── URL / navigation helpers ────────────────────────────────── */
+export function slugify(str) {
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đ]/g, 'd').replace(/[Đ]/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+}
+
+export function seriesUrl(series) {
+  return `#/novel/${slugify(series.title)}-${series.id}`
+}
+
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+
+export function parseSeriesId(hash) {
+  const m = hash.match(UUID_RE)
+  return m ? m[0] : null
+}
+
+export function parseVolumeNumber(hash) {
+  const m = hash.match(/\/volume\/(\d+)/)
+  return m ? parseInt(m[1]) : null
+}
+
+
 
 /* ── Debounced value ──────────────────────────────────────── */
 export function useDebounce(value, delay = 500) {
@@ -427,4 +456,107 @@ export function useNovelPublishers() {
       .catch(() => {})
   }, [])
   return publishers
+}
+
+/* ── Fetch single series by ID ───────────────────────────────── */
+export function useSeriesById(id) {
+  const [series,  setSeries]  = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState(null)
+
+  useEffect(() => {
+    if (!id) return
+    setLoading(true)
+    sbFetch('series', `id=eq.${id}&select=*&limit=1`)
+      .then(rows => { setSeries(rows[0] || null); setLoading(false) })
+      .catch(e  => { setError(e.message);          setLoading(false) })
+  }, [id])
+
+  return { series, loading, error }
+}
+
+/* ── Fetch volumes for a series ──────────────────────────────── */
+export function useSeriesVolumes(seriesId) {
+  const [volumes,  setVolumes]  = useState([])
+  const [loading,  setLoading]  = useState(true)
+
+  useEffect(() => {
+    if (!seriesId) return
+    sbFetch('volumes',
+      `series_id=eq.${seriesId}&is_special=eq.false&order=volume_number.asc&select=id,volume_number,volume_label,title,cover_url,release_date,description&limit=200`)
+      .then(rows => { setVolumes(Array.isArray(rows) ? rows : []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [seriesId])
+
+  return { volumes, loading }
+}
+
+/* ── Fetch a single volume + its links ───────────────────────── */
+export function useVolumeDetail(seriesId, volumeNumber) {
+  const [volume,  setVolume]  = useState(null)
+  const [links,   setLinks]   = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState(null)
+
+  useEffect(() => {
+    if (!seriesId || volumeNumber == null) return
+    setLoading(true)
+    Promise.all([
+      sbFetch('volumes',
+        `series_id=eq.${seriesId}&volume_number=eq.${volumeNumber}&select=*&limit=1`),
+      sbFetch('volume_links',
+        `series_id=eq.${seriesId}&volume_number=eq.${volumeNumber}&select=link_type,label,url&limit=20`),
+    ]).then(([vols, lnks]) => {
+      setVolume(vols[0] || null)
+      setLinks(Array.isArray(lnks) ? lnks : [])
+      setLoading(false)
+    }).catch(e => { setError(e.message); setLoading(false) })
+  }, [seriesId, volumeNumber])
+
+  return { volume, links, loading, error }
+}
+
+/* ── Related + recommended series ───────────────────────────── */
+export function useRelatedSeries(seriesId, genres, publisher) {
+  const [related, setRelated] = useState([])
+  const [recs,    setRecs]    = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!seriesId) return
+    const g0 = (genres || [])[0]
+
+    Promise.all([
+      sbFetch('series_relations', `series_id=eq.${seriesId}&select=related_series_id&limit=20`)
+        .then(rows => {
+          if (!rows.length) return []
+          const ids = rows.map(r => r.related_series_id).join(',')
+          return sbFetch('series', `id=in.(${ids})&select=id,title,cover_url,publisher,status,genres&limit=20`)
+        }).catch(() => []),
+      g0
+        ? sbFetch('series', `genres=cs.{"${g0}"}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`)
+            .catch(() => [])
+        : sbFetch('series', `publisher=eq.${encodeURIComponent(publisher || '')}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`)
+            .catch(() => []),
+    ]).then(([rel, rec]) => {
+      setRelated(rel || [])
+      const relIds = new Set((rel || []).map(r => r.id))
+      setRecs((rec || []).filter(r => !relIds.has(r.id)))
+      setLoading(false)
+    })
+  }, [seriesId])
+
+  return { related, recs, loading }
+}
+
+/* ── Fetch series_links for a series ────────────────────────── */
+export function useSeriesLinks(seriesId) {
+  const [links, setLinks] = useState([])
+  useEffect(() => {
+    if (!seriesId) return
+    sbFetch('series_links', `series_id=eq.${seriesId}&select=link_type,label,url&limit=20`)
+      .then(rows => setLinks(Array.isArray(rows) ? rows : []))
+      .catch(() => {})
+  }, [seriesId])
+  return links
 }
