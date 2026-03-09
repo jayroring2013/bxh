@@ -136,43 +136,54 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
         sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
 
-      {/* ── Hero ── */}
+      {/* ── Hero — immersive blurred cover backdrop (AniList-style) ── */}
       <div style={{
-        background: 'linear-gradient(160deg,#0f0c29,#080d1a,#0a0a0f)',
-        position: 'relative', overflow: 'hidden',
+        position: 'relative', overflow: 'hidden', minHeight: 340,
+        background: '#080d1a',
       }}>
-        {/* Blurred bg */}
+        {/* Layer 1: blurred cover fills entire hero as atmosphere */}
         {cover && (
           <div style={{
-            position: 'absolute', inset: 0, zIndex: 0,
-            backgroundImage: `url(${cover})`, backgroundSize: 'cover', backgroundPosition: 'center',
-            filter: 'blur(40px) saturate(0.4)', opacity: 0.15,
+            position: 'absolute', inset: '-20px', zIndex: 0,
+            backgroundImage: `url(${cover})`,
+            backgroundSize: 'cover', backgroundPosition: 'center top',
+            filter: 'blur(28px) saturate(1.4) brightness(0.45)',
           }} />
         )}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1,
-          background: 'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, rgba(8,13,26,0.95) 100%)' }} />
+        {/* Layer 2: gradient to darken edges and ensure readability */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1,
+          background: 'linear-gradient(to right, rgba(8,13,26,0.85) 0%, rgba(8,13,26,0.35) 50%, rgba(8,13,26,0.7) 100%)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1,
+          background: 'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, transparent 30%, transparent 70%, rgba(8,13,26,1) 100%)',
+        }} />
 
+        {/* Breadcrumb */}
+        <div style={{ position: 'absolute', top: 14, left: 24, zIndex: 3,
+          display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={() => window.location.hash = '#/novels'} style={{
+            background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+            fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
+          }}>Light Novel</button>
+          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11 }}>›</span>
+          <button onClick={goToSeries} style={{
+            background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+            fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
+            maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>{series?.title || '…'}</button>
+          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11 }}>›</span>
+          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 600 }}>{label}</span>
+        </div>
+
+        {/* Content: cover card + info, both floating inside the atmospheric bg */}
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1100,
-          margin: '0 auto', padding: '32px 24px 48px', display: 'flex', gap: 40, alignItems: 'flex-start' }}>
+          margin: '0 auto', padding: '52px 24px 44px',
+          display: 'flex', gap: 40, alignItems: 'flex-end' }}>
 
-          {/* Breadcrumb */}
-          <div style={{ position: 'absolute', top: 0, left: 24, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button onClick={() => window.location.hash = '#/novels'} style={{
-              background: 'none', border: 'none', color: '#4B5563', cursor: 'pointer',
-              fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
-            }}>Light Novel</button>
-            <span style={{ color: '#374151', fontSize: 11 }}>›</span>
-            <button onClick={goToSeries} style={{
-              background: 'none', border: 'none', color: '#4B5563', cursor: 'pointer',
-              fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
-              maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>{series?.title || '…'}</button>
-            <span style={{ color: '#374151', fontSize: 11 }}>›</span>
-            <span style={{ color: '#94A3B8', fontSize: 11 }}>{label}</span>
-          </div>
-
-          {/* Cover */}
-          <div style={{ flexShrink: 0, marginTop: 24 }}>
+          {/* Cover card */}
+          <div style={{ flexShrink: 0, marginTop: 0 }}>
             <div style={{
               width: 288, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
               background: '#0f172a',
@@ -188,7 +199,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
           </div>
 
           {/* Info */}
-          <div style={{ flex: 1, paddingTop: 28 }}>
+          <div style={{ flex: 1, paddingBottom: 4 }}>
 
             {/* Series name link */}
             {series && (
