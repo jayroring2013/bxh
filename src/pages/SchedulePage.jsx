@@ -433,7 +433,7 @@ export function SchedulePage() {
         // Join volumes ← series + volume_links in one request
         const res = await fetch(
           `${SUPABASE_URL}/rest/v1/volumes`
-          + `?select=id,volume_label,volume_number,title,title_raw,cover_url,description,release_date,price,is_special,source`
+          + `?select=id,volume_label,volume_number,title,cover_url,description,release_date,price,is_special,source`
           + `,series!inner(id,item_type,title,cover_url,description,publisher,author,studio,genres,score,external_id)`
           + `,volume_links(id,link_type,label,url,affiliate_code)`
           + `&release_date=not.is.null`
@@ -478,15 +478,7 @@ export function SchedulePage() {
       // pass series data for detail modal
       series:      s,
       is_special:  r.is_special || false,
-      edition:     (() => {
-        const raw = r.title_raw || ''
-        if (/bản sưu tầm/i.test(raw)) return 'Sưu Tầm'
-        if (/bản đặc biệt/i.test(raw)) return 'Đặc Biệt'
-        if (/bản giới hạn/i.test(raw)) return 'Giới Hạn'
-        if (/boxset/i.test(raw))       return 'Boxset'
-        return null
-      })(),
-      // edition label computed in ScheduleItem from is_special
+      edition:     r.is_special ? 'Đặc Biệt' : null,
     }
   }).filter(r => r.airsAt), [scheduleData])
 
