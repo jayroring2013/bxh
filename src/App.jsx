@@ -15,6 +15,9 @@ import { MyListPage }      from './pages/MyListPage.jsx'
 import { SchedulePage }    from './pages/SchedulePage.jsx'
 import { RankingPage }     from './pages/RankingPage.jsx'
 import { AdminPage }      from './pages/AdminPage.jsx'
+import { SeriesDetailPage } from './pages/SeriesDetailPage.jsx'
+import { VolumeDetailPage } from './pages/VolumeDetailPage.jsx'
+import { parseSeriesId, parseVolumeNumber } from './hooks.js'
 
 function Router() {
   const hash   = useHash()
@@ -37,6 +40,15 @@ function Router() {
   )
 
   if (hash === '#/' || hash === '')   return wrap(LandingPage)
+
+  // Series + volume detail pages
+  if (hash.startsWith('#/novel/')) {
+    const sid = parseSeriesId(hash)
+    const vnum = parseVolumeNumber(hash)
+    if (sid && vnum != null) return wrap(VolumeDetailPage, { seriesId: sid, volumeNumber: vnum })
+    if (sid)                  return wrap(SeriesDetailPage, { seriesId: sid })
+  }
+
   if (hash.startsWith('#/novels'))    return wrap(NovelsPage)
   if (hash.startsWith('#/anime'))     return wrap(AnimePage)
   if (hash.startsWith('#/manga'))     return wrap(MangaPage)
