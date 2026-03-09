@@ -19,7 +19,7 @@ export function NovelModal({ series, onClose }) {
 
     // Fetch volumes and series_links in parallel
     Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/volumes?series_id=eq.${series.id}&order=volume_number.asc&select=id,volume_label,volume_number,title,cover_url,price,release_date,is_special&limit=100`, { headers: sbHeaders })
+      fetch(`${SUPABASE_URL}/rest/v1/volumes?series_id=eq.${series.id}&is_special=eq.false&order=volume_number.asc&select=id,volume_label,volume_number,title&limit=100`, { headers: sbHeaders })
         .then(r => r.json()).catch(() => []),
       fetch(`${SUPABASE_URL}/rest/v1/series_links?series_id=eq.${series.id}&select=link_type,label,url&limit=20`, { headers: sbHeaders })
         .then(r => r.json()).catch(() => []),
@@ -48,12 +48,12 @@ export function NovelModal({ series, onClose }) {
     watch:    { color: '#06B6D4', label: 'Xem anime' },
     trailer:  { color: '#EF4444', label: 'Trailer' },
     official: { color: '#8B5CF6', label: 'Official' },
-    raw:      { color: '#64748B', label: 'Raws' },
+    raw:      { color: '#7a6045', label: 'Raws' },
     anilist:  { color: '#02A9FF', label: 'AniList' },
     mal:      { color: '#2E51A2', label: 'MyAnimeList' },
   }
 
-  const bg = 'linear-gradient(145deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%)'
+  const bg = 'linear-gradient(145deg,#1a1410 0%,#2a1f10 60%,#1a1410 100%)'
 
   return (
     <ModalShell onClose={onClose} accentColor={PURPLE} bg={bg}>
@@ -97,7 +97,7 @@ export function NovelModal({ series, onClose }) {
 
         {/* Description */}
         {ldg
-          ? <p className="modal-desc" style={{ color: '#374151' }}>Đang tải...</p>
+          ? <p className="modal-desc" style={{ color: '#3d2e1e' }}>Đang tải...</p>
           : desc && <p className="modal-desc">{desc.length > 450 ? desc.slice(0, 450) + '…' : desc}</p>
         }
 
@@ -108,8 +108,7 @@ export function NovelModal({ series, onClose }) {
             <div className="modal-volumes">
               {volumes.slice(0, 12).map(v => (
                 <div key={v.id} className="modal-vol-chip" title={v.title || v.volume_label}>
-                  {v.volume_label || `Vol.${v.volume_number}`}
-                  {v.is_special && <span style={{ color: '#A78BFA', marginLeft: 3 }}>★</span>}
+                  {v.volume_label === 'Standalone' ? 'Tập 1' : (v.volume_label || `Vol.${v.volume_number}`)}
                 </div>
               ))}
               {volumes.length > 12 && (
@@ -130,7 +129,7 @@ export function NovelModal({ series, onClose }) {
               </a>
             )}
             {links.map((lnk, i) => {
-              const cfg = LINK_STYLES[lnk.link_type] || { color: '#64748B', label: lnk.label || lnk.link_type }
+              const cfg = LINK_STYLES[lnk.link_type] || { color: '#7a6045', label: lnk.label || lnk.link_type }
               return (
                 <a key={i} href={lnk.url} target="_blank" rel="noreferrer" className="modal-link"
                   style={{ background: `${cfg.color}18`, borderColor: `${cfg.color}35`, color: cfg.color }}>
