@@ -9,6 +9,17 @@ import { MangaModal } from '../components/MangaModal.jsx'
 export function MangaPage() {
   const { t, lang } = useLang()
   const [selected,    setSelected]    = useState(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [sort,        setSort]        = useState('followedCount')
+  const [status,      setStatus]      = useState('')
+  const [demographic, setDemographic] = useState('')
+  const [tag,         setTag]         = useState('')
+
+  const search = useDebounce(searchInput)
+  const tags   = useMangaTags()
+
+  const { manga, stats, loading, loadingMore, error, hasNext, totalCount, loadMore, retry } =
+    useManga({ search, sort, status, demographic, tag })
 
   useEffect(() => {
     const fn = e => {
@@ -25,17 +36,6 @@ export function MangaPage() {
     window.addEventListener('nt:open-series', fn)
     return () => window.removeEventListener('nt:open-series', fn)
   }, [manga])
-  const [searchInput, setSearchInput] = useState('')
-  const [sort,        setSort]        = useState('followedCount')
-  const [status,      setStatus]      = useState('')
-  const [demographic, setDemographic] = useState('')
-  const [tag,         setTag]         = useState('')
-
-  const search = useDebounce(searchInput)
-  const tags   = useMangaTags()
-
-  const { manga, stats, loading, loadingMore, error, hasNext, totalCount, loadMore, retry } =
-    useManga({ search, sort, status, demographic, tag })
 
   const MANGA_SORTS = [
     { id: 'followedCount',         label: t('sort_popular')   },
