@@ -2,8 +2,13 @@ import React from 'react'
 import { PURPLE, novelStatusColor } from '../constants.js'
 import { RankBadge } from './Shared.jsx'
 import { QuickAddButton } from './QuickAddButton.jsx'
+import { seriesUrl } from '../hooks.js'
 
 export function NovelCard({ series, rank, onClick }) {
+  // If onClick not provided, navigate to detail page
+  const handleClick = onClick
+    ? () => onClick(series)
+    : () => { window.location.hash = seriesUrl(series) }
   // New series table shape: id, title, cover_url, description, publisher, author,
   // genres (array), score, status, external_id
   const cover  = series.cover_url || null
@@ -17,7 +22,7 @@ export function NovelCard({ series, rank, onClick }) {
   const statusBg = novelStatusColor(status)
 
   return (
-    <div className="novel-card" onClick={() => onClick(series)}>
+    <div className="novel-card" onClick={handleClick}>
       <RankBadge rank={rank} />
 
       {/* Status badge — only show non-ongoing */}
