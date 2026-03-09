@@ -182,7 +182,12 @@ export function SeriesDetailPage({ seriesId }) {
     </div>
   )
 
-  const cover  = series.cover_url
+  // Max volume by volume_number — used for cover and volume count
+  const maxVol = volumes.length
+    ? volumes.reduce((a, b) => ((b.volume_number || 0) > (a.volume_number || 0) ? b : a), volumes[0])
+    : null
+  const volCount = maxVol?.volume_number ?? (volumes.length || null)
+  const cover  = maxVol?.cover_url || series.cover_url
   const title  = series.title || 'Unknown'
   const genres = (() => {
     if (Array.isArray(series.genres) && series.genres.length) return series.genres
@@ -250,11 +255,22 @@ export function SeriesDetailPage({ seriesId }) {
             {/* Genre + status tags */}
             <div style={{ display:'flex', flexWrap:'wrap', gap: 6, marginBottom: 12 }}>
               {genres.slice(0, 5).map(g => (
-                <span key={g} style={{
-                  fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
-                  background: `${PURPLE}20`, border: `1px solid ${PURPLE}40`,
-                  color: '#C4B5FD', fontFamily:"'Be Vietnam Pro',sans-serif",
-                }}>{g}</span>
+                <span key={g}
+                  onClick={() => {
+                    window.location.hash = '#/novels'
+                    setTimeout(() => window.dispatchEvent(new CustomEvent('nt:filter', {
+                      detail: { genre: g }
+                    })), 80)
+                  }}
+                  style={{
+                    fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
+                    background: `${PURPLE}20`, border: `1px solid ${PURPLE}40`,
+                    color: '#C4B5FD', fontFamily:"'Be Vietnam Pro',sans-serif",
+                    cursor: 'pointer', transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background=`${PURPLE}40`}
+                  onMouseLeave={e => e.currentTarget.style.background=`${PURPLE}20`}
+                >{g}</span>
               ))}
               {status && status !== 'ongoing' && (
                 <span style={{
@@ -282,22 +298,66 @@ export function SeriesDetailPage({ seriesId }) {
 
             {/* Stats chips */}
             <div style={{ display:'flex', gap: 16, marginBottom: 20, flexWrap:'wrap' }}>
-              {[
-                { label: lang==='vi'?'Tập':'Volumes', value: loadingVols ? '…' : volumes.length || '?' },
-                { label: lang==='vi'?'Nhà XB':'Publisher', value: series.publisher || '—' },
-                { label: 'Score', value: series.score != null ? `★ ${Number(series.score).toFixed(1)}` : (nuData?.nu_rating ? `★ ${nuData.nu_rating}` : 'N/A'), gold: true },
-              ].map(({ label, value, gold }) => (
-                <div key={label} style={{
+              {/* Volume count chip */}
+              <div style={{
+                textAlign:'center', background:'rgba(255,255,255,0.04)',
+                border:'1px solid rgba(255,255,255,0.08)', borderRadius: 12,
+                padding: '8px 16px', minWidth: 70,
+              }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#C4B5FD',
+                  fontFamily:"'Barlow Condensed',sans-serif" }}>
+                  {loadingVols ? '…' : (volCount ?? '?')}
+                </div>
+                <div style={{ fontSize: 10, color: '#4B5563', fontWeight: 600, letterSpacing: 0.8,
+                  textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {lang==='vi'?'Tập':'Volumes'}
+                </div>
+              </div>
+
+              {/* Publisher chip — clickable → filter by publisher */}
+              <div onClick={() => {
+                  window.location.hash = '#/novels'
+                  setTimeout(() => window.dispatchEvent(new CustomEvent('nt:filter', {
+                    detail: { publisher: series.publisher }
+                  })), 80)
+                }}
+                style={{
                   textAlign:'center', background:'rgba(255,255,255,0.04)',
                   border:'1px solid rgba(255,255,255,0.08)', borderRadius: 12,
                   padding: '8px 16px', minWidth: 70,
-                }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: gold ? '#FBBF24' : '#C4B5FD',
-                    fontFamily:"'Barlow Condensed',sans-serif" }}>{value}</div>
-                  <div style={{ fontSize: 10, color: '#4B5563', fontWeight: 600, letterSpacing: 0.8,
-                    textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{label}</div>
+                  cursor: series.publisher ? 'pointer' : 'default',
+                  transition: 'background 0.15s, border-color 0.15s',
+                }}
+                onMouseEnter={e => { if (series.publisher) { e.currentTarget.style.background='rgba(139,92,246,0.12)'; e.currentTarget.style.borderColor='rgba(139,92,246,0.35)' }}}
+                onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.08)' }}
+              >
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#C4B5FD',
+                  fontFamily:"'Barlow Condensed',sans-serif" }}>
+                  {series.publisher || '—'}
                 </div>
-              ))}
+                <div style={{ fontSize: 10, color: '#4B5563', fontWeight: 600, letterSpacing: 0.8,
+                  textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  NPH
+                </div>
+              </div>
+
+              {/* NU Score chip */}
+              <div style={{
+                textAlign:'center', background:'rgba(255,255,255,0.04)',
+                border:'1px solid rgba(255,255,255,0.08)', borderRadius: 12,
+                padding: '8px 16px', minWidth: 70,
+              }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#FBBF24',
+                  fontFamily:"'Barlow Condensed',sans-serif" }}>
+                  {series.score != null
+                    ? `★ ${Number(series.score).toFixed(1)}`
+                    : nuData?.nu_rating ? `★ ${nuData.nu_rating}` : 'N/A'}
+                </div>
+                <div style={{ fontSize: 10, color: '#4B5563', fontWeight: 600, letterSpacing: 0.8,
+                  textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  NU_SCORE
+                </div>
+              </div>
             </div>
 
             {/* Description */}
