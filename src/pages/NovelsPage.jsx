@@ -318,6 +318,17 @@ export function NovelsPage() {
     return () => window.removeEventListener('nt:open-series', fn)
   }, [])
 
+  // Listen for genre/publisher filter navigation from SeriesDetailPage
+  useEffect(() => {
+    const fn = e => {
+      const { genre, publisher } = e.detail || {}
+      if (genre)     { setGenre(genre);         setBrowseMode(true) }
+      if (publisher) { setPublisher(publisher);  setBrowseMode(true) }
+    }
+    window.addEventListener('nt:filter', fn)
+    return () => window.removeEventListener('nt:filter', fn)
+  }, [])
+
   const NOVEL_SORTS = [
     { id: 'title_asc',  label: lang === 'vi' ? 'Tên A-Z'  : 'Title A-Z'    },
     { id: 'title_desc', label: lang === 'vi' ? 'Tên Z-A'  : 'Title Z-A'    },
