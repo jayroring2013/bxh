@@ -42,10 +42,9 @@ export function NovelCard({ series, rank, onClick }) {
     <div className="novel-card" onClick={() => onClick(series)}>
       <RankBadge rank={rank} />
 
-      {/* Status badge */}
-      {series.publication_status && (
+      {/* Status badge — only show non-ongoing statuses */}
+      {series.publication_status && series.publication_status !== 'ongoing' && (
         <div className="status-badge" style={{ background: statusBg }}>
-          {series.publication_status === 'ongoing' && <span className="status-badge__dot" />}
           {series.publication_status}
         </div>
       )}
