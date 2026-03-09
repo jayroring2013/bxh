@@ -58,8 +58,8 @@ export function NovelsPage({ genres }) {
 
   return (
     <div className="page-enter">
-      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput={searchInput}
-        onSearch={setSearchInput} sorts={NOVEL_SORTS} activeSort={sort} onSort={setSort} />
+      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput=""
+        onSearch={() => {}} sorts={NOVEL_SORTS} activeSort={sort} onSort={setSort} hideSearch />
 
       <HeroBanner title={heroTitle}
         sub={!loading && totalCount > 0 ? t('hero_found_novels', totalCount) : null}
