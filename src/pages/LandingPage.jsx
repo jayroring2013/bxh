@@ -9,7 +9,7 @@ const TABS = [
     color:   PURPLE,
     titleKey:'nav_novels',
     descKey: 'land_novels_desc',
-    grad:    'linear-gradient(135deg,#1e1b4b,#0f172a)',
+    grad:    'linear-gradient(135deg,#2a1f10,#1a1410)',
     sample:  ['Overlord','Sword Art Online','Re:Zero','Mushoku Tensei','Konosuba'],
   },
   {
@@ -18,7 +18,7 @@ const TABS = [
     color:   CYAN,
     titleKey:'nav_anime',
     descKey: 'land_anime_desc',
-    grad:    'linear-gradient(135deg,#0c1a2e,#0f172a)',
+    grad:    'linear-gradient(135deg,#0c1a2e,#1a1410)',
     sample:  ['Fullmetal Alchemist','Attack on Titan','Demon Slayer','One Piece','Naruto'],
   },
   {
@@ -27,7 +27,7 @@ const TABS = [
     color:   ROSE,
     titleKey:'nav_manga',
     descKey: 'land_manga_desc',
-    grad:    'linear-gradient(135deg,#1a0a0f,#0f172a)',
+    grad:    'linear-gradient(135deg,#1a0a0f,#1a1410)',
     sample:  ['One Piece','Berserk','Vagabond','Vinland Saga','JoJo'],
   },
   {
@@ -36,7 +36,7 @@ const TABS = [
     color:   '#F59E0B',
     titleKey:'nav_vote',
     descKey: 'land_vote_desc',
-    grad:    'linear-gradient(135deg,#1a1200,#0f172a)',
+    grad:    'linear-gradient(135deg,#1a1200,#1a1410)',
     sample:  ['Vote monthly','See rankings','Track trends','Support favourites','Compete'],
   },
 ]
@@ -53,7 +53,7 @@ function TabCard({ tab, t, index }) {
     >
       <div style={{
         background:  tab.grad,
-        border:      `1px solid ${hovered ? tab.color + '60' : 'rgba(255,255,255,0.06)'}`,
+        border:      `1px solid ${hovered ? tab.color + '60' : 'rgba(255,248,240,0.06)'}`,
         borderRadius: 20,
         padding:     '28px 24px',
         cursor:      'pointer',
@@ -81,7 +81,7 @@ function TabCard({ tab, t, index }) {
         </div>
 
         {/* Description */}
-        <div style={{ color: '#64748B', fontSize: 13, lineHeight: 1.6, marginBottom: 18 }}>
+        <div style={{ color: '#7a6045', fontSize: 13, lineHeight: 1.6, marginBottom: 18 }}>
           {t(tab.descKey)}
         </div>
 
@@ -122,7 +122,7 @@ export function LandingPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#0a0a0f',
+      minHeight: '100vh', background: '#0f0b09',
       opacity: visible ? 1 : 0, transition: 'opacity 0.5s ease',
     }}>
       {/* Header */}
@@ -144,7 +144,7 @@ export function LandingPage() {
           </div>
           {/* Language toggle */}
           <button onClick={toggleLang} style={{
-            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+            background: 'rgba(255,248,240,0.06)', border: '1px solid rgba(255,255,255,0.12)',
             color: '#fff', padding: '6px 14px', borderRadius: 10, cursor: 'pointer',
             fontSize: 13, fontWeight: 600, fontFamily: "'Be Vietnam Pro', sans-serif",
             display: 'flex', alignItems: 'center', gap: 6,
@@ -157,7 +157,7 @@ export function LandingPage() {
       {/* Hero */}
       <div style={{
         position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(160deg,#0f0c29,#080d1a,#0a0a0f)',
+        background: 'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)',
         padding: '80px 24px 60px', textAlign: 'center',
       }}>
         {/* Glow orbs */}
@@ -181,7 +181,7 @@ export function LandingPage() {
           {t('land_tagline')}
         </h1>
 
-        <p style={{ color: '#64748B', fontSize: 'clamp(14px,2vw,18px)',
+        <p style={{ color: '#7a6045', fontSize: 'clamp(14px,2vw,18px)',
           marginBottom: 40, maxWidth: 500, margin: '0 auto 40px' }}>
           {t('land_sub')}
         </p>
@@ -213,8 +213,8 @@ export function LandingPage() {
 
       {/* Footer */}
       <footer style={{
-        borderTop: '1px solid rgba(255,255,255,0.05)',
-        padding: '20px 24px', textAlign: 'center', color: '#374151', fontSize: 12,
+        borderTop: '1px solid rgba(255,248,240,0.05)',
+        padding: '20px 24px', textAlign: 'center', color: '#3d2e1e', fontSize: 12,
       }}>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: PURPLE,
           fontSize: 14, letterSpacing: 2 }}>NOVELTREND</span>
