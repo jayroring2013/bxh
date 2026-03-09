@@ -581,12 +581,12 @@ export function useSeriesNuData(title) {
     if (!title) { setLoading(false); return }
     // Try exact title match first, then fallback to ilike for slight differences
     sbFetch('vn_novels_ref',
-      `Series_en=eq.${encodeURIComponent(title)}&select=nu_rating,nu_votes,genres,associated_names,num_books,start_date,end_date&limit=1`)
+      `Series=eq.${encodeURIComponent(title)}&select=nu_rating,nu_votes,genres,associated_names,num_books,start_date,end_date&limit=1`)
       .then(rows => {
         if (rows.length) { setData(rows[0]); setLoading(false); return }
         // Fallback: case-insensitive partial match
         return sbFetch('vn_novels_ref',
-          `Series_en=ilike.${encodeURIComponent(title)}&select=nu_rating,nu_votes,genres,associated_names,num_books,start_date,end_date&limit=1`)
+          `Series=ilike.${encodeURIComponent(title)}&select=nu_rating,nu_votes,genres,associated_names,num_books,start_date,end_date&limit=1`)
       })
       .then(rows => { if (rows) setData(rows[0] || null); setLoading(false) })
       .catch(() => setLoading(false))
