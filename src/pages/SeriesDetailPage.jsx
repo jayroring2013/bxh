@@ -277,23 +277,6 @@ function VolumeCard({ vol, seriesId, accent }) {
   )
 }
 
-// ── Placeholder panel for empty tab content ─────────────────────
-function PlaceholderPanel({ icon, text }) {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', padding: '60px 20px', gap: 12,
-      border: '1px dashed rgba(255,248,240,0.1)', borderRadius: 16,
-    }}>
-      <span style={{ fontSize: 36, opacity: 0.4 }}>{icon}</span>
-      <p style={{
-        fontSize: 13, color: '#7a6045', margin: 0,
-        fontFamily: "'Be Vietnam Pro',sans-serif", textAlign: 'center',
-      }}>{text}</p>
-    </div>
-  )
-}
-
 // ── Horizontal scroll carousel ────────────────────────────────────
 function SectionCarousel({ title, children, count }) {
   const ref = useRef(null)
@@ -301,7 +284,7 @@ function SectionCarousel({ title, children, count }) {
   if (!children || (Array.isArray(children) && children.length === 0)) return null
 
   return (
-    <section style={{ marginBottom: 48 }}>
+    <section style={{ marginBottom: 48, overflowX: 'clip' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
         marginBottom: 16 }}>
         <h2 style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize: 18,
@@ -350,7 +333,6 @@ export function SeriesDetailPage({ seriesId }) {
   )
 
   const [descExpanded, setDescExpanded] = useState(false)
-  const [activeTab, setActiveTab] = useState('volumes')
   const goBack = () => window.history.back()
 
   if (loading) return (
@@ -394,61 +376,6 @@ export function SeriesDetailPage({ seriesId }) {
     <div className="page-enter">
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
         sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
-
-      {/* ── Body: flex row — sidebar left, all content right ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-
-        {/* ── Sidebar: true left column, beside hero + carousels ── */}
-        <aside style={{
-          width: 196, flexShrink: 0,
-          position: 'sticky', top: 56, alignSelf: 'flex-start',
-          borderRight: '1px solid rgba(255,248,240,0.08)',
-          minHeight: 'calc(100vh - 56px)',
-          background: '#0f0b09',
-          zIndex: 10,
-        }}>
-          {[
-            { key: 'info',      icon: 'ℹ️',  vi: 'Thông tin',        en: 'Information'  },
-            { key: 'relations', icon: '🔗',  vi: 'Series liên quan',  en: 'Relations',   badge: related.length || null },
-            { key: 'ranking',   icon: '🏆',  vi: 'Xếp hạng',         en: 'Rankings'     },
-          ].map(tab => {
-            const isActive = activeTab === tab.key
-            return (
-              <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 14px',
-                background: isActive ? `${PURPLE}18` : 'none',
-                border: 'none',
-                borderRight: isActive ? `3px solid ${PURPLE}` : '3px solid transparent',
-                borderRadius: '8px 0 0 8px',
-                cursor: 'pointer', transition: 'all 0.15s', marginBottom: 2,
-                textAlign: 'left',
-              }}
-                onMouseEnter={e => !isActive && (e.currentTarget.style.background = 'rgba(255,248,240,0.04)')}
-                onMouseLeave={e => !isActive && (e.currentTarget.style.background = 'none')}
-              >
-                <span style={{ fontSize: 14, flexShrink: 0 }}>{tab.icon}</span>
-                <span style={{
-                  flex: 1, fontSize: 13, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#C4B5FD' : '#a08060',
-                  fontFamily: "'Be Vietnam Pro', sans-serif",
-                }}>{lang === 'vi' ? tab.vi : tab.en}</span>
-                {tab.badge != null && tab.badge > 0 && (
-                  <span style={{
-                    background: isActive ? PURPLE : 'rgba(255,248,240,0.1)',
-                    color: isActive ? '#fff' : '#a08060',
-                    fontSize: 10, fontWeight: 700,
-                    padding: '1px 6px', borderRadius: 10,
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                  }}>{tab.badge}</span>
-                )}
-              </button>
-            )
-          })}
-        </aside>
-
-        {/* ── Right column: hero + carousels + tab panel ── */}
-        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
 
       {/* ── Hero ── */}
       <div style={{
@@ -662,106 +589,40 @@ export function SeriesDetailPage({ seriesId }) {
         </div>
       </div>
 
+      {/* ── Content ── */}
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
 
-          {/* ── Carousels ── */}
-          <div style={{ padding: '32px 24px 0' }}>
+        {/* Volumes carousel */}
+        <SectionCarousel
+          title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'}
+          count={volumes.length}>
+          {loadingVols
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
+                  background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
+                  backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
+              ))
+            : volumes.map(v => (
+                <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />
+              ))
+          }
+        </SectionCarousel>
 
-          {/* Always-visible: Volumes carousel */}
-          <SectionCarousel
-            title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'}
-            count={volumes.length}>
-            {loadingVols
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
-                    background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
-                    backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
-                ))
-              : volumes.map(v => (
-                  <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />
-                ))
-            }
+        {/* Related series */}
+        {related.length > 0 && (
+          <SectionCarousel title={lang === 'vi' ? 'Series liên quan' : 'Related Series'}>
+            {related.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
           </SectionCarousel>
+        )}
 
-          {/* Always-visible: Recommendations carousel */}
-          {recs.length > 0 && (
-            <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
-              {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
-            </SectionCarousel>
-          )}
-          </div>{/* end carousels padding */}
+        {/* Recommendations */}
+        {recs.length > 0 && (
+          <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
+            {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+          </SectionCarousel>
+        )}
 
-          {/* Tab panel */}
-          <div style={{ padding: '0 24px 48px' }}>
-          {/* Divider before tab content */}
-          <div style={{ height: 1, background: 'rgba(255,248,240,0.07)', margin: '8px 0 28px' }} />
-
-          {/* INFO TAB */}
-          {activeTab === 'info' && (
-            <div>
-              <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
-                fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
-                textTransform: 'uppercase' }}>
-                {lang === 'vi' ? 'Thông tin' : 'Information'}
-              </h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                {[
-                  { label: lang === 'vi' ? 'Tên gốc' : 'Original title', value: series?.title_orig || '—' },
-                  { label: lang === 'vi' ? 'Tác giả' : 'Author', value: series?.author || '—' },
-                  { label: lang === 'vi' ? 'Nhà xuất bản' : 'Publisher', value: series?.publisher || '—' },
-                  { label: lang === 'vi' ? 'Trạng thái' : 'Status', value: series?.status || '—' },
-                  { label: lang === 'vi' ? 'Số tập' : 'Volumes', value: volumes.length ? `${volumes.length} tập` : '—' },
-                  { label: 'NovelUpdates Score', value: series?.score != null ? `★ ${Number(series.score).toFixed(1)}` : '—' },
-                  { label: lang === 'vi' ? 'Thể loại' : 'Genres', value: (series?.genres || []).join(', ') || '—' },
-                ].map((row, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,248,240,0.05)' }}>
-                    <td style={{ padding: '10px 16px 10px 0', width: '38%',
-                      fontSize: 12, color: '#a08060', fontWeight: 600,
-                      fontFamily: "'Be Vietnam Pro',sans-serif",
-                      textTransform: 'uppercase', letterSpacing: 0.6, verticalAlign: 'top' }}>
-                      {row.label}
-                    </td>
-                    <td style={{ padding: '10px 0', fontSize: 13, color: '#c8a882',
-                      fontFamily: "'Be Vietnam Pro',sans-serif" }}>
-                      {row.value}
-                    </td>
-                  </tr>
-                ))}
-              </table>
-            </div>
-          )}
-
-          {/* RELATIONS TAB */}
-          {activeTab === 'relations' && (
-            <div>
-              <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
-                fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
-                textTransform: 'uppercase' }}>
-                {lang === 'vi' ? 'Series liên quan' : 'Related Series'}
-              </h3>
-              {related.length > 0
-                ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-                    {related.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
-                  </div>
-                : <PlaceholderPanel icon="🔗" text={lang === 'vi' ? 'Chưa có dữ liệu về series liên quan' : 'No relation data yet'} />
-              }
-            </div>
-          )}
-
-          {/* RANKINGS TAB */}
-          {activeTab === 'ranking' && (
-            <div>
-              <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
-                fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
-                textTransform: 'uppercase' }}>
-                {lang === 'vi' ? 'Lịch sử xếp hạng' : 'Ranking History'}
-              </h3>
-              <PlaceholderPanel icon="🏆" text={lang === 'vi' ? 'Dữ liệu xếp hạng đang được cập nhật' : 'Ranking data coming soon'} />
-            </div>
-          )}
-
-          </div>{/* end tab panel padding */}
-        </div>{/* end right column */}
-      </div>{/* end body flex */}
+      </main>
 
       <PageFooter color={PURPLE} src="NovelTrend" />
     </div>
