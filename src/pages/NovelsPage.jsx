@@ -212,7 +212,7 @@ function FilterSection({ label, value, options, onChange, accent }) {
 // ── Horizontal carousel ───────────────────────────────────────────
 function Carousel({ title, items, loading, onSelect, accent }) {
   const ref = useRef(null)
-  const scroll = dir => ref.current?.scrollBy({ left: dir * 760, behavior: 'smooth' })
+  const scroll = dir => ref.current?.scrollBy({ left: dir * (260 * 4 + 14 * 3), behavior: 'smooth' })
 
   return (
     <div style={{ marginBottom: 36 }}>
@@ -236,13 +236,13 @@ function Carousel({ title, items, loading, onSelect, accent }) {
       }}>
         {loading
           ? Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} style={{ width: 180, flexShrink: 0, aspectRatio: '2/3',
+              <div key={i} style={{ width: 260, flexShrink: 0, aspectRatio: '2/3',
                 borderRadius: 14, background: 'linear-gradient(90deg,#1f2937 25%,#374151 50%,#1f2937 75%)',
                 backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
             ))
           : items.map((s, i) => (
               <div key={s.id} onClick={() => onSelect(s)} style={{
-                width: 180, flexShrink: 0, aspectRatio: '2/3', borderRadius: 14,
+                width: 260, flexShrink: 0, aspectRatio: '2/3', borderRadius: 14,
                 overflow: 'hidden', cursor: 'pointer', position: 'relative',
                 background: '#0f172a', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
@@ -269,10 +269,11 @@ function Carousel({ title, items, loading, onSelect, accent }) {
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 8 }}>
                   <div style={{ fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 11, fontWeight: 600,
                     color: '#f1f5f9', lineHeight: 1.3,
-                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    fontSize: 13 }}>
                     {s.title}
                   </div>
-                  {s.publisher && <div style={{ fontSize: 9, color: '#64748B', marginTop: 2,
+                  {s.publisher && <div style={{ fontSize: 10, color: '#64748B', marginTop: 2,
                     fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>{s.publisher}</div>}
                 </div>
               </div>
