@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ROSE } from '../constants.js'
 import { useManga, useMangaTags, useDebounce } from '../hooks.js'
 import { useLang } from '../context/LangContext.jsx'
@@ -7,8 +7,24 @@ import { MangaCard }  from '../components/MangaCard.jsx'
 import { MangaModal } from '../components/MangaModal.jsx'
 
 export function MangaPage() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const [selected,    setSelected]    = useState(null)
+
+  useEffect(() => {
+    const fn = e => {
+      if (e.detail?.type !== 'manga') return
+      const q = (e.detail.title || '').toLowerCase()
+      const match = manga.find(m =>
+        Object.values(m.attributes?.title || {}).some(t =>
+          (t || '').toLowerCase().includes(q)
+        )
+      )
+      if (match) setSelected(match)
+      else setSearchInput(e.detail.title)
+    }
+    window.addEventListener('nt:open-series', fn)
+    return () => window.removeEventListener('nt:open-series', fn)
+  }, [manga])
   const [searchInput, setSearchInput] = useState('')
   const [sort,        setSort]        = useState('followedCount')
   const [status,      setStatus]      = useState('')
