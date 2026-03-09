@@ -438,10 +438,14 @@ export function useSeriesNovels({ search, sort, status, genre, publisher, limit 
 export function useNovelGenres() {
   const [genres, setGenres] = useState([])
   useEffect(() => {
-    sbFetch('series', 'item_type=eq.novel&select=genres&limit=1000')
+    // Pull genres from vn_novels_ref (comma-separated text from NovelUpdates)
+    sbFetch('vn_novels_ref', 'select=genres&limit=2000')
       .then(rows => {
         const seen = new Set()
-        rows.forEach(r => (r.genres || []).forEach(g => seen.add(g)))
+        rows.forEach(r => {
+          if (!r.genres) return
+          r.genres.split(',').forEach(g => { const t = g.trim(); if (t) seen.add(t) })
+        })
         const sorted = [...seen].sort()
         setGenres(sorted.map(g => ({ id: g, name: g })))
       })
@@ -449,7 +453,6 @@ export function useNovelGenres() {
   }, [])
   return genres
 }
-
 /* ── Fetch distinct publishers for novel filter ───────────── */
 export function useNovelPublishers() {
   const [publishers, setPublishers] = useState([])
