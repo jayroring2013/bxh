@@ -28,11 +28,18 @@ export function seriesUrl(series) {
   return `#/novel/${slugify(series.title)}-${series.id}`
 }
 
+// Match either a UUID or a plain integer at the end of a #/novel/slug-{id} path
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
 
 export function parseSeriesId(hash) {
-  const m = hash.match(UUID_RE)
-  return m ? m[0] : null
+  // Strip /volume/N suffix first
+  const base = hash.replace(/\/volume\/\d+.*$/, '')
+  // Try UUID first
+  const uuidM = base.match(UUID_RE)
+  if (uuidM) return uuidM[0]
+  // Fall back to trailing integer (e.g. slug-123)
+  const intM = base.match(/-(\d+)(?:[^-\d].*)?$/)
+  return intM ? intM[1] : null
 }
 
 export function parseVolumeNumber(hash) {
