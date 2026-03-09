@@ -61,7 +61,7 @@ export function NovelsPage() {
   return (
     <div className="page-enter">
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput={searchInput}
-        onSearch={setSearchInput} sorts={NOVEL_SORTS} activeSort={sort} onSort={setSort} />
+        onSearch={setSearchInput} sorts={[]} activeSort="" onSort={() => {}} hideSorts />
 
       <HeroBanner title={heroTitle}
         sub={!loading && totalCount > 0 ? `${totalCount} series` : null}
@@ -70,8 +70,18 @@ export function NovelsPage() {
 
       <div className="filter-bar">
         <div className="filter-bar__inner">
-          <div className="filter-row">
+          <div className="filter-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
             <Pills items={NOVEL_STATUSES} active={status} onSelect={setStatus} accent={PURPLE} solid />
+            <div style={{ display: 'flex', gap: 4 }}>
+              {NOVEL_SORTS.map(s => (
+                <button key={s.id}
+                  className={`sort-btn${sort === s.id ? ' sort-btn--active' : ''}`}
+                  onClick={() => setSort(s.id)}
+                  style={sort === s.id ? { background: PURPLE } : {}}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
           {genres.length > 0 && (
             <div className="filter-row">
