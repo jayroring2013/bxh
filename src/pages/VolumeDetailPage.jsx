@@ -136,43 +136,58 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
         sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
 
-      {/* ── Hero ── */}
+      {/* ── Banner header (cover image stretched behind breadcrumb) ── */}
+      {cover && (
+        <div style={{ position: 'relative', width: '100%', height: 220, overflow: 'hidden', flexShrink: 0 }}>
+          {/* Full-bleed cover image */}
+          <img src={cover} alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}
+            onError={e => e.target.style.display='none'} />
+          {/* Strong gradient overlay: dark top (nav) + dark bottom (fades into hero) */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to bottom, rgba(8,13,26,0.7) 0%, rgba(8,13,26,0.1) 40%, rgba(8,13,26,0.65) 75%, rgba(8,13,26,1) 100%)',
+          }} />
+          {/* Breadcrumb lives inside the banner */}
+          <div style={{ position: 'absolute', top: 16, left: 24, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={() => window.location.hash = '#/novels'} style={{
+              background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
+              fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
+            }}>Light Novel</button>
+            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>›</span>
+            <button onClick={goToSeries} style={{
+              background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
+              fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
+              maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>{series?.title || '…'}</button>
+            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>›</span>
+            <span style={{ color: '#fff', fontSize: 11, fontWeight: 600 }}>{label}</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Hero content (cover card + info side by side) ── */}
       <div style={{
         background: 'linear-gradient(160deg,#0f0c29,#080d1a,#0a0a0f)',
         position: 'relative', overflow: 'hidden',
+        marginTop: cover ? -48 : 0,   /* overlap with banner bottom */
       }}>
-        {/* Blurred bg */}
+        {/* Subtle blurred ambient behind info area */}
         {cover && (
           <div style={{
             position: 'absolute', inset: 0, zIndex: 0,
-            backgroundImage: `url(${cover})`, backgroundSize: 'cover', backgroundPosition: 'center',
-            filter: 'blur(40px) saturate(0.4)', opacity: 0.15,
+            backgroundImage: `url(${cover})`, backgroundSize: 'cover', backgroundPosition: 'center top',
+            filter: 'blur(60px) saturate(0.3)', opacity: 0.08,
           }} />
         )}
         <div style={{ position: 'absolute', inset: 0, zIndex: 1,
-          background: 'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, rgba(8,13,26,0.95) 100%)' }} />
+          background: 'linear-gradient(to bottom, rgba(8,13,26,0) 0%, rgba(8,13,26,0.97) 30%)' }} />
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1100,
-          margin: '0 auto', padding: '32px 24px 48px', display: 'flex', gap: 40, alignItems: 'flex-start' }}>
+          margin: '0 auto', padding: '0 24px 48px', display: 'flex', gap: 40, alignItems: 'flex-start' }}>
 
-          {/* Breadcrumb */}
-          <div style={{ position: 'absolute', top: 0, left: 24, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button onClick={() => window.location.hash = '#/novels'} style={{
-              background: 'none', border: 'none', color: '#4B5563', cursor: 'pointer',
-              fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
-            }}>Light Novel</button>
-            <span style={{ color: '#374151', fontSize: 11 }}>›</span>
-            <button onClick={goToSeries} style={{
-              background: 'none', border: 'none', color: '#4B5563', cursor: 'pointer',
-              fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
-              maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>{series?.title || '…'}</button>
-            <span style={{ color: '#374151', fontSize: 11 }}>›</span>
-            <span style={{ color: '#94A3B8', fontSize: 11 }}>{label}</span>
-          </div>
-
-          {/* Cover */}
-          <div style={{ flexShrink: 0, marginTop: 24 }}>
+          {/* Cover — pulls up over the banner bottom edge */}
+          <div style={{ flexShrink: 0, marginTop: -80 }}>
             <div style={{
               width: 288, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
               background: '#0f172a',
@@ -188,7 +203,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
           </div>
 
           {/* Info */}
-          <div style={{ flex: 1, paddingTop: 28 }}>
+          <div style={{ flex: 1, paddingTop: 16 }}>
 
             {/* Series name link */}
             {series && (
