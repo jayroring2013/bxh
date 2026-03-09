@@ -42,36 +42,36 @@ export function NovelCard({ series, rank, onClick }) {
       <div className="novel-card__gradient" />
 
       <div className="novel-card__info">
+        {/* Always visible: genre tag + title */}
         {genre && <div className="novel-card__tag">{genre}</div>}
-
         <div className="novel-card__title">{title}</div>
 
-        {series.author && (
-          <div className="novel-card__meta">
-            <span className="novel-card__meta-label">TÁC GIẢ</span>
-            <span className="novel-card__meta-value" style={{ color: '#C4B5FD' }}>
-              {series.author}
-            </span>
-          </div>
-        )}
-
-        {series.publisher && (
-          <div className="novel-card__meta">
-            <span className="novel-card__meta-label">NXB</span>
-            <span className="novel-card__meta-value">{series.publisher}</span>
-          </div>
-        )}
-
-        {series.score != null && (
-          <div className="novel-card__meta">
-            <span className="novel-card__meta-label">SCORE</span>
-            <span className="novel-card__meta-value" style={{ color: '#FBBF24' }}>
-              ★ {Number(series.score).toFixed(1)}
-            </span>
-          </div>
-        )}
-
-        {desc && <div className="novel-card__desc">{desc}</div>}
+        {/* Hover-only details */}
+        <div className="novel-card__hover-details">
+          {series.author && (
+            <div className="novel-card__meta">
+              <span className="novel-card__meta-label">TÁC GIẢ</span>
+              <span className="novel-card__meta-value" style={{ color: '#C4B5FD' }}>
+                {series.author}
+              </span>
+            </div>
+          )}
+          {series.publisher && (
+            <div className="novel-card__meta">
+              <span className="novel-card__meta-label">NXB</span>
+              <span className="novel-card__meta-value">{series.publisher}</span>
+            </div>
+          )}
+          {series.score != null && (
+            <div className="novel-card__meta">
+              <span className="novel-card__meta-label">SCORE</span>
+              <span className="novel-card__meta-value" style={{ color: '#FBBF24' }}>
+                ★ {Number(series.score).toFixed(1)}
+              </span>
+            </div>
+          )}
+          {desc && <div className="novel-card__desc">{desc}</div>}
+        </div>
       </div>
 
       <QuickAddButton
