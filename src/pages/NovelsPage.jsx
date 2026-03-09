@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { PURPLE } from '../constants.js'
 import { useNovels, useDebounce } from '../hooks.js'
 import { useLang } from '../context/LangContext.jsx'
@@ -7,8 +7,22 @@ import { NovelCard }  from '../components/NovelCard.jsx'
 import { NovelModal } from '../components/NovelModal.jsx'
 
 export function NovelsPage({ genres }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const [selected,    setSelected]    = useState(null)
+
+  useEffect(() => {
+    const fn = e => {
+      if (e.detail?.type !== 'novel') return
+      const q = (e.detail.title || '').toLowerCase()
+      const match = series.find(s =>
+        (s.romaji || s.title || '').toLowerCase().includes(q)
+      )
+      if (match) setSelected(match)
+      else setSearchInput(e.detail.title)
+    }
+    window.addEventListener('nt:open-series', fn)
+    return () => window.removeEventListener('nt:open-series', fn)
+  }, [series])
   const [searchInput, setSearchInput] = useState('')
   const [sort,        setSort]        = useState('Start date desc')
   const [status,      setStatus]      = useState('all')
@@ -49,7 +63,11 @@ export function NovelsPage({ genres }) {
 
       <HeroBanner title={heroTitle}
         sub={!loading && totalCount > 0 ? t('hero_found_novels', totalCount) : null}
-        accent={PURPLE} src="RanobeDB" />
+        accent={PURPLE} src="RanobeDB"
+        tagline={!searchInput && status === 'all' && genre === 'all' ? (lang === 'vi' ? 'Khám phá và theo dõi light novel yêu thích của bạn' : 'Discover, track and vote for your favourite light novels') : null}
+        searchInput={searchInput}
+        onSearch={setSearchInput}
+        searchPlaceholder={lang === 'vi' ? 'Tìm kiếm light novel...' : 'Search light novels...'} />
 
       <div className="filter-bar">
         <div className="filter-bar__inner">
