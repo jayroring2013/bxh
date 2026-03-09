@@ -44,7 +44,7 @@ function DescriptionText({ text }) {
             {paras.map((p, pi) => (
               <p key={pi} style={{
                 fontSize: isMeta ? 12 : 14,
-                color: isMeta ? '#5a4a3a' : '#b09070',
+                color: isMeta ? '#8a7055' : '#c8a882',
                 lineHeight: isMeta ? 1.65 : 1.9,
                 fontFamily: "'Be Vietnam Pro', sans-serif",
                 margin: '0 0 10px',
@@ -63,8 +63,8 @@ function DescriptionText({ text }) {
 function StatChip({ label, value }) {
   return (
     <div style={{
-      textAlign: 'center', background: 'rgba(255,248,240,0.04)',
-      border: '1px solid rgba(255,248,240,0.08)', borderRadius: 12,
+      textAlign: 'center', background: 'rgba(255,248,240,0.06)',
+      border: '1px solid rgba(255,248,240,0.14)', borderRadius: 12,
       padding: '8px 16px', minWidth: 64,
     }}>
       <div style={{
@@ -73,7 +73,7 @@ function StatChip({ label, value }) {
         whiteSpace: 'nowrap',
       }}>{value || '—'}</div>
       <div style={{
-        fontSize: 10, color: '#5a4a3a', fontWeight: 600,
+        fontSize: 10, color: '#a08060', fontWeight: 700,
         letterSpacing: 0.8, textTransform: 'uppercase',
         fontFamily: "'Be Vietnam Pro', sans-serif",
       }}>{label}</div>
@@ -244,23 +244,14 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
               const shown = (!isLong || descExpanded) ? desc : desc.slice(0, LIMIT) + '…'
               return (
                 <div style={{ marginBottom: 16 }}>
-                  {/* Button sits ABOVE the expandable text so it always expands downward */}
-                  {isLong && !descExpanded && (
-                    <button onClick={() => setDescExpanded(true)} style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#8B5CF6', fontSize: 12, fontWeight: 600,
-                      padding: '0 0 10px', display: 'block',
-                      fontFamily: "'Be Vietnam Pro',sans-serif",
-                    }}>▼ Xem thêm</button>
-                  )}
                   <DescriptionText text={shown} />
-                  {isLong && descExpanded && (
-                    <button onClick={() => setDescExpanded(false)} style={{
+                  {isLong && (
+                    <button onClick={() => setDescExpanded(x => !x)} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: '#8B5CF6', fontSize: 12, fontWeight: 600,
-                      padding: '6px 0 0', display: 'block',
+                      padding: '8px 0 0', display: 'block',
                       fontFamily: "'Be Vietnam Pro',sans-serif",
-                    }}>▲ Thu gọn</button>
+                    }}>{descExpanded ? '▲ Thu gọn' : '▼ Xem thêm'}</button>
                   )}
                 </div>
               )
@@ -301,7 +292,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
 
             {/* SKU */}
             {sku && (
-              <p style={{ fontSize: 11, color: '#3d2e1e', marginTop: 16,
+              <p style={{ fontSize: 11, color: '#7a6045', marginTop: 16,
                 fontFamily: "'Be Vietnam Pro',sans-serif" }}>
                 ISBN / SKU: <span style={{ color: '#5a4a3a' }}>{sku}</span>
               </p>
