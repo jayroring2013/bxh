@@ -323,7 +323,7 @@ export function useManga({ search, sort, status, demographic, tag }) {
 }
 
 /* ── Fetch novels from new series table ───────────────────── */
-export function useSeriesNovels({ search, sort, status, genre }) {
+export function useSeriesNovels({ search, sort, status, genre, limit }) {
   const [series,      setSeries]      = useState([])
   const [loading,     setLoading]     = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -331,7 +331,7 @@ export function useSeriesNovels({ search, sort, status, genre }) {
   const [offset,      setOffset]      = useState(0)
   const [hasMore,     setHasMore]     = useState(false)
   const [totalCount,  setTotalCount]  = useState(0)
-  const LIMIT = 24
+  const LIMIT = limit || 24
 
   const fetchNovels = async (off, reset) => {
     try {
