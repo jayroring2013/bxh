@@ -531,19 +531,23 @@ export function useRelatedSeries(seriesId, genres, publisher) {
 
   useEffect(() => {
     if (!seriesId) return
+    // Wait until we have genre/publisher info (passed from parent after series loads)
     const g0 = (genres || [])[0]
+    if (!g0 && !publisher) return   // series not loaded yet
 
     Promise.all([
+      // Related via series_relations table
       sbFetch('series_relations', `series_id=eq.${seriesId}&select=related_series_id&limit=20`)
         .then(rows => {
           if (!rows.length) return []
           const ids = rows.map(r => r.related_series_id).join(',')
           return sbFetch('series', `id=in.(${ids})&select=id,title,cover_url,publisher,status,genres&limit=20`)
         }).catch(() => []),
+      // Recommendations: same genre first, fall back to same publisher
       g0
         ? sbFetch('series', `genres=cs.{"${g0}"}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`)
             .catch(() => [])
-        : sbFetch('series', `publisher=eq.${encodeURIComponent(publisher || '')}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`)
+        : sbFetch('series', `publisher=eq.${publisher}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`)
             .catch(() => []),
     ]).then(([rel, rec]) => {
       setRelated(rel || [])
@@ -551,7 +555,7 @@ export function useRelatedSeries(seriesId, genres, publisher) {
       setRecs((rec || []).filter(r => !relIds.has(r.id)))
       setLoading(false)
     })
-  }, [seriesId])
+  }, [seriesId, genres, publisher])   // re-run when genres/publisher arrive
 
   return { related, recs, loading }
 }
@@ -566,4 +570,27 @@ export function useSeriesLinks(seriesId) {
       .catch(() => {})
   }, [seriesId])
   return links
+}
+
+/* ── Fetch NU/VN metadata from vn_novels_ref by series title ─── */
+export function useSeriesNuData(title) {
+  const [data,    setData]    = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!title) { setLoading(false); return }
+    // Try exact title match first, then fallback to ilike for slight differences
+    sbFetch('vn_novels_ref',
+      `Series_en=eq.${encodeURIComponent(title)}&select=nu_rating,nu_votes,genres,associated_names,num_books,start_date,end_date&limit=1`)
+      .then(rows => {
+        if (rows.length) { setData(rows[0]); setLoading(false); return }
+        // Fallback: case-insensitive partial match
+        return sbFetch('vn_novels_ref',
+          `Series_en=ilike.${encodeURIComponent(title)}&select=nu_rating,nu_votes,genres,associated_names,num_books,start_date,end_date&limit=1`)
+      })
+      .then(rows => { if (rows) setData(rows[0] || null); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [title])
+
+  return { nuData: data, loading }
 }
