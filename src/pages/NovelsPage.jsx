@@ -124,13 +124,13 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
             <div style={{ width: 1, background: 'rgba(255,255,255,0.06)', margin: '0 12px', flexShrink: 0 }} />
             <FilterSection
               label={lang === 'vi' ? 'Nhà xuất bản' : 'Publisher'}
-              value={publisher} options={publisherOptions} onChange={onPublisher} accent={accent} scrollable />
+              value={publisher} options={publisherOptions} onChange={onPublisher} accent={accent} />
             {genreOptions.length > 1 && (
               <>
                 <div style={{ width: 1, background: 'rgba(255,255,255,0.06)', margin: '0 12px', flexShrink: 0 }} />
                 <FilterSection
                   label={lang === 'vi' ? 'Thể loại' : 'Genre'}
-                  value={genre} options={genreOptions} onChange={onGenre} accent={accent} scrollable />
+                  value={genre} options={genreOptions} onChange={onGenre} accent={accent} />
               </>
             )}
           </div>
@@ -140,40 +140,71 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
   )
 }
 
-function FilterSection({ label, value, options, onChange, accent, scrollable }) {
+function FilterSection({ label, value, options, onChange, accent }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const active = value !== 'all' && value !== options[0]?.id
+  const currentLabel = options.find(o => o.id === value)?.label || options[0]?.label
+
+  useEffect(() => {
+    const fn = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', fn)
+    return () => document.removeEventListener('mousedown', fn)
+  }, [])
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 160 }}>
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 140 }}>
       <div style={{ fontSize: 10, fontWeight: 700, color: '#4B5563', letterSpacing: 1,
-        textTransform: 'uppercase', marginBottom: 6, fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+        textTransform: 'uppercase', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
         {label}
       </div>
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: 1,
-        ...(scrollable ? { maxHeight: 200, overflowY: 'auto', scrollbarWidth: 'thin',
-          scrollbarColor: '#374151 transparent' } : {}),
-      }}>
-        {options.map(opt => (
-          <button key={opt.id} onClick={() => onChange(opt.id)} style={{
-            textAlign: 'left', padding: '6px 10px', borderRadius: 8,
-            border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: value === opt.id ? 700 : 400,
-            background: value === opt.id ? `${accent}25` : 'transparent',
-            color: value === opt.id ? '#C4B5FD' : '#94A3B8',
-            fontFamily: "'Be Vietnam Pro', sans-serif", display: 'flex', alignItems: 'center', gap: 8,
-          }}
-            onMouseEnter={e => { if (value !== opt.id) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
-            onMouseLeave={e => { if (value !== opt.id) e.currentTarget.style.background = 'transparent' }}
-          >
-            <span style={{
-              width: 14, height: 14, borderRadius: 4, flexShrink: 0,
-              border: `1.5px solid ${value === opt.id ? accent : 'rgba(255,255,255,0.15)'}`,
-              background: value === opt.id ? accent : 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {value === opt.id && <span style={{ color: '#fff', fontSize: 8, lineHeight: 1 }}>✓</span>}
-            </span>
-            {opt.label}
-          </button>
-        ))}
+      <div style={{ position: 'relative' }}>
+        <button onClick={() => setOpen(o => !o)} style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+          background: active ? `${accent}20` : 'rgba(255,255,255,0.04)',
+          border: `1px solid ${active ? accent + '55' : 'rgba(255,255,255,0.1)'}`,
+          borderRadius: 9, padding: '7px 11px', cursor: 'pointer',
+          color: active ? '#C4B5FD' : '#94A3B8', fontSize: 12, fontWeight: active ? 700 : 400,
+          fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap',
+          transition: 'all 0.15s',
+        }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>{currentLabel}</span>
+          <span style={{ opacity: 0.4, fontSize: 9, flexShrink: 0 }}>{open ? '▴' : '▾'}</span>
+        </button>
+        {open && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 500,
+            background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 10, padding: 4, minWidth: '100%', maxHeight: 220, overflowY: 'auto',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.7)',
+            scrollbarWidth: 'thin', scrollbarColor: '#374151 transparent',
+          }}>
+            {options.map(opt => (
+              <button key={opt.id} onClick={() => { onChange(opt.id); setOpen(false) }} style={{
+                display: 'block', width: '100%', textAlign: 'left',
+                padding: '7px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                background: value === opt.id ? `${accent}25` : 'transparent',
+                color: value === opt.id ? '#C4B5FD' : '#94A3B8',
+                fontSize: 12, fontWeight: value === opt.id ? 700 : 400,
+                fontFamily: "'Be Vietnam Pro', sans-serif",
+                display: 'flex', alignItems: 'center', gap: 7,
+              }}
+                onMouseEnter={e => { if (value !== opt.id) e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+                onMouseLeave={e => { if (value !== opt.id) e.currentTarget.style.background = 'transparent' }}
+              >
+                {value === opt.id
+                  ? <span style={{ width: 14, height: 14, borderRadius: 4, flexShrink: 0,
+                      background: accent, border: `1.5px solid ${accent}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 8, color: '#fff' }}>✓</span>
+                  : <span style={{ width: 14, height: 14, borderRadius: 4, flexShrink: 0,
+                      border: '1.5px solid rgba(255,255,255,0.12)', background: 'transparent' }} />
+                }
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
