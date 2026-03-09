@@ -9,7 +9,7 @@ const LINK_STYLES = {
   buy:      { color: '#F59E0B', label: 'Mua sách'   },
   read:     { color: '#06B6D4', label: 'Đọc online' },
   official: { color: '#8B5CF6', label: 'Official'   },
-  raw:      { color: '#64748B', label: 'Raws'       },
+  raw:      { color: '#7a6045', label: 'Raws'       },
   mal:      { color: '#2E51A2', label: 'MyAnimeList'},
   anilist:  { color: '#02A9FF', label: 'AniList'    },
   trailer:  { color: '#EF4444', label: 'Trailer'    },
@@ -39,12 +39,12 @@ function DescriptionText({ text }) {
           <div key={si} style={{
             marginBottom: si < sections.length - 1 ? 20 : 0,
             paddingTop: isMeta ? 16 : 0,
-            borderTop: isMeta ? '1px solid rgba(255,255,255,0.06)' : 'none',
+            borderTop: isMeta ? '1px solid rgba(255,248,240,0.06)' : 'none',
           }}>
             {paras.map((p, pi) => (
               <p key={pi} style={{
                 fontSize: isMeta ? 12 : 14,
-                color: isMeta ? '#4B5563' : '#94A3B8',
+                color: isMeta ? '#5a4a3a' : '#b09070',
                 lineHeight: isMeta ? 1.65 : 1.9,
                 fontFamily: "'Be Vietnam Pro', sans-serif",
                 margin: '0 0 10px',
@@ -63,8 +63,8 @@ function DescriptionText({ text }) {
 function StatChip({ label, value }) {
   return (
     <div style={{
-      textAlign: 'center', background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12,
+      textAlign: 'center', background: 'rgba(255,248,240,0.04)',
+      border: '1px solid rgba(255,248,240,0.08)', borderRadius: 12,
       padding: '8px 16px', minWidth: 64,
     }}>
       <div style={{
@@ -73,7 +73,7 @@ function StatChip({ label, value }) {
         whiteSpace: 'nowrap',
       }}>{value || '—'}</div>
       <div style={{
-        fontSize: 10, color: '#4B5563', fontWeight: 600,
+        fontSize: 10, color: '#5a4a3a', fontWeight: 600,
         letterSpacing: 0.8, textTransform: 'uppercase',
         fontFamily: "'Be Vietnam Pro', sans-serif",
       }}>{label}</div>
@@ -98,7 +98,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
     <div className="page-enter">
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
         sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
-      <div style={{ textAlign: 'center', padding: '80px 20px', color: '#4B5563',
+      <div style={{ textAlign: 'center', padding: '80px 20px', color: '#5a4a3a',
         fontFamily: "'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
     </div>
   )
@@ -139,7 +139,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
       {/* ── Hero — immersive blurred cover backdrop (AniList-style) ── */}
       <div style={{
         position: 'relative', overflow: 'hidden', minHeight: 340,
-        background: '#080d1a',
+        background: '#110d0a',
       }}>
         {/* Layer 1: blurred cover fills entire hero as atmosphere */}
         {cover && (
@@ -186,8 +186,8 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
           <div style={{ flexShrink: 0, marginTop: 0 }}>
             <div style={{
               width: 288, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
-              background: '#0f172a',
-              boxShadow: `0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)`,
+              background: '#1a1410',
+              boxShadow: `0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,248,240,0.07)`,
             }}>
               {cover
                 ? <img src={cover} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -204,7 +204,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
             {/* Series name link */}
             {series && (
               <button onClick={goToSeries} style={{
-                background: 'none', border: 'none', color: '#64748B', cursor: 'pointer',
+                background: 'none', border: 'none', color: '#7a6045', cursor: 'pointer',
                 fontSize: 12, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
                 marginBottom: 8, display: 'block',
               }}>{series.title} ›</button>
@@ -270,12 +270,12 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
             {links.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
                 <span style={{
-                  fontSize: 10, fontWeight: 700, color: '#4B5563',
+                  fontSize: 10, fontWeight: 700, color: '#5a4a3a',
                   letterSpacing: 0.8, textTransform: 'uppercase',
                   fontFamily: "'Be Vietnam Pro',sans-serif",
                 }}>{lang === 'vi' ? 'Mua sách:' : 'Buy:'}</span>
                 {links.map((lnk, i) => {
-                  const cfg = LINK_STYLES[lnk.link_type] || { color: '#64748B', label: lnk.label || lnk.link_type }
+                  const cfg = LINK_STYLES[lnk.link_type] || { color: '#7a6045', label: lnk.label || lnk.link_type }
                   return (
                     <a key={i} href={lnk.url} target="_blank" rel="noreferrer" style={{
                       fontSize: 12, fontWeight: 700, padding: '9px 18px', borderRadius: 11,
@@ -293,7 +293,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
             )}
 
             {links.length === 0 && (
-              <p style={{ fontSize: 12, color: '#374151', fontStyle: 'italic',
+              <p style={{ fontSize: 12, color: '#3d2e1e', fontStyle: 'italic',
                 fontFamily: "'Be Vietnam Pro',sans-serif", marginTop: 4 }}>
                 {lang === 'vi' ? 'Chưa có liên kết mua sách.' : 'No purchase links available yet.'}
               </p>
@@ -301,9 +301,9 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
 
             {/* SKU */}
             {sku && (
-              <p style={{ fontSize: 11, color: '#374151', marginTop: 16,
+              <p style={{ fontSize: 11, color: '#3d2e1e', marginTop: 16,
                 fontFamily: "'Be Vietnam Pro',sans-serif" }}>
-                ISBN / SKU: <span style={{ color: '#4B5563' }}>{sku}</span>
+                ISBN / SKU: <span style={{ color: '#5a4a3a' }}>{sku}</span>
               </p>
             )}
           </div>
