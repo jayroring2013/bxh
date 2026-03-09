@@ -139,10 +139,14 @@ function SectionCarousel({ title, children, count }) {
         </div>
       </div>
       <div ref={ref} style={{
-        display: 'flex', gap: 14, overflowX: 'auto',
-        padding: '4px 4px 12px', scrollbarWidth: 'none',
+        display: 'flex', gap: 16, overflowX: 'auto',
+        padding: '6px 2px 16px 2px', scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
       }}>
+        {/* Spacer to prevent first card from clipping its hover shadow */}
+        <div style={{ flexShrink: 0, width: 2 }} />
         {children}
+        <div style={{ flexShrink: 0, width: 2 }} />
       </div>
     </section>
   )
@@ -368,21 +372,26 @@ export function SeriesDetailPage({ seriesId }) {
               const shown = (!isLong || descExpanded) ? desc : desc.slice(0, LIMIT) + '…'
               return (
                 <div style={{ maxWidth: 640, marginBottom: 20 }}>
+                  {isLong && !descExpanded && (
+                    <button onClick={() => setDescExpanded(true)} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: '#8B5CF6', fontSize: 12, fontWeight: 600,
+                      padding: '0 0 8px', display: 'block',
+                      fontFamily:"'Be Vietnam Pro',sans-serif",
+                    }}>{lang === 'vi' ? '▼ Xem thêm' : '▼ Read more'}</button>
+                  )}
                   <p style={{
                     fontSize: 13, color: '#94A3B8', lineHeight: 1.8,
                     fontFamily:"'Be Vietnam Pro',sans-serif", margin: 0,
                     whiteSpace: 'pre-line',
                   }}>{shown}</p>
-                  {isLong && (
-                    <button onClick={() => setDescExpanded(x => !x)} style={{
+                  {isLong && descExpanded && (
+                    <button onClick={() => setDescExpanded(false)} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#8B5CF6', fontSize: 12, fontWeight: 600, padding: '6px 0 0',
+                      color: '#8B5CF6', fontSize: 12, fontWeight: 600,
+                      padding: '6px 0 0', display: 'block',
                       fontFamily:"'Be Vietnam Pro',sans-serif",
-                    }}>
-                      {descExpanded
-                        ? (lang === 'vi' ? '▲ Thu gọn' : '▲ Show less')
-                        : (lang === 'vi' ? '▼ Xem thêm' : '▼ Read more')}
-                    </button>
+                    }}>{lang === 'vi' ? '▲ Thu gọn' : '▲ Show less'}</button>
                   )}
                 </div>
               )
