@@ -58,16 +58,13 @@ export function NovelsPage({ genres }) {
 
   return (
     <div className="page-enter">
-      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput=""
-        onSearch={() => {}} sorts={NOVEL_SORTS} activeSort={sort} onSort={setSort} hideSearch />
+      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput={searchInput}
+        onSearch={setSearchInput} sorts={NOVEL_SORTS} activeSort={sort} onSort={setSort} />
 
       <HeroBanner title={heroTitle}
         sub={!loading && totalCount > 0 ? t('hero_found_novels', totalCount) : null}
         accent={PURPLE} src="RanobeDB"
-        tagline={!searchInput && status === 'all' && genre === 'all' ? (lang === 'vi' ? 'Khám phá và theo dõi light novel yêu thích của bạn' : 'Discover, track and vote for your favourite light novels') : null}
-        searchInput={searchInput}
-        onSearch={setSearchInput}
-        searchPlaceholder={lang === 'vi' ? 'Tìm kiếm light novel...' : 'Search light novels...'} />
+        tagline={!searchInput && status === 'all' && genre === 'all' ? (lang === 'vi' ? 'Khám phá và theo dõi light novel yêu thích của bạn' : 'Discover, track and vote for your favourite light novels') : null} />
 
       <div className="filter-bar">
         <div className="filter-bar__inner">
