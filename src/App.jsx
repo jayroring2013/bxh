@@ -37,7 +37,7 @@ function Router() {
   )
 
   if (hash === '#/' || hash === '')   return wrap(LandingPage)
-  if (hash.startsWith('#/novels'))    return wrap(NovelsPage, { genres })
+  if (hash.startsWith('#/novels'))    return wrap(NovelsPage)
   if (hash.startsWith('#/anime'))     return wrap(AnimePage)
   if (hash.startsWith('#/manga'))     return wrap(MangaPage)
   if (hash.startsWith('#/vote'))      return wrap(VotePage)
