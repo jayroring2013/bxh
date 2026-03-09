@@ -98,12 +98,12 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
         <div style={{
           position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 400,
           background: '#13131f', border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 16, padding: 16, width: 280,
+          borderRadius: 16, padding: 16, width: 'max-content', maxWidth: '90vw',
           boxShadow: '0 24px 60px rgba(0,0,0,0.75)',
         }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9',
               fontFamily: "'Be Vietnam Pro', sans-serif", letterSpacing: 0.5 }}>
               {lang === 'vi' ? 'Bộ lọc nâng cao' : 'Advanced Filters'}
@@ -116,24 +116,24 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
             )}
           </div>
 
-          {/* Status section */}
-          <FilterSection
-            label={lang === 'vi' ? 'Trạng thái' : 'Status'}
-            value={status} options={statusOptions} onChange={onStatus} accent={accent} />
-
-          {/* Publisher section */}
-          <FilterSection
-            label={lang === 'vi' ? 'Nhà xuất bản' : 'Publisher'}
-            value={publisher} options={publisherOptions} onChange={onPublisher} accent={accent}
-            scrollable />
-
-          {/* Genre section */}
-          {genreOptions.length > 1 && (
+          {/* Filter columns — horizontal layout */}
+          <div style={{ display: 'flex', gap: 0 }}>
             <FilterSection
-              label={lang === 'vi' ? 'Thể loại' : 'Genre'}
-              value={genre} options={genreOptions} onChange={onGenre} accent={accent}
-              scrollable />
-          )}
+              label={lang === 'vi' ? 'Trạng thái' : 'Status'}
+              value={status} options={statusOptions} onChange={onStatus} accent={accent} />
+            <div style={{ width: 1, background: 'rgba(255,255,255,0.06)', margin: '0 12px', flexShrink: 0 }} />
+            <FilterSection
+              label={lang === 'vi' ? 'Nhà xuất bản' : 'Publisher'}
+              value={publisher} options={publisherOptions} onChange={onPublisher} accent={accent} scrollable />
+            {genreOptions.length > 1 && (
+              <>
+                <div style={{ width: 1, background: 'rgba(255,255,255,0.06)', margin: '0 12px', flexShrink: 0 }} />
+                <FilterSection
+                  label={lang === 'vi' ? 'Thể loại' : 'Genre'}
+                  value={genre} options={genreOptions} onChange={onGenre} accent={accent} scrollable />
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -142,14 +142,14 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
 
 function FilterSection({ label, value, options, onChange, accent, scrollable }) {
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 160 }}>
       <div style={{ fontSize: 10, fontWeight: 700, color: '#4B5563', letterSpacing: 1,
         textTransform: 'uppercase', marginBottom: 6, fontFamily: "'Be Vietnam Pro', sans-serif" }}>
         {label}
       </div>
       <div style={{
         display: 'flex', flexDirection: 'column', gap: 1,
-        ...(scrollable ? { maxHeight: 140, overflowY: 'auto', scrollbarWidth: 'thin',
+        ...(scrollable ? { maxHeight: 200, overflowY: 'auto', scrollbarWidth: 'thin',
           scrollbarColor: '#374151 transparent' } : {}),
       }}>
         {options.map(opt => (
