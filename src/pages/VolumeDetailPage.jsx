@@ -1,0 +1,215 @@
+import React from 'react'
+import { PURPLE } from '../constants.js'
+import { useLang } from '../context/LangContext.jsx'
+import { useSeriesById, useVolumeDetail, seriesUrl } from '../hooks.js'
+import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
+
+const LINK_STYLES = {
+  shop:     { color: '#F59E0B', label: 'Shop'       },
+  buy:      { color: '#F59E0B', label: 'Mua sách'   },
+  read:     { color: '#06B6D4', label: 'Đọc online' },
+  official: { color: '#8B5CF6', label: 'Official'   },
+  raw:      { color: '#64748B', label: 'Raws'       },
+}
+
+export function VolumeDetailPage({ seriesId, volumeNumber }) {
+  const { lang } = useLang()
+  const { series, loading: loadingS } = useSeriesById(seriesId)
+  const { volume, links, loading: loadingV, error } = useVolumeDetail(seriesId, volumeNumber)
+
+  const loading = loadingS || loadingV
+
+  const goToSeries = () => {
+    if (series) window.location.hash = seriesUrl(series)
+    else window.history.back()
+  }
+
+  if (loading) return (
+    <div className="page-enter">
+      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
+        sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
+      <div style={{ textAlign:'center', padding: '80px 20px', color: '#4B5563',
+        fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
+    </div>
+  )
+
+  if (error || !volume) return (
+    <div className="page-enter">
+      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
+        sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
+      <div style={{ padding: 40 }}>
+        <ErrorBox msg={error || 'Volume not found'} onRetry={() => window.location.reload()} color={PURPLE} />
+      </div>
+    </div>
+  )
+
+  const cover = volume.cover_url || series?.cover_url
+  const label = volume.volume_label === 'Standalone' ? 'Tập 1' : (volume.volume_label || `Tập ${volumeNumber}`)
+  const desc  = typeof volume.description === 'object'
+    ? (volume.description?.vi || volume.description?.en || '')
+    : (volume.description || '')
+  const relDate = volume.release_date
+    ? new Date(volume.release_date).toLocaleDateString('vi-VN', { day:'numeric', month:'long', year:'numeric' })
+    : null
+
+  return (
+    <div className="page-enter">
+      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
+        sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
+
+      {/* ── Hero ── */}
+      <div style={{
+        background: 'linear-gradient(160deg,#0f0c29,#080d1a,#0a0a0f)',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {cover && (
+          <div style={{
+            position:'absolute', inset:0, zIndex:0,
+            backgroundImage:`url(${cover})`, backgroundSize:'cover', backgroundPosition:'center',
+            filter:'blur(40px) saturate(0.4)', opacity:0.15,
+          }} />
+        )}
+        <div style={{ position:'absolute', inset:0, zIndex:1,
+          background:'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, rgba(8,13,26,0.95) 100%)' }} />
+
+        <div style={{ position:'relative', zIndex:2, maxWidth:1000,
+          margin:'0 auto', padding:'32px 24px 48px', display:'flex', gap:40, alignItems:'flex-start' }}>
+
+          {/* Breadcrumb */}
+          <div style={{ position:'absolute', top:0, left:24, display:'flex',
+            alignItems:'center', gap: 6 }}>
+            <button onClick={() => window.location.hash = '#/novels'} style={{
+              background:'none', border:'none', color:'#4B5563', cursor:'pointer',
+              fontSize:11, fontFamily:"'Be Vietnam Pro',sans-serif", padding:0,
+            }}>Light Novel</button>
+            <span style={{ color:'#374151', fontSize:11 }}>›</span>
+            <button onClick={goToSeries} style={{
+              background:'none', border:'none', color:'#4B5563', cursor:'pointer',
+              fontSize:11, fontFamily:"'Be Vietnam Pro',sans-serif", padding:0,
+              maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+            }}>{series?.title || '…'}</button>
+            <span style={{ color:'#374151', fontSize:11 }}>›</span>
+            <span style={{ color:'#94A3B8', fontSize:11 }}>{label}</span>
+          </div>
+
+          {/* Cover */}
+          <div style={{ flexShrink:0, marginTop:24 }}>
+            <div style={{
+              width:200, borderRadius:16, overflow:'hidden', aspectRatio:'2/3',
+              background:'#0f172a',
+              boxShadow:`0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)`,
+            }}>
+              {cover
+                ? <img src={cover} alt={label} style={{ width:'100%', height:'100%', objectFit:'cover' }}
+                    onError={e => e.target.style.display='none'} />
+                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center',
+                    justifyContent:'center', fontSize:52 }}>📖</div>
+              }
+            </div>
+          </div>
+
+          {/* Info */}
+          <div style={{ flex:1, paddingTop:28 }}>
+            {/* Series name link */}
+            {series && (
+              <button onClick={goToSeries} style={{
+                background:'none', border:'none', color:'#64748B', cursor:'pointer',
+                fontSize:12, fontFamily:"'Be Vietnam Pro',sans-serif", padding:0,
+                marginBottom:6, display:'block',
+              }}>{series.title} ›</button>
+            )}
+
+            {/* Volume label chip */}
+            <div style={{
+              display:'inline-block', fontSize:11, fontWeight:700, padding:'3px 12px',
+              borderRadius:20, background:`${PURPLE}20`, border:`1px solid ${PURPLE}40`,
+              color:'#C4B5FD', marginBottom:10, fontFamily:"'Be Vietnam Pro',sans-serif",
+            }}>{label}</div>
+
+            {/* Volume title */}
+            {volume.title && volume.title !== series?.title && (
+              <h1 style={{
+                fontFamily:"'Barlow Condensed',sans-serif",
+                fontSize:'clamp(20px,3.5vw,36px)', fontWeight:900,
+                color:'#f1f5f9', margin:'0 0 6px', lineHeight:1.15, letterSpacing:0.5,
+              }}>{volume.title}</h1>
+            )}
+
+            {/* Meta chips */}
+            <div style={{ display:'flex', gap:12, flexWrap:'wrap', margin:'14px 0 18px' }}>
+              {relDate && (
+                <div style={{ fontSize:12, color:'#94A3B8', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  <span style={{ color:'#4B5563', fontWeight:700, fontSize:10,
+                    textTransform:'uppercase', letterSpacing:0.8 }}>
+                    {lang==='vi'?'Phát hành':'Release'}&nbsp;
+                  </span>
+                  {relDate}
+                </div>
+              )}
+              {series?.publisher && (
+                <div style={{ fontSize:12, color:'#94A3B8', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  <span style={{ color:'#4B5563', fontWeight:700, fontSize:10,
+                    textTransform:'uppercase', letterSpacing:0.8 }}>NXB&nbsp;</span>
+                  {series.publisher}
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            {desc && (
+              <p style={{
+                fontSize:13, color:'#94A3B8', lineHeight:1.75, maxWidth:580,
+                fontFamily:"'Be Vietnam Pro',sans-serif", margin:'0 0 24px',
+              }}>{desc}</p>
+            )}
+
+            {/* Buy / external links */}
+            {links.length > 0 && (
+              <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+                <div style={{ fontSize:10, fontWeight:700, color:'#4B5563',
+                  letterSpacing:0.8, textTransform:'uppercase', alignSelf:'center',
+                  fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {lang==='vi'?'Mua sách:':'Buy:'}
+                </div>
+                {links.map((lnk, i) => {
+                  const cfg = LINK_STYLES[lnk.link_type] || { color:'#64748B', label: lnk.label || lnk.link_type }
+                  return (
+                    <a key={i} href={lnk.url} target="_blank" rel="noreferrer" style={{
+                      fontSize:12, fontWeight:700, padding:'9px 18px', borderRadius:11,
+                      background:`${cfg.color}18`, border:`1px solid ${cfg.color}40`,
+                      color:cfg.color, textDecoration:'none',
+                      fontFamily:"'Be Vietnam Pro',sans-serif",
+                      transition:'transform 0.15s, box-shadow 0.15s',
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 6px 20px ${cfg.color}33` }}
+                      onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='' }}
+                    >{lnk.label || cfg.label} ↗</a>
+                  )
+                })}
+              </div>
+            )}
+
+            {links.length === 0 && (
+              <div style={{ fontSize:12, color:'#374151', fontStyle:'italic',
+                fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                {lang==='vi'?'Chưa có liên kết mua sách.':'No purchase links available yet.'}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Back to series */}
+      <div style={{ maxWidth:1000, margin:'24px auto 0', padding:'0 24px' }}>
+        <button onClick={goToSeries} style={{
+          background:`${PURPLE}15`, border:`1px solid ${PURPLE}35`, borderRadius:11,
+          color:'#C4B5FD', fontSize:12, fontWeight:600, padding:'9px 18px',
+          cursor:'pointer', fontFamily:"'Be Vietnam Pro',sans-serif",
+          display:'flex', alignItems:'center', gap:6,
+        }}>← {lang==='vi'?`Về ${series?.title || 'series'}`:`Back to ${series?.title || 'series'}`}</button>
+      </div>
+
+      <PageFooter color={PURPLE} src="NovelTrend" />
+    </div>
+  )
+}
