@@ -9,6 +9,16 @@ import { AnimeModal } from '../components/AnimeModal.jsx'
 export function AnimePage() {
   const { t, lang } = useLang()
   const [selected,    setSelected]    = useState(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [sort,        setSort]        = useState('POPULARITY_DESC')
+  const [status,      setStatus]      = useState('')
+  const [format,      setFormat]      = useState('')
+  const [genre,       setGenre]       = useState('All')
+
+  const search = useDebounce(searchInput)
+
+  const { anime, loading, loadingMore, error, page, hasNext, totalCount, loadMore, retry } =
+    useAnime({ search, sort, status, format, genre })
 
   useEffect(() => {
     const fn = e => {
@@ -23,16 +33,6 @@ export function AnimePage() {
     window.addEventListener('nt:open-series', fn)
     return () => window.removeEventListener('nt:open-series', fn)
   }, [anime])
-  const [searchInput, setSearchInput] = useState('')
-  const [sort,        setSort]        = useState('POPULARITY_DESC')
-  const [status,      setStatus]      = useState('')
-  const [format,      setFormat]      = useState('')
-  const [genre,       setGenre]       = useState('All')
-
-  const search = useDebounce(searchInput)
-
-  const { anime, loading, loadingMore, error, page, hasNext, totalCount, loadMore, retry } =
-    useAnime({ search, sort, status, format, genre })
 
   const ANIME_SORTS = [
     { id: 'POPULARITY_DESC', label: t('sort_popular')   },
@@ -72,16 +72,13 @@ export function AnimePage() {
 
   return (
     <div className="page-enter">
-      <AppHeader activeTab="#/anime" accent={CYAN} searchInput=""
-        onSearch={() => {}} hideSearch sorts={ANIME_SORTS} activeSort={sort} onSort={setSort} />
+      <AppHeader activeTab="#/anime" accent={CYAN} searchInput={searchInput}
+        onSearch={setSearchInput} sorts={ANIME_SORTS} activeSort={sort} onSort={setSort} />
 
       <HeroBanner title={heroTitle}
         sub={!loading && totalCount > 0 ? t('hero_found_anime', totalCount) : null}
         accent={CYAN} src="AniList"
-        tagline={!searchInput && status === 'all' ? (lang === 'vi' ? 'Khám phá và theo dõi anime yêu thích của bạn' : 'Discover and track your favourite anime series') : null}
-        searchInput={searchInput}
-        onSearch={setSearchInput}
-        searchPlaceholder={lang === 'vi' ? 'Tìm kiếm anime...' : 'Search anime...'} />
+        tagline={!searchInput && status === '' ? (lang === 'vi' ? 'Khám phá và theo dõi anime yêu thích của bạn' : 'Discover and track your favourite anime series') : null} />
 
       <div className="filter-bar">
         <div className="filter-bar__inner">
