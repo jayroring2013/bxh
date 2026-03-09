@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { PURPLE } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
 import { useSeriesById, useVolumeDetail, seriesUrl } from '../hooks.js'
@@ -88,6 +88,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
 
   const loading = loadingS || loadingV
 
+  const [descExpanded, setDescExpanded] = useState(false)
   const goToSeries = () => {
     if (series) window.location.hash = seriesUrl(series)
     else window.history.back()
@@ -173,7 +174,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
           {/* Cover */}
           <div style={{ flexShrink: 0, marginTop: 24 }}>
             <div style={{
-              width: 200, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
+              width: 240, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
               background: '#0f172a',
               boxShadow: `0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)`,
             }}>
@@ -225,8 +226,26 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
               {translator && <StatChip label={lang === 'vi' ? 'Dịch giả' : 'Translator'} value={translator} />}
             </div>
 
-            {/* Description — proper paragraph breaks */}
-            <DescriptionText text={desc} />
+            {/* Description — collapsible */}
+            {desc && (() => {
+              const LIMIT = 380
+              const isLong = desc.length > LIMIT
+              const shown = (!isLong || descExpanded) ? desc : desc.slice(0, LIMIT) + '…'
+              return (
+                <div style={{ marginBottom: 16 }}>
+                  <DescriptionText text={shown} />
+                  {isLong && (
+                    <button onClick={() => setDescExpanded(x => !x)} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: '#8B5CF6', fontSize: 12, fontWeight: 600, padding: '4px 0 0',
+                      fontFamily: "'Be Vietnam Pro',sans-serif",
+                    }}>
+                      {descExpanded ? '▲ Thu gọn' : '▼ Xem thêm'}
+                    </button>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* ── Buy / external links ── */}
             {links.length > 0 && (
