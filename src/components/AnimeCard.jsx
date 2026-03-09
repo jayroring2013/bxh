@@ -17,7 +17,7 @@ export function AnimeCard({ anime, rank, onClick }) {
     <div className="anime-card" onClick={() => onClick(anime)}>
       <RankBadge rank={rank} />
 
-      {status && (
+      {status && status !== 'RELEASING' && (
         <div className="status-badge" style={{ background: animeStatusColor(status) }}>
           {status === 'RELEASING' && <span className="status-badge__dot" />}
           {animeStatusLabel(status)}
