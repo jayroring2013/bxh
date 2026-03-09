@@ -323,7 +323,7 @@ export function useManga({ search, sort, status, demographic, tag }) {
 }
 
 /* ── Fetch novels from new series table ───────────────────── */
-export function useSeriesNovels({ search, sort, status, genre, limit }) {
+export function useSeriesNovels({ search, sort, status, genre, publisher, limit }) {
   const [series,      setSeries]      = useState([])
   const [loading,     setLoading]     = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -355,6 +355,7 @@ export function useSeriesNovels({ search, sort, status, genre, limit }) {
       if (search.trim()) params.set('title', `ilike.%${search.trim()}%`)
       if (status && status !== 'all') params.set('status', `eq.${status}`)
       if (genre  && genre  !== 'all') params.set('genres', `cs.{"${genre}"}`)
+      if (publisher && publisher !== 'all') params.set('publisher', `eq.${publisher}`)
 
       // Get data + total count in parallel
       const countParams = new URLSearchParams(params)
@@ -411,4 +412,19 @@ export function useNovelGenres() {
       .catch(() => {})
   }, [])
   return genres
+}
+
+/* ── Fetch distinct publishers for novel filter ───────────── */
+export function useNovelPublishers() {
+  const [publishers, setPublishers] = useState([])
+  useEffect(() => {
+    sbFetch('series', 'item_type=eq.novel&select=publisher&limit=1000')
+      .then(rows => {
+        const seen = new Set()
+        rows.forEach(r => { if (r.publisher) seen.add(r.publisher) })
+        setPublishers([...seen].sort())
+      })
+      .catch(() => {})
+  }, [])
+  return publishers
 }
