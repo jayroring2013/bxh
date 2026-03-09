@@ -217,6 +217,21 @@ input::placeholder {
   overflow: hidden;
 }
 
+/* Hover-reveal: hidden by default, slides in on card hover */
+.novel-card__hover-details {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: max-height 0.32s ease, opacity 0.28s ease, transform 0.28s ease;
+}
+
+.novel-card:hover .novel-card__hover-details {
+  max-height: 140px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ─── Anime card ────────────────────────────────────────────────── */
 .anime-card {
   position: relative;
