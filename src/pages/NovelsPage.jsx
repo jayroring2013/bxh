@@ -201,8 +201,9 @@ export function NovelsPage() {
 
   return (
     <div className="page-enter">
-      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput=""
-        onSearch={() => {}} sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
+      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput={searchInput}
+        onSearch={v => { setSearchInput(v); if (v) setBrowseMode(true) }}
+        sorts={[]} activeSort="" onSort={() => {}} hideSorts />
 
       {/* Hero + inline search */}
       <div style={{ position: 'relative', background: 'linear-gradient(160deg,#0f0c29,#080d1a,#0a0a0f)',
@@ -218,46 +219,15 @@ export function NovelsPage() {
         </div>
 
         {!isBrowsing && (
-          <div style={{ fontSize: 13, color: '#64748B', marginBottom: 18,
+          <div style={{ fontSize: 13, color: '#64748B',
             fontFamily: "'Be Vietnam Pro', sans-serif" }}>
             {lang === 'vi' ? 'Khám phá và theo dõi light novel yêu thích của bạn' : 'Discover and track your favourite light novels'}
           </div>
         )}
 
         {isBrowsing && totalCount > 0 && !loading && (
-          <div style={{ fontSize: 12, color: '#64748B', marginBottom: 14 }}>{totalCount} series</div>
+          <div style={{ fontSize: 12, color: '#64748B' }}>{totalCount} series</div>
         )}
-
-        {/* Search bar */}
-        <div style={{ maxWidth: 560, margin: '0 auto', position: 'relative' }}
-          onClick={() => setBrowseMode(true)}>
-          <svg style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
-            opacity: 0.35, pointerEvents: 'none' }}
-            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          <input
-            value={searchInput}
-            onChange={e => { setSearchInput(e.target.value); setBrowseMode(true) }}
-            placeholder={lang === 'vi' ? 'Tìm kiếm tên light novel...' : 'Search novel title...'}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 14, padding: '12px 40px 12px 44px',
-              color: '#fff', fontSize: 14, outline: 'none',
-              fontFamily: "'Be Vietnam Pro', sans-serif",
-              transition: 'border-color 0.2s, box-shadow 0.2s',
-            }}
-            onFocus={e => { e.target.style.borderColor = PURPLE + '80'; e.target.style.boxShadow = `0 0 0 3px ${PURPLE}18` }}
-            onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; e.target.style.boxShadow = 'none' }}
-          />
-          {searchInput && (
-            <button onClick={() => setSearchInput('')} style={{
-              position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-              background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 18,
-            }}>×</button>
-          )}
-        </div>
       </div>
 
       {/* Advanced filter bar — shown in browse mode */}
