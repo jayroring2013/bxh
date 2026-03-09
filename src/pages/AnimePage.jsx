@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { CYAN } from '../constants.js'
 import { useAnime, useDebounce } from '../hooks.js'
 import { useLang } from '../context/LangContext.jsx'
@@ -7,8 +7,22 @@ import { AnimeCard }  from '../components/AnimeCard.jsx'
 import { AnimeModal } from '../components/AnimeModal.jsx'
 
 export function AnimePage() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const [selected,    setSelected]    = useState(null)
+
+  useEffect(() => {
+    const fn = e => {
+      if (e.detail?.type !== 'anime') return
+      const q = (e.detail.title || '').toLowerCase()
+      const match = anime.find(a =>
+        (a.title_english || a.title_romaji || '').toLowerCase().includes(q)
+      )
+      if (match) setSelected(match)
+      else setSearchInput(e.detail.title)
+    }
+    window.addEventListener('nt:open-series', fn)
+    return () => window.removeEventListener('nt:open-series', fn)
+  }, [anime])
   const [searchInput, setSearchInput] = useState('')
   const [sort,        setSort]        = useState('POPULARITY_DESC')
   const [status,      setStatus]      = useState('')
@@ -63,7 +77,11 @@ export function AnimePage() {
 
       <HeroBanner title={heroTitle}
         sub={!loading && totalCount > 0 ? t('hero_found_anime', totalCount) : null}
-        accent={CYAN} src="AniList" />
+        accent={CYAN} src="AniList"
+        tagline={!searchInput && status === 'all' ? (lang === 'vi' ? 'Khám phá và theo dõi anime yêu thích của bạn' : 'Discover and track your favourite anime series') : null}
+        searchInput={searchInput}
+        onSearch={setSearchInput}
+        searchPlaceholder={lang === 'vi' ? 'Tìm kiếm anime...' : 'Search anime...'} />
 
       <div className="filter-bar">
         <div className="filter-bar__inner">
