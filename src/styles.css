@@ -6,7 +6,7 @@
 }
 
 body {
-  background: #0a0a0f;
+  background: #0f0b09;
   color: #fff;
   font-family: 'Be Vietnam Pro', sans-serif;
 }
@@ -17,7 +17,7 @@ a {
 }
 
 input::placeholder {
-  color: #374151;
+  color: #3d2e1e;
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────────── */
@@ -68,7 +68,7 @@ input::placeholder {
 .skeleton-card {
   border-radius: 16px;
   overflow: hidden;
-  background: #111827;
+  background: #1a130c;
   aspect-ratio: 2 / 3;
 }
 
@@ -77,9 +77,9 @@ input::placeholder {
   height: 100%;
   background: linear-gradient(
     90deg,
-    #1f2937 25%,
-    #374151 50%,
-    #1f2937 75%
+    #221a12 25%,
+    #3d2e1e 50%,
+    #221a12 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
@@ -99,7 +99,7 @@ input::placeholder {
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 2 / 3;
-  background: #0f172a;
+  background: #1a1410;
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
               box-shadow 0.35s ease;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -127,7 +127,7 @@ input::placeholder {
 .novel-card__placeholder {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #1e1b4b, #0f172a);
+  background: linear-gradient(135deg, #2a1f10, #1a1410);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -180,7 +180,7 @@ input::placeholder {
 
 .novel-card__title-orig {
   font-size: 9px;
-  color: #475569;
+  color: #5c4a35;
   margin-bottom: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -196,20 +196,20 @@ input::placeholder {
 }
 
 .novel-card__meta-label {
-  color: #64748B;
+  color: #7a6045;
   font-size: 9px;
   letter-spacing: 1px;
 }
 
 .novel-card__meta-value {
-  color: #94A3B8;
+  color: #b09070;
   font-size: 10px;
 }
 
 .novel-card__desc {
   margin-top: 6px;
   font-size: 10px;
-  color: #94A3B8;
+  color: #b09070;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -239,7 +239,7 @@ input::placeholder {
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 2 / 3;
-  background: #0f172a;
+  background: #1a1410;
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
               box-shadow 0.35s ease;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -267,7 +267,7 @@ input::placeholder {
 .anime-card__placeholder {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #0c1a2e, #0f172a);
+  background: linear-gradient(135deg, #0c1a2e, #1a1410);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -431,7 +431,7 @@ input::placeholder {
   border-radius: 9px;
   font-size: 12px;
   font-weight: 600;
-  color: #4B5563;
+  color: #5a4a3a;
   transition: all 0.18s;
   white-space: nowrap;
   flex-shrink: 0;
@@ -440,8 +440,8 @@ input::placeholder {
   text-decoration: none;
 }
 .nav-tab:hover:not(.nav-tab--active) {
-  color: #94A3B8;
-  background: rgba(255,255,255,0.05);
+  color: #b09070;
+  background: rgba(255,248,240,0.05);
 }
 .nav-tab--active {
   color: #fff;
@@ -486,7 +486,7 @@ input::placeholder {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #64748B;
+  color: #7a6045;
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
@@ -504,7 +504,7 @@ input::placeholder {
 .sort-btn {
   background: transparent;
   border: none;
-  color: #4B5563;
+  color: #5a4a3a;
   padding: 5px 12px;
   border-radius: 8px;
   cursor: pointer;
@@ -516,8 +516,8 @@ input::placeholder {
   letter-spacing: 0.2px;
 }
 .sort-btn:hover:not(.sort-btn--active) {
-  color: #94A3B8;
-  background: rgba(255,255,255,0.05);
+  color: #b09070;
+  background: rgba(255,248,240,0.05);
 }
 .sort-btn--active {
   color: #fff;
@@ -528,7 +528,7 @@ input::placeholder {
 .hero-banner {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(160deg, #0f0c29, #080d1a, #0a0a0f);
+  background: linear-gradient(160deg, #140f08, #110d0a, #0f0b09);
   padding: 28px 24px 20px;
   text-align: center;
 }
@@ -553,13 +553,13 @@ input::placeholder {
 
 .hero-banner__tagline {
   font-size: 14px;
-  color: #64748B;
+  color: #7a6045;
   margin-bottom: 20px;
   font-family: 'Be Vietnam Pro', sans-serif;
   letter-spacing: 0.3px;
 }
 .hero-banner__sub {
-  color: #374151;
+  color: #3d2e1e;
   font-size: 12px;
   display: flex;
   align-items: center;
@@ -595,7 +595,7 @@ input::placeholder {
 .carousel-track::-webkit-scrollbar { display: none; }
 
 .filter-row__label {
-  color: #374151;
+  color: #3d2e1e;
   font-size: 10px;
   letter-spacing: 1px;
   align-self: center;
@@ -612,7 +612,7 @@ input::placeholder {
 .pill {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  color: #64748B;
+  color: #7a6045;
   padding: 4px 13px;
   border-radius: 20px;
   cursor: pointer;
@@ -633,7 +633,7 @@ input::placeholder {
 .empty-state {
   text-align: center;
   padding: 80px 0;
-  color: #4B5563;
+  color: #5a4a3a;
 }
 
 .empty-state__icon { font-size: 52px; margin-bottom: 16px; }
@@ -656,7 +656,7 @@ input::placeholder {
 }
 
 .error-box__title { color: #FCA5A5; font-weight: 600; margin-bottom: 8px; }
-.error-box__msg   { color: #64748B; font-size: 13px; margin-bottom: 12px; }
+.error-box__msg   { color: #7a6045; font-size: 13px; margin-bottom: 12px; }
 
 .error-box__btn {
   border: none;
@@ -706,7 +706,7 @@ input::placeholder {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding: 20px 24px;
   text-align: center;
-  color: #374151;
+  color: #3d2e1e;
   font-size: 12px;
 }
 
@@ -842,19 +842,19 @@ input::placeholder {
 }
 
 .modal-title-orig {
-  color: #475569;
+  color: #5c4a35;
   font-size: 12px;
   margin-bottom: 12px;
 }
 
 .modal-title-sub {
-  color: #64748B;
+  color: #7a6045;
   font-size: 12px;
   margin-bottom: 4px;
 }
 
 .modal-author {
-  color: #94A3B8;
+  color: #b09070;
   font-size: 13px;
   margin-bottom: 14px;
 }
@@ -877,7 +877,7 @@ input::placeholder {
 }
 
 .modal-stat__label {
-  color: #64748B;
+  color: #7a6045;
   font-size: 9px;
   letter-spacing: 1.5px;
   margin-top: 2px;
@@ -891,7 +891,7 @@ input::placeholder {
 }
 
 .modal-section-label {
-  color: #475569;
+  color: #5c4a35;
   font-size: 10px;
   letter-spacing: 1.5px;
   margin-bottom: 8px;
@@ -919,7 +919,7 @@ input::placeholder {
   border-radius: 8px;
   padding: 4px 10px;
   font-size: 11px;
-  color: #64748B;
+  color: #7a6045;
 }
 
 .modal-publishers {
@@ -990,12 +990,12 @@ input::placeholder {
 }
 
 .date-chip__label {
-  color: #475569;
+  color: #5c4a35;
   letter-spacing: 1px;
   font-size: 9px;
 }
 
-.date-chip__value { color: #94A3B8; }
+.date-chip__value { color: #b09070; }
 
 /* Banner image (anime modal) */
 .modal-banner {
