@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { PURPLE } from '../constants.js'
-import { useSeriesNovels, useNovelGenres, useNovelPublishers, useDebounce } from '../hooks.js'
+import { useSeriesNovels, useNovelGenres, useNovelPublishers, useDebounce, seriesUrl } from '../hooks.js'
 import { useLang } from '../context/LangContext.jsx'
 import { AppHeader, SkeletonGrid, CardGrid, EmptyState, ErrorBox, LoadMoreBtn, PageFooter } from '../components/Shared.jsx'
 import { NovelCard }  from '../components/NovelCard.jsx'
-import { NovelModal } from '../components/NovelModal.jsx'
 
 // ── Sort dropdown (standalone) ────────────────────────────────────
 function SortDropdown({ value, options, onChange, accent }) {
@@ -287,7 +286,6 @@ function Carousel({ title, items, loading, onSelect, accent }) {
 // ── Main page ─────────────────────────────────────────────────────
 export function NovelsPage() {
   const { lang } = useLang()
-  const [selected,   setSelected]   = useState(null)
   const [browseMode, setBrowseMode] = useState(false)
   const [searchInput,setSearchInput]= useState('')
   const [sort,       setSort]       = useState('title_asc')
@@ -439,9 +437,9 @@ export function NovelsPage() {
         {!isBrowsing && (
           <>
             <Carousel title={lang === 'vi' ? '🏆 Phổ biến nhất' : '🏆 Most Popular'}
-              items={popular} loading={loadingPop} onSelect={setSelected} accent={PURPLE} />
+              items={popular} loading={loadingPop} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} />
             <Carousel title={lang === 'vi' ? '🆕 Mới thêm gần đây' : '🆕 Recently Added'}
-              items={recent} loading={loadingRec} onSelect={setSelected} accent={PURPLE} />
+              items={recent} loading={loadingRec} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} />
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
               <button onClick={() => setBrowseMode(true)} style={{
                 padding: '12px 32px', background: `linear-gradient(135deg,${PURPLE},#6366F1)`,
@@ -464,7 +462,7 @@ export function NovelsPage() {
               <>
                 <CardGrid>
                   {series.map((s, i) => (
-                    <NovelCard key={s.id} series={s} rank={i + 1} onClick={setSelected} />
+                    <NovelCard key={s.id} series={s} rank={i + 1} />
                   ))}
                 </CardGrid>
                 {hasMore && <LoadMoreBtn onLoad={loadMore} loading={loadingMore} color={PURPLE} />}
@@ -479,7 +477,6 @@ export function NovelsPage() {
       </main>
 
       <PageFooter color={PURPLE} src="NovelTrend" />
-      {selected && <NovelModal series={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }
