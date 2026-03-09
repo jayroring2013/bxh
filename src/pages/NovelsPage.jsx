@@ -2,16 +2,15 @@ import React, { useState, useEffect, useRef } from 'react'
 import { PURPLE } from '../constants.js'
 import { useSeriesNovels, useNovelGenres, useNovelPublishers, useDebounce } from '../hooks.js'
 import { useLang } from '../context/LangContext.jsx'
-import { AppHeader, HeroBanner, SkeletonGrid, CardGrid, EmptyState, ErrorBox, LoadMoreBtn, PageFooter } from '../components/Shared.jsx'
+import { AppHeader, SkeletonGrid, CardGrid, EmptyState, ErrorBox, LoadMoreBtn, PageFooter } from '../components/Shared.jsx'
 import { NovelCard }  from '../components/NovelCard.jsx'
 import { NovelModal } from '../components/NovelModal.jsx'
 
-// ── Small reusable dropdown ───────────────────────────────────────
-function FilterDropdown({ label, value, options, onChange, accent }) {
+// ── Sort dropdown (standalone) ────────────────────────────────────
+function SortDropdown({ value, options, onChange, accent }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
-  const active = value && value !== 'all'
-  const currentLabel = options.find(o => o.id === value)?.label || label
+  const currentLabel = options.find(o => o.id === value)?.label || options[0]?.label
 
   useEffect(() => {
     const fn = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -23,23 +22,19 @@ function FilterDropdown({ label, value, options, onChange, accent }) {
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
       <button onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 7,
-        background: active ? `${accent}22` : 'rgba(255,255,255,0.05)',
-        border: `1px solid ${active ? accent + '60' : 'rgba(255,255,255,0.1)'}`,
-        borderRadius: 10, padding: '7px 13px', cursor: 'pointer',
-        color: active ? '#C4B5FD' : '#94A3B8', fontSize: 12, fontWeight: 600,
+        background: `${accent}18`, border: `1px solid ${accent}50`,
+        borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
+        color: '#C4B5FD', fontSize: 12, fontWeight: 700,
         fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap',
-        transition: 'all 0.15s',
       }}>
-        {currentLabel}
-        <span style={{ opacity: 0.5, fontSize: 10 }}>{open ? '▴' : '▾'}</span>
+        {currentLabel} <span style={{ opacity: 0.6, fontSize: 9 }}>{open ? '▴' : '▾'}</span>
       </button>
       {open && (
         <div style={{
-          position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 300,
+          position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 400,
           background: '#13131f', border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 12, padding: 5, minWidth: 180, maxHeight: 280, overflowY: 'auto',
+          borderRadius: 12, padding: 5, minWidth: 160,
           boxShadow: '0 20px 50px rgba(0,0,0,0.7)',
-          scrollbarWidth: 'thin', scrollbarColor: '#374151 transparent',
         }}>
           {options.map(opt => (
             <button key={opt.id} onClick={() => { onChange(opt.id); setOpen(false) }} style={{
@@ -49,17 +44,137 @@ function FilterDropdown({ label, value, options, onChange, accent }) {
               color: value === opt.id ? '#C4B5FD' : '#94A3B8',
               fontSize: 12, fontWeight: value === opt.id ? 700 : 400,
               fontFamily: "'Be Vietnam Pro', sans-serif",
-              transition: 'background 0.1s',
-            }}
-              onMouseEnter={e => { if (value !== opt.id) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
-              onMouseLeave={e => { if (value !== opt.id) e.currentTarget.style.background = 'transparent' }}
-            >
+            }}>
               {value === opt.id && <span style={{ marginRight: 6, fontSize: 10 }}>✓</span>}
               {opt.label}
             </button>
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Advanced filter panel (single button → popover with all filters) ──
+function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGenre,
+  statusOptions, publisherOptions, genreOptions, hasActive, onClear, accent, lang }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  const activeCount = [status !== 'all', publisher !== 'all', genre !== 'all'].filter(Boolean).length
+
+  useEffect(() => {
+    const fn = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', fn)
+    return () => document.removeEventListener('mousedown', fn)
+  }, [])
+
+  return (
+    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        background: hasActive ? `${accent}20` : 'rgba(255,255,255,0.05)',
+        border: `1px solid ${hasActive ? accent + '55' : 'rgba(255,255,255,0.1)'}`,
+        borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
+        color: hasActive ? '#C4B5FD' : '#94A3B8', fontSize: 12, fontWeight: 600,
+        fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap',
+        transition: 'all 0.15s',
+      }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+          <path d="M22 3H2l8 9.46V19l4 2V12.46L22 3z"/>
+        </svg>
+        {lang === 'vi' ? 'Bộ lọc' : 'Filters'}
+        {activeCount > 0 && (
+          <span style={{
+            minWidth: 18, height: 18, borderRadius: 9, fontSize: 10, fontWeight: 800,
+            background: accent, color: '#fff', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', padding: '0 4px',
+          }}>{activeCount}</span>
+        )}
+        <span style={{ opacity: 0.5, fontSize: 9 }}>{open ? '▴' : '▾'}</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 400,
+          background: '#13131f', border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 16, padding: 16, width: 280,
+          boxShadow: '0 24px 60px rgba(0,0,0,0.75)',
+        }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9',
+              fontFamily: "'Be Vietnam Pro', sans-serif", letterSpacing: 0.5 }}>
+              {lang === 'vi' ? 'Bộ lọc nâng cao' : 'Advanced Filters'}
+            </span>
+            {hasActive && (
+              <button onClick={onClear} style={{
+                background: 'none', border: 'none', color: '#F87171', fontSize: 11,
+                fontWeight: 600, cursor: 'pointer', fontFamily: "'Be Vietnam Pro', sans-serif",
+              }}>✕ {lang === 'vi' ? 'Xóa tất cả' : 'Clear all'}</button>
+            )}
+          </div>
+
+          {/* Status section */}
+          <FilterSection
+            label={lang === 'vi' ? 'Trạng thái' : 'Status'}
+            value={status} options={statusOptions} onChange={onStatus} accent={accent} />
+
+          {/* Publisher section */}
+          <FilterSection
+            label={lang === 'vi' ? 'Nhà xuất bản' : 'Publisher'}
+            value={publisher} options={publisherOptions} onChange={onPublisher} accent={accent}
+            scrollable />
+
+          {/* Genre section */}
+          {genreOptions.length > 1 && (
+            <FilterSection
+              label={lang === 'vi' ? 'Thể loại' : 'Genre'}
+              value={genre} options={genreOptions} onChange={onGenre} accent={accent}
+              scrollable />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FilterSection({ label, value, options, onChange, accent, scrollable }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#4B5563', letterSpacing: 1,
+        textTransform: 'uppercase', marginBottom: 6, fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+        {label}
+      </div>
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 1,
+        ...(scrollable ? { maxHeight: 140, overflowY: 'auto', scrollbarWidth: 'thin',
+          scrollbarColor: '#374151 transparent' } : {}),
+      }}>
+        {options.map(opt => (
+          <button key={opt.id} onClick={() => onChange(opt.id)} style={{
+            textAlign: 'left', padding: '6px 10px', borderRadius: 8,
+            border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: value === opt.id ? 700 : 400,
+            background: value === opt.id ? `${accent}25` : 'transparent',
+            color: value === opt.id ? '#C4B5FD' : '#94A3B8',
+            fontFamily: "'Be Vietnam Pro', sans-serif", display: 'flex', alignItems: 'center', gap: 8,
+          }}
+            onMouseEnter={e => { if (value !== opt.id) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+            onMouseLeave={e => { if (value !== opt.id) e.currentTarget.style.background = 'transparent' }}
+          >
+            <span style={{
+              width: 14, height: 14, borderRadius: 4, flexShrink: 0,
+              border: `1.5px solid ${value === opt.id ? accent : 'rgba(255,255,255,0.15)'}`,
+              background: value === opt.id ? accent : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {value === opt.id && <span style={{ color: '#fff', fontSize: 8, lineHeight: 1 }}>✓</span>}
+            </span>
+            {opt.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -113,7 +228,6 @@ function Carousel({ title, items, loading, onSelect, accent }) {
                   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 900,
                   color: i < 3 ? '#000' : '#fff',
                 }}>#{i+1}</div>
-
                 {s.cover_url
                   ? <img src={s.cover_url} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={e => e.target.style.display='none'} />
@@ -142,13 +256,13 @@ function Carousel({ title, items, loading, onSelect, accent }) {
 // ── Main page ─────────────────────────────────────────────────────
 export function NovelsPage() {
   const { lang } = useLang()
-  const [selected,    setSelected]    = useState(null)
-  const [browseMode,  setBrowseMode]  = useState(false)
-  const [searchInput, setSearchInput] = useState('')
-  const [sort,        setSort]        = useState('title_asc')
-  const [status,      setStatus]      = useState('all')
-  const [genre,       setGenre]       = useState('all')
-  const [publisher,   setPublisher]   = useState('all')
+  const [selected,   setSelected]   = useState(null)
+  const [browseMode, setBrowseMode] = useState(false)
+  const [searchInput,setSearchInput]= useState('')
+  const [sort,       setSort]       = useState('title_asc')
+  const [status,     setStatus]     = useState('all')
+  const [genre,      setGenre]      = useState('all')
+  const [publisher,  setPublisher]  = useState('all')
 
   const search     = useDebounce(searchInput)
   const genres     = useNovelGenres()
@@ -159,7 +273,7 @@ export function NovelsPage() {
   const { series: recent, loading: loadingRec } =
     useSeriesNovels({ search: '', sort: 'newest', status: 'all', genre: 'all', limit: 18 })
 
-  const isBrowsing = browseMode || !!search || status !== 'all' || genre !== 'all' || publisher !== 'all'
+  const isBrowsing     = browseMode || !!search || status !== 'all' || genre !== 'all' || publisher !== 'all'
   const hasActiveFilters = status !== 'all' || genre !== 'all' || publisher !== 'all'
 
   const { series, loading, loadingMore, error, hasMore, totalCount, loadMore, retry } =
@@ -182,96 +296,109 @@ export function NovelsPage() {
     { id: 'newest',     label: lang === 'vi' ? 'Mới thêm' : 'Newest Added' },
   ]
   const STATUS_OPTIONS = [
-    { id: 'all',       label: lang === 'vi' ? 'Tất cả trạng thái' : 'All statuses'  },
-    { id: 'ongoing',   label: lang === 'vi' ? 'Đang tiến hành'    : 'Ongoing'       },
-    { id: 'completed', label: lang === 'vi' ? 'Hoàn thành'        : 'Completed'     },
-    { id: 'hiatus',    label: lang === 'vi' ? 'Tạm dừng'          : 'Hiatus'        },
-    { id: 'cancelled', label: lang === 'vi' ? 'Đã hủy'            : 'Cancelled'     },
+    { id: 'all',       label: lang === 'vi' ? 'Tất cả'         : 'All'       },
+    { id: 'ongoing',   label: lang === 'vi' ? 'Đang tiến hành' : 'Ongoing'   },
+    { id: 'completed', label: lang === 'vi' ? 'Hoàn thành'     : 'Completed' },
+    { id: 'hiatus',    label: lang === 'vi' ? 'Tạm dừng'       : 'Hiatus'    },
+    { id: 'cancelled', label: lang === 'vi' ? 'Đã hủy'         : 'Cancelled' },
   ]
   const PUBLISHER_OPTIONS = [
-    { id: 'all', label: lang === 'vi' ? 'Tất cả NXB' : 'All publishers' },
+    { id: 'all', label: lang === 'vi' ? 'Tất cả' : 'All' },
     ...publishers.map(p => ({ id: p, label: p })),
   ]
   const GENRE_OPTIONS = [
-    { id: 'all', label: lang === 'vi' ? 'Tất cả thể loại' : 'All genres' },
+    { id: 'all', label: lang === 'vi' ? 'Tất cả' : 'All' },
     ...genres.map(g => ({ id: g.id, label: g.name })),
   ]
 
-  const clearFilters = () => { setStatus('all'); setGenre('all'); setPublisher('all'); setSearchInput('') }
+  const clearFilters = () => { setStatus('all'); setGenre('all'); setPublisher('all') }
 
   return (
     <div className="page-enter">
-      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput={searchInput}
-        onSearch={v => { setSearchInput(v); if (v) setBrowseMode(true) }}
-        sorts={[]} activeSort="" onSort={() => {}} hideSorts />
+      {/* No search in AppHeader on novels page — search is in the browse bar */}
+      <AppHeader activeTab="#/novels" accent={PURPLE} searchInput=""
+        onSearch={() => {}} sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
 
-      {/* Hero + inline search */}
+      {/* Hero — title + tagline/count only, NO search bar */}
       <div style={{ position: 'relative', background: 'linear-gradient(160deg,#0f0c29,#080d1a,#0a0a0f)',
-        padding: '28px 20px 24px', textAlign: 'center' }}>
+        padding: '32px 20px 28px', textAlign: 'center' }}>
         <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)',
           width: 700, height: 280, background: `radial-gradient(ellipse, ${PURPLE}20 0%, transparent 70%)`,
           pointerEvents: 'none' }} />
-
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: 'clamp(22px, 3.5vw, 38px)', lineHeight: 1, letterSpacing: 2,
-          marginBottom: 6, color: '#f1f5f9' }}>
+          marginBottom: 8, color: '#f1f5f9' }}>
           {lang === 'vi' ? 'Light Novel' : 'Light Novels'}
         </div>
-
         {!isBrowsing && (
-          <div style={{ fontSize: 13, color: '#64748B',
-            fontFamily: "'Be Vietnam Pro', sans-serif" }}>
-            {lang === 'vi' ? 'Khám phá và theo dõi light novel yêu thích của bạn' : 'Discover and track your favourite light novels'}
+          <div style={{ fontSize: 13, color: '#64748B', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+            {lang === 'vi' ? 'Khám phá và theo dõi light novel yêu thích của bạn'
+                           : 'Discover and track your favourite light novels'}
           </div>
         )}
-
         {isBrowsing && totalCount > 0 && !loading && (
           <div style={{ fontSize: 12, color: '#64748B' }}>{totalCount} series</div>
         )}
       </div>
 
-      {/* Advanced filter bar — shown in browse mode */}
+      {/* Browse toolbar — search + filter + sort, all in one row */}
       {isBrowsing && (
-        <div style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)',
-          padding: '10px 20px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.02)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '10px 20px' }}>
           <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex',
-            alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
 
-            {/* Filter dropdowns */}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <FilterDropdown
-                label={lang === 'vi' ? 'Trạng thái' : 'Status'}
-                value={status} options={STATUS_OPTIONS} onChange={setStatus} accent={PURPLE} />
-              <FilterDropdown
-                label={lang === 'vi' ? 'Nhà xuất bản' : 'Publisher'}
-                value={publisher} options={PUBLISHER_OPTIONS} onChange={setPublisher} accent={PURPLE} />
-              <FilterDropdown
-                label={lang === 'vi' ? 'Thể loại' : 'Genre'}
-                value={genre} options={GENRE_OPTIONS} onChange={setGenre} accent={PURPLE} />
-
-              {/* Clear filters */}
-              {hasActiveFilters && (
-                <button onClick={clearFilters} style={{
-                  background: 'none', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10,
-                  color: '#F87171', fontSize: 11, fontWeight: 600, padding: '7px 11px',
-                  cursor: 'pointer', fontFamily: "'Be Vietnam Pro', sans-serif",
-                }}>✕ {lang === 'vi' ? 'Xóa bộ lọc' : 'Clear'}</button>
+            {/* Inline search */}
+            <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 180, maxWidth: 340 }}>
+              <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
+                opacity: 0.3, pointerEvents: 'none' }}
+                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                placeholder={lang === 'vi' ? 'Tìm tên novel...' : 'Search title...'}
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 10, padding: '8px 32px 8px 32px',
+                  color: '#fff', fontSize: 12, outline: 'none',
+                  fontFamily: "'Be Vietnam Pro', sans-serif",
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                }}
+                onFocus={e => { e.target.style.borderColor = PURPLE + '70'; e.target.style.boxShadow = `0 0 0 3px ${PURPLE}18` }}
+                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }}
+              />
+              {searchInput && (
+                <button onClick={() => setSearchInput('')} style={{
+                  position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 16, lineHeight: 1,
+                }}>×</button>
               )}
             </div>
 
-            {/* Sort + back */}
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <FilterDropdown
-                label={lang === 'vi' ? 'Sắp xếp' : 'Sort'}
-                value={sort} options={NOVEL_SORTS} onChange={setSort} accent={PURPLE} />
-              {!searchInput && !hasActiveFilters && (
-                <button onClick={() => setBrowseMode(false)} style={{
-                  background: 'none', border: 'none', color: '#4B5563', cursor: 'pointer',
-                  fontSize: 12, fontWeight: 600, fontFamily: "'Be Vietnam Pro', sans-serif",
-                  padding: '7px 4px', display: 'flex', alignItems: 'center', gap: 4,
-                }}>← {lang === 'vi' ? 'Quay lại' : 'Back'}</button>
-              )}
-            </div>
+            {/* Advanced filter (single button → popover) */}
+            <AdvancedFilter
+              status={status} publisher={publisher} genre={genre}
+              onStatus={setStatus} onPublisher={setPublisher} onGenre={setGenre}
+              statusOptions={STATUS_OPTIONS} publisherOptions={PUBLISHER_OPTIONS} genreOptions={GENRE_OPTIONS}
+              hasActive={hasActiveFilters} onClear={clearFilters} accent={PURPLE} lang={lang} />
+
+            {/* Spacer */}
+            <div style={{ flex: 1 }} />
+
+            {/* Sort */}
+            <SortDropdown value={sort} options={NOVEL_SORTS} onChange={setSort} accent={PURPLE} />
+
+            {/* Back */}
+            {!searchInput && !hasActiveFilters && (
+              <button onClick={() => setBrowseMode(false)} style={{
+                background: 'none', border: 'none', color: '#4B5563', cursor: 'pointer',
+                fontSize: 12, fontWeight: 600, fontFamily: "'Be Vietnam Pro', sans-serif",
+                display: 'flex', alignItems: 'center', gap: 4, padding: '4px 0',
+              }}>← {lang === 'vi' ? 'Quay lại' : 'Back'}</button>
+            )}
           </div>
         </div>
       )}
@@ -286,11 +413,9 @@ export function NovelsPage() {
               items={recent} loading={loadingRec} onSelect={setSelected} accent={PURPLE} />
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
               <button onClick={() => setBrowseMode(true)} style={{
-                padding: '12px 32px',
-                background: `linear-gradient(135deg, ${PURPLE}, #6366F1)`,
-                border: 'none', borderRadius: 14, cursor: 'pointer',
-                color: '#fff', fontSize: 14, fontWeight: 700,
-                fontFamily: "'Be Vietnam Pro', sans-serif",
+                padding: '12px 32px', background: `linear-gradient(135deg,${PURPLE},#6366F1)`,
+                border: 'none', borderRadius: 14, cursor: 'pointer', color: '#fff',
+                fontSize: 14, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
                 boxShadow: `0 8px 24px ${PURPLE}44`,
               }}>
                 {lang === 'vi' ? '📚 Tìm thêm light novel' : '📚 Browse all novels'}
