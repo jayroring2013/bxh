@@ -212,7 +212,7 @@ function FilterSection({ label, value, options, onChange, accent }) {
 // ── Horizontal carousel ───────────────────────────────────────────
 function Carousel({ title, items, loading, onSelect, accent }) {
   const ref = useRef(null)
-  const scroll = dir => ref.current?.scrollBy({ left: dir * 680, behavior: 'smooth' })
+  const scroll = dir => ref.current?.scrollBy({ left: dir * 760, behavior: 'smooth' })
 
   return (
     <div style={{ marginBottom: 36 }}>
@@ -235,14 +235,14 @@ function Carousel({ title, items, loading, onSelect, accent }) {
         scrollbarWidth: 'none', msOverflowStyle: 'none',
       }}>
         {loading
-          ? Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} style={{ width: 140, flexShrink: 0, aspectRatio: '2/3',
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} style={{ width: 180, flexShrink: 0, aspectRatio: '2/3',
                 borderRadius: 14, background: 'linear-gradient(90deg,#1f2937 25%,#374151 50%,#1f2937 75%)',
                 backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
             ))
           : items.map((s, i) => (
               <div key={s.id} onClick={() => onSelect(s)} style={{
-                width: 140, flexShrink: 0, aspectRatio: '2/3', borderRadius: 14,
+                width: 180, flexShrink: 0, aspectRatio: '2/3', borderRadius: 14,
                 overflow: 'hidden', cursor: 'pointer', position: 'relative',
                 background: '#0f172a', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
@@ -447,6 +447,37 @@ export function NovelsPage() {
         {/* Discovery carousels */}
         {!isBrowsing && (
           <>
+            {/* Search bar in discovery mode */}
+            <div style={{ maxWidth: 520, margin: '0 auto 28px', padding: '0 20px' }}>
+              <div style={{ position: 'relative' }}>
+                <svg style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                  opacity: 0.35, pointerEvents: 'none' }}
+                  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input
+                  value={searchInput}
+                  onChange={e => { setSearchInput(e.target.value); if (e.target.value) setBrowseMode(true) }}
+                  placeholder={lang === 'vi' ? 'Tìm tên novel...' : 'Search novels...'}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 12, padding: '11px 36px 11px 40px',
+                    color: '#fff', fontSize: 13, outline: 'none',
+                    fontFamily: "'Be Vietnam Pro', sans-serif",
+                    transition: 'border-color 0.15s, box-shadow 0.15s',
+                  }}
+                  onFocus={e => { e.target.style.borderColor = PURPLE + '70'; e.target.style.boxShadow = `0 0 0 3px ${PURPLE}18` }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }}
+                />
+                {searchInput && (
+                  <button onClick={() => setSearchInput('')} style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 18, lineHeight: 1,
+                  }}>×</button>
+                )}
+              </div>
+            </div>
             <Carousel title={lang === 'vi' ? '🏆 Phổ biến nhất' : '🏆 Most Popular'}
               items={popular} loading={loadingPop} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} />
             <Carousel title={lang === 'vi' ? '🆕 Mới thêm gần đây' : '🆕 Recently Added'}
@@ -458,7 +489,7 @@ export function NovelsPage() {
                 fontSize: 14, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
                 boxShadow: `0 8px 24px ${PURPLE}44`,
               }}>
-                {lang === 'vi' ? '📚 Tìm thêm light novel' : '📚 Browse all novels'}
+                {lang === 'vi' ? 'Xem thêm' : 'Browse all'}
               </button>
             </div>
           </>
