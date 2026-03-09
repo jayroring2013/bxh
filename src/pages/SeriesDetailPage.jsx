@@ -139,8 +139,8 @@ function SectionCarousel({ title, children, count }) {
         </div>
       </div>
       <div ref={ref} style={{
-        display: 'flex', gap: 16, overflowX: 'auto',
-        paddingBottom: 8, scrollbarWidth: 'none',
+        display: 'flex', gap: 14, overflowX: 'auto',
+        padding: '4px 4px 12px', scrollbarWidth: 'none',
       }}>
         {children}
       </div>
