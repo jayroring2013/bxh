@@ -4,6 +4,9 @@ import { useLang } from '../context/LangContext.jsx'
 import { useSeriesById, useSeriesVolumes, useSeriesLinks, useRelatedSeries, useSeriesNuData, seriesUrl } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
 import { QuickAddButton } from '../components/QuickAddButton.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
+import { useUserList } from '../useList.js'
+import { createPortal } from 'react-dom'
 
 const LINK_STYLES = {
   shop:     { color: '#F59E0B', label: 'Shop'        },
@@ -15,6 +18,173 @@ const LINK_STYLES = {
   raw:      { color: '#7a6045', label: 'Raws'        },
   anilist:  { color: '#02A9FF', label: 'AniList'     },
   mal:      { color: '#2E51A2', label: 'MyAnimeList' },
+}
+
+// ── Large inline save button for series detail page ─────────────
+function SeriesSaveButton({ seriesId, title, coverUrl }) {
+  const { user } = useAuth()
+  const { lists, addToList, removeFromList, getItemEntries, createList } = useUserList()
+  const { lang } = useLang()
+  const [open, setOpen] = useState(false)
+  const [step, setStep] = useState('list')
+  const [pickedList, setPickedList] = useState(null)
+  const [loading2, setLoading2] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [showNew, setShowNew] = useState(false)
+
+  if (!user) return null
+
+  const entries = getItemEntries(String(seriesId), 'novel')
+  const isSaved = entries.length > 0
+  const relevantLists = lists.filter(l => l.item_type === 'novel' || l.item_type === 'all' || !l.item_type)
+
+  const STATUS_COLORS = { reading: '#22d3ee', completed: '#4ade80', 'plan-to-read': '#a78bfa', dropped: '#f87171', 'on-hold': '#fb923c' }
+  const STATUS_LABELS_VI = { reading: 'Đang đọc', completed: 'Đã đọc', 'plan-to-read': 'Dự định đọc', dropped: 'Bỏ dở', 'on-hold': 'Tạm dừng' }
+  const STATUS_LABELS_EN = { reading: 'Reading', completed: 'Completed', 'plan-to-read': 'Plan to read', dropped: 'Dropped', 'on-hold': 'On hold' }
+
+  const closePopup = () => { setOpen(false); setStep('list'); setPickedList(null); setShowNew(false); setNewName('') }
+
+  const handlePickList = (list) => { setPickedList(list); setStep('status') }
+
+  const handlePickStatus = async (statusKey) => {
+    setLoading2(true)
+    try {
+      await addToList({ listId: pickedList.id, item_id: String(seriesId), item_type: 'novel', title, cover_url: coverUrl, status: statusKey })
+      closePopup()
+    } catch (e) { console.error(e) }
+    finally { setLoading2(false) }
+  }
+
+  const handleRemove = async (entryId) => {
+    setLoading2(true)
+    try { await removeFromList(entryId) } catch (e) { console.error(e) }
+    finally { setLoading2(false) }
+  }
+
+  const handleCreateList = async () => {
+    if (!newName.trim()) return
+    setLoading2(true)
+    try { await createList(newName.trim(), 'novel'); setNewName(''); setShowNew(false) } catch (e) { console.error(e) }
+    finally { setLoading2(false) }
+  }
+
+  const popup = open ? createPortal(
+    <div onClick={closePopup} style={{ position: 'fixed', inset: 0, zIndex: 50000,
+      background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'linear-gradient(145deg,#1a130c,#221a12)',
+        border: `1px solid ${PURPLE}40`, borderRadius: 18,
+        padding: 22, width: '100%', maxWidth: 360,
+        boxShadow: `0 24px 60px rgba(0,0,0,0.85), 0 0 40px ${PURPLE}15` }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 18 }}>
+          {coverUrl && <img src={coverUrl} style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 7, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: "'Barlow Condensed',sans-serif" }}>{title}</div>
+            <div style={{ fontSize: 10, color: '#a08060', marginTop: 3, textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'Be Vietnam Pro',sans-serif" }}>
+              {step === 'list' ? (lang === 'vi' ? 'Chọn danh sách' : 'Choose a list') : (lang === 'vi' ? 'Trạng thái' : 'Set status')}
+            </div>
+          </div>
+          <button onClick={closePopup} style={{ background: 'none', border: 'none', color: '#a08060', fontSize: 20, cursor: 'pointer' }}>×</button>
+        </div>
+        {step === 'list' && (<>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 12 }}>
+            {relevantLists.map(list => {
+              const entry = entries.find(e => e.list_id === list.id)
+              const sc = STATUS_COLORS[entry?.status] || PURPLE
+              return (
+                <div key={list.id} onClick={() => handlePickList(list)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: entry ? `${sc}12` : 'rgba(255,248,240,0.04)',
+                  border: `1px solid ${entry ? sc + '40' : 'rgba(255,248,240,0.08)'}`,
+                  borderRadius: 10, padding: '9px 12px', cursor: 'pointer', transition: 'all 0.15s' }}
+                  onMouseEnter={e => !entry && (e.currentTarget.style.borderColor = PURPLE + '50')}
+                  onMouseLeave={e => !entry && (e.currentTarget.style.borderColor = 'rgba(255,248,240,0.08)')}>
+                  <span style={{ fontSize: 14 }}>📖</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', fontFamily: "'Be Vietnam Pro',sans-serif" }}>{list.name}</div>
+                    {entry && <div style={{ fontSize: 10, color: sc, marginTop: 1 }}>{lang === 'vi' ? STATUS_LABELS_VI[entry.status] : STATUS_LABELS_EN[entry.status]}</div>}
+                  </div>
+                  {entry
+                    ? <button onClick={e => { e.stopPropagation(); handleRemove(entry.id) }} style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#F87171', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 10, fontWeight: 700 }}>{lang === 'vi' ? 'Xóa' : 'Remove'}</button>
+                    : <span style={{ color: '#a08060', fontSize: 16 }}>+</span>}
+                </div>
+              )
+            })}
+          </div>
+          {showNew ? (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input autoFocus value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreateList()}
+                placeholder={lang === 'vi' ? 'Tên danh sách...' : 'List name...'}
+                style={{ flex: 1, background: 'rgba(255,248,240,0.06)', border: '1px solid rgba(255,248,240,0.12)', borderRadius: 8, padding: '8px 10px', color: '#fff', fontSize: 12, outline: 'none', fontFamily: "'Be Vietnam Pro',sans-serif" }} />
+              <button onClick={handleCreateList} disabled={loading2} style={{ background: PURPLE, border: 'none', color: '#fff', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>{lang === 'vi' ? 'Tạo' : 'Create'}</button>
+              <button onClick={() => setShowNew(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#a08060', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}>×</button>
+            </div>
+          ) : (
+            <button onClick={() => setShowNew(true)} style={{ width: '100%', background: 'none', border: '1px dashed rgba(255,255,255,0.12)', color: '#a08060', borderRadius: 10, padding: '9px 0', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: "'Be Vietnam Pro',sans-serif", transition: 'all 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = PURPLE + '60'; e.currentTarget.style.color = '#A78BFA' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#a08060' }}>
+              {lang === 'vi' ? '+ Tạo danh sách mới' : '+ Create new list'}
+            </button>
+          )}
+        </>)}
+        {step === 'status' && (<>
+          <button onClick={() => setStep('list')} style={{ background: 'none', border: 'none', color: '#a08060', cursor: 'pointer', fontSize: 12, marginBottom: 12, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0 }}>
+            ← <span style={{ color: '#A78BFA' }}>{pickedList?.name}</span>
+          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {Object.entries(STATUS_LABELS_VI).map(([key, viLabel]) => {
+              const sc = STATUS_COLORS[key] || '#94A3B8'
+              return (
+                <button key={key} onClick={() => handlePickStatus(key)} disabled={loading2} style={{
+                  background: 'rgba(255,248,240,0.04)', border: '1px solid rgba(255,248,240,0.08)',
+                  color: '#c8a882', borderRadius: 10, padding: '10px 14px', cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600, textAlign: 'left', fontFamily: "'Be Vietnam Pro',sans-serif",
+                  display: 'flex', alignItems: 'center', gap: 10, transition: 'all 0.15s', opacity: loading2 ? 0.6 : 1 }}
+                  onMouseEnter={e => { e.currentTarget.style.background = sc + '14'; e.currentTarget.style.borderColor = sc + '50'; e.currentTarget.style.color = sc }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,248,240,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,248,240,0.08)'; e.currentTarget.style.color = '#c8a882' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: sc, flexShrink: 0 }} />
+                  {lang === 'vi' ? viLabel : STATUS_LABELS_EN[key]}
+                </button>
+              )
+            })}
+          </div>
+        </>)}
+      </div>
+    </div>,
+    document.getElementById('modal-root')
+  ) : null
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '12px 28px', borderRadius: 12, cursor: 'pointer',
+          fontSize: 15, fontWeight: 700,
+          fontFamily: "'Be Vietnam Pro', sans-serif",
+          border: 'none',
+          background: isSaved
+            ? 'linear-gradient(135deg, #16a34a, #22c55e)'
+            : `linear-gradient(135deg, ${PURPLE}, #6366F1)`,
+          color: '#fff',
+          boxShadow: isSaved
+            ? '0 6px 20px rgba(34,197,94,0.35)'
+            : `0 6px 20px ${PURPLE}50`,
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = '' }}
+      >
+        {isSaved
+          ? (lang === 'vi' ? '✓ Đã lưu' : '✓ Saved')
+          : (lang === 'vi' ? '+ Thêm vào danh sách' : '+ Add to list')
+        }
+      </button>
+      {popup}
+    </>
+  )
 }
 
 // ── Mini card for carousels ───────────────────────────────────────
@@ -391,7 +561,7 @@ export function SeriesDetailPage({ seriesId }) {
 
             {/* Actions row */}
             <div style={{ display:'flex', gap: 10, flexWrap:'wrap', alignItems:'center' }}>
-              <QuickAddButton itemId={series.id} itemType="novel" title={title} coverUrl={cover} />
+              <SeriesSaveButton seriesId={series.id} title={title} coverUrl={cover} />
 
               {series.external_id && (
                 <a href={`https://ranobedb.org/series/${series.external_id}`}
