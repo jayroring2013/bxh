@@ -28,7 +28,7 @@ export function MangaCard({ manga, rank, stats, onClick }) {
     <div className="anime-card manga-card" onClick={() => onClick(manga)}>
       <RankBadge rank={rank} />
 
-      {status && (
+      {status && status !== 'ongoing' && (
         <div className="status-badge" style={{ background: mangaStatusColor(status) }}>
           {status === 'ongoing' && <span className="status-badge__dot" />}
           {status.charAt(0).toUpperCase() + status.slice(1)}
