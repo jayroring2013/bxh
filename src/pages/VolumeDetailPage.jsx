@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { PURPLE } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
 import { useSeriesById, useVolumeDetail, seriesUrl } from '../hooks.js'
@@ -89,6 +89,12 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
   const loading = loadingS || loadingV
 
   const [descExpanded, setDescExpanded] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
   const goToSeries = () => {
     if (series) window.location.hash = seriesUrl(series)
     else window.history.back()
@@ -138,7 +144,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
 
       {/* ── Hero — immersive blurred cover backdrop (AniList-style) ── */}
       <div style={{
-        position: 'relative', overflow: 'hidden', minHeight: 340,
+        position: 'relative', overflow: 'hidden', minHeight: isMobile ? 'auto' : 340,
         background: '#110d0a',
       }}>
         {/* Layer 1: blurred cover fills entire hero as atmosphere */}
@@ -162,7 +168,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
 
         {/* Breadcrumb */}
         <div style={{ position: 'absolute', top: 14, left: 24, zIndex: 3,
-          display: 'flex', alignItems: 'center', gap: 6 }}>
+          display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
           <button onClick={() => window.location.hash = '#/novels'} style={{
             background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
             fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
@@ -179,13 +185,15 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
 
         {/* Content: cover card + info, both floating inside the atmospheric bg */}
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1100,
-          margin: '0 auto', padding: '52px 24px 44px',
-          display: 'flex', gap: 40, alignItems: 'flex-end' }}>
+          margin: '0 auto', padding: isMobile ? '48px 16px 28px' : '52px 24px 44px',
+          display: 'flex', gap: isMobile ? 16 : 40,
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'center' : 'flex-end' }}>
 
           {/* Cover card */}
           <div style={{ flexShrink: 0, marginTop: 0 }}>
             <div style={{
-              width: 288, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
+              width: isMobile ? 140 : 288, borderRadius: 16, overflow: 'hidden', aspectRatio: '2/3',
               background: '#1a1410',
               boxShadow: `0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,248,240,0.07)`,
             }}>
@@ -199,7 +207,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
           </div>
 
           {/* Info */}
-          <div style={{ flex: 1, paddingBottom: 4 }}>
+          <div style={{ flex: 1, paddingBottom: 4, width: isMobile ? '100%' : undefined, textAlign: isMobile ? 'center' : 'left' }}>
 
             {/* Series name link */}
             {series && (
@@ -227,7 +235,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
             )}
 
             {/* ── Stat chips row (like series page) ── */}
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '16px 0 20px' }}>
+            <div style={{ display: 'flex', gap: isMobile ? 8 : 12, flexWrap: 'wrap', margin: '12px 0 16px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
               {relDate && <StatChip label={lang === 'vi' ? 'Phát hành' : 'Released'} value={relDate} />}
               {publisher && <StatChip label="NPH" value={publisher} />}
               {pages     && <StatChip label={lang === 'vi' ? 'Trang' : 'Pages'} value={pages} />}
@@ -259,7 +267,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
 
             {/* ── Buy / external links ── */}
             {links.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8, justifyContent: isMobile ? 'center' : 'flex-start' }}>
                 <span style={{
                   fontSize: 10, fontWeight: 700, color: '#5a4a3a',
                   letterSpacing: 0.8, textTransform: 'uppercase',
@@ -302,7 +310,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
       </div>
 
       {/* Back to series */}
-      <div style={{ maxWidth: 1100, margin: '24px auto 0', padding: '0 24px' }}>
+      <div style={{ maxWidth: 1100, margin: '16px auto 0', padding: isMobile ? '0 16px' : '0 24px' }}>
         <button onClick={goToSeries} style={{
           background: `${PURPLE}15`, border: `1px solid ${PURPLE}35`, borderRadius: 11,
           color: '#C4B5FD', fontSize: 12, fontWeight: 600, padding: '9px 18px',
