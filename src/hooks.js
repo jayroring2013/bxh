@@ -643,44 +643,6 @@ export function useMangaCarousel({ status = '', demographic = '', genre = '', so
       .finally(() => setLoading(false))
   }, [status, demographic, genre, sort, limit])
   return { items, loading }
-}) {
-  const [items,   setItems]   = useState([])
-  const [loading, setLoading] = useState(true)
-  useEffect(() => {
-    setLoading(true)
-    const sortCol =
-        sort === 'rating' ? 'rating.desc'
-      : sort === 'year'   ? 'year.desc'
-      : 'follows.desc'
-    const params = new URLSearchParams()
-    params.append('limit',  limit)
-    params.append('offset', 0)
-    params.append('order',  sortCol)
-    params.append('select', '*')
-    if (status)      params.append('status',      `eq.${status}`)
-    if (demographic) params.append('demographic', `eq.${demographic}`)
-    if (genre)       params.append('genres',      `cs.{"${genre}"}`)
-    sbFetch('manga', params.toString())
-      .then(rows => setItems(rows.map(m => ({
-        id: m.id,
-        cover_url:   m.cover_url,
-        title:       m.title_en || m.title_ja_ro || 'Unknown',
-        title_orig:  m.title_ja,
-        sub:         m.demographic ? m.demographic.charAt(0).toUpperCase() + m.demographic.slice(1) : null,
-        score:       m.rating    ? parseFloat(m.rating).toFixed(2) : null,
-        status:      m.status,
-        genres:      m.genres || [],
-        follows:     m.follows,
-        chapters:    m.chapters,
-        volumes:     m.volumes,
-        year:        m.year,
-        // keep original for modal
-        _raw: m,
-      }))))
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false))
-  }, [status, demographic, genre, sort, limit])
-  return { items, loading }
 }
 
 /* ── URL helpers for anime + manga detail pages ──────────────── */
