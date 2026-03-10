@@ -300,35 +300,32 @@ export function MangaPage() {
 
   const clearFilters = () => { setStatus(''); setDemographic(''); setGenre('') }
 
-  // We reconstruct the legacy shape from the normalized item.
+  // Build legacy MangaCard/Modal shape from normalized series row
   const openManga = (item) => {
-    // item from carousel has _raw field with original manga table row
-    if (item._raw) {
-      const m = item._raw
-      setSelected({
-        id: m.id,
-        attributes: {
-          title: { en: m.title_en || m.title_ja_ro, 'ja-ro': m.title_ja_ro, ja: m.title_ja },
-          description: { en: m.description_en || '' },
-          status: m.status,
-          publicationDemographic: m.demographic,
-          year: m.year,
-          lastChapter: m.last_chapter,
-          lastVolume: m.last_volume,
-          originalLanguage: m.original_language,
-          contentRating: m.content_rating,
-          tags: [
-            ...(m.genres || []).map(g => ({ attributes: { group: 'genre', name: { en: g } } })),
-            ...(m.themes || []).map(t => ({ attributes: { group: 'theme', name: { en: t } } })),
-          ],
-        },
-        relationships: m.author ? [{ type: 'author', attributes: { name: m.author } }] : [],
-        _cover_url: m.cover_url,
-        _stats: { rating: m.rating ? String(m.rating) : null, follows: m.follows, chapters: m.chapters, volumes: m.volumes },
-      })
-    } else {
-      setSelected(item)
-    }
+    const m = item._raw || item  // _raw kept for backwards compat; normalized has same fields
+    setSelected({
+      id: m.id,
+      attributes: {
+        title: { en: m.title || m.title_native, 'ja-ro': m.title_native, ja: m.title_native },
+        description: { en: m.description || '' },
+        status: m.status,
+        publicationDemographic: m.demographic,
+        year: m.year,
+        lastChapter: m.last_chapter,
+        lastVolume: m.last_volume,
+        originalLanguage: m.original_language,
+        contentRating: m.content_rating,
+        tags: (m.genres || []).map(g => ({ attributes: { group: 'genre', name: { en: g } } })),
+      },
+      relationships: m.author ? [{ type: 'author', attributes: { name: m.author } }] : [],
+      _cover_url: m.cover_url,
+      _stats: {
+        rating: m.score ? String(m.score) : null,
+        follows: m.follows,
+        chapters: m.chapters,
+        volumes: m.volumes,
+      },
+    })
   }
 
   return (
@@ -435,19 +432,19 @@ export function MangaPage() {
 
             <Carousel title={lang === 'vi' ? '📚 Phổ biến nhất' : '📚 Most Followed'}
               items={popular} loading={lp}
-              onSelect={item => { window.location.hash = mangaUrl({ id: item.id, title_en: item.title, title_ja_ro: '' }) }} accent={ROSE} isMobile={isMobile} />
+              onSelect={item => { window.location.hash = mangaUrl(item) }} accent={ROSE} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '🔥 Đang cập nhật' : '🔥 Ongoing'}
               items={ongoing} loading={lo}
-              onSelect={item => { window.location.hash = mangaUrl({ id: item.id, title_en: item.title, title_ja_ro: '' }) }} accent={ROSE} isMobile={isMobile} />
+              onSelect={item => { window.location.hash = mangaUrl(item) }} accent={ROSE} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '✅ Đã hoàn thành' : '✅ Completed'}
               items={completed} loading={lc}
-              onSelect={item => { window.location.hash = mangaUrl({ id: item.id, title_en: item.title, title_ja_ro: '' }) }} accent={ROSE} isMobile={isMobile} />
+              onSelect={item => { window.location.hash = mangaUrl(item) }} accent={ROSE} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '💥 Hành động' : '💥 Action'}
               items={action} loading={la}
-              onSelect={item => { window.location.hash = mangaUrl({ id: item.id, title_en: item.title, title_ja_ro: '' }) }} accent={ROSE} isMobile={isMobile} />
+              onSelect={item => { window.location.hash = mangaUrl(item) }} accent={ROSE} isMobile={isMobile} />
 
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
               <button onClick={() => setBrowseMode(true)} style={{
@@ -455,7 +452,7 @@ export function MangaPage() {
                 border: 'none', borderRadius: 14, cursor: 'pointer', color: '#fff',
                 fontSize: 14, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
                 boxShadow: `0 8px 24px ${ROSE}44` }}>
-                {lang === 'vi' ? 'Xem tất cả manga' : 'Browse all manga'}
+                {lang === 'vi' ? 'Xem thêm' : 'Browse all manga'}
               </button>
             </div>
           </>
@@ -469,7 +466,7 @@ export function MangaPage() {
               <>
                 <CardGrid>
                   {manga.map((m, i) => (
-                    <MangaCard key={m.id} manga={m} rank={i + 1} stats={stats} onClick={m => { window.location.hash = mangaUrl({ id: m.id, title_en: m.attributes?.title?.en || m.attributes?.title?.['ja-ro'], title_ja_ro: m.attributes?.title?.['ja-ro'] || '' }) }} />
+                    <MangaCard key={m.id} manga={m} rank={i + 1} stats={stats} onClick={m => { window.location.hash = mangaUrl(m) }} />
                   ))}
                 </CardGrid>
                 {hasNext && <LoadMoreBtn onLoad={loadMore} loading={loadingMore} color={ROSE} />}
