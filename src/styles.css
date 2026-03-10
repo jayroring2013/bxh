@@ -1060,3 +1060,53 @@ input::placeholder {
     z-index: 10001;
   }
 }
+
+/* ── Mobile optimizations ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Card grid: 2 columns on mobile */
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  /* Novel cards: always show hover details on mobile (no hover) */
+  .novel-card__hover-details {
+    max-height: 100px !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Smaller card info on mobile */
+  .novel-card__title {
+    font-size: 11px !important;
+  }
+  .novel-card__tag {
+    font-size: 8px !important;
+    padding: 2px 6px !important;
+  }
+  .novel-card__meta-label,
+  .novel-card__meta-value {
+    font-size: 9px !important;
+  }
+  .novel-card__desc {
+    display: none !important;
+  }
+
+  /* Page main: tighter padding */
+  .page-main {
+    padding: 16px 0 !important;
+  }
+
+  /* AdvancedFilter popover: stack filter columns on mobile */
+  .filter-columns {
+    flex-direction: column !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Single column on very small screens */
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
