@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { CYAN } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
-import { useAnimeById, useAnimeRelated, useSeriesLinks, animeUrl, seriesUrl, slugify } from '../hooks.js'
+import { useAnimeById, useAnimeRelated, useSeriesLinks, animeUrl, mangaUrl, seriesUrl, slugify } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useUserList } from '../useList.js'
@@ -166,11 +166,11 @@ function RelatedCard({ item, lang }) {
     OTHER: 'Other', MANGA: 'Manga', ANIME: 'Anime', NOVEL: 'Light Novel',
   }
   const itemUrl = item.item_type === 'anime'
-    ? `#/anime/${item.external_id||item.id}`
+    ? animeUrl(item)
     : item.item_type === 'manga'
-    ? `#/manga/${item.external_id||item.id}`
+    ? mangaUrl(item)
     : item.item_type === 'novel'
-    ? `#/novel/${item.external_id||item.id}`
+    ? seriesUrl(item)
     : '#/'
   const relLabel = RELATION_LABELS[item.relation_type] || item.relation_type || ''
   return (
@@ -271,15 +271,15 @@ function TabContent({ activeTab, lang, anime, related }) {
 
   if (activeTab === 'info') {
     const rows = [
-      { label: lang==='vi'?'Tên gốc':'Original title', value: anime.title_native || anime.title_romaji || '—' },
+      { label: lang==='vi'?'Tên gốc':'Original title', value: anime.title_native || '—' },
       { label: lang==='vi'?'Studio':'Studio',           value: anime.studio || '—' },
       { label: lang==='vi'?'Định dạng':'Format',        value: anime.format || '—' },
       { label: lang==='vi'?'Trạng thái':'Status',       value: (STATUS_MAP[anime.status]?.[lang==='vi'?'vi':'en']) || anime.status || '—' },
       { label: lang==='vi'?'Số tập':'Episodes',         value: anime.episodes ? `${anime.episodes} tập` : '—' },
-      { label: lang==='vi'?'Thời lượng':'Duration',     value: anime.duration ? `${anime.duration} phút/tập` : '—' },
+      { label: lang==='vi'?'Thời lượng':'Duration',     value: anime.duration_min ? `${anime.duration_min} phút/tập` : '—' },
       { label: lang==='vi'?'Mùa':'Season',              value: [anime.season, anime.season_year].filter(Boolean).join(' ') || '—' },
       { label: lang==='vi'?'Thể loại':'Genres',         value: (anime.genres||[]).join(', ') || '—' },
-      { label: 'AniList Score',                          value: anime.average_score ? `★ ${anime.average_score}/100` : '—' },
+      { label: 'AniList Score',                          value: anime.mean_score ? `★ ${anime.mean_score}/100` : '—' },
     ]
     return (
       <div>
@@ -318,8 +318,8 @@ function TabContent({ activeTab, lang, anime, related }) {
 export function AnimeDetailPage({ animeId }) {
   const { lang } = useLang()
   const { anime, loading, error } = useAnimeById(animeId)
-  const { related, recs } = useAnimeRelated(animeId, anime?.genres)
-  const links = useSeriesLinks(anime?.series_id || null)
+  const { related, recs } = useAnimeRelated(anime?.id, anime?.genres)
+  const links = useSeriesLinks(anime?.id || null)
 
   const [descExpanded, setDescExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
@@ -346,13 +346,14 @@ export function AnimeDetailPage({ animeId }) {
     </div>
   )
 
-  const cover   = anime.cover_url || anime.cover_large
-  const banner  = anime.banner_url || anime.banner_image
-  const title   = anime.title_english || anime.title_romaji || '—'
+  const cover   = anime.cover_url
+  const banner  = anime.banner_url
+  const title   = anime.title || '—'
   const genres  = anime.genres || []
   const status  = anime.status
   const statusColor = STATUS_COLORS[status] || 'rgba(150,150,150,0.8)'
-  const siteUrl = anime.site_url || (anime.id ? `https://anilist.co/anime/${anime.id}` : null)
+  // AniList URL from external_id
+  const siteUrl = anime.external_id ? `https://anilist.co/anime/${anime.external_id}` : null
   const desc    = (anime.description || '').replace(/<[^>]*>/g, '').trim()
   const LIMIT   = 380
 
@@ -430,8 +431,8 @@ export function AnimeDetailPage({ animeId }) {
             <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:'clamp(22px,4vw,40px)',
               fontWeight:900, color:'#f1f5f9', margin:'0 0 4px', lineHeight:1.1, letterSpacing:1 }}>{title}</h1>
 
-            {anime.title_romaji && anime.title_romaji !== title && (
-              <div style={{ fontSize:13, color:'#4a8090', marginBottom:4, fontFamily:"'Be Vietnam Pro',sans-serif" }}>{anime.title_romaji}</div>
+            {anime.title_native && anime.title_native !== title && (
+              <div style={{ fontSize:13, color:'#4a8090', marginBottom:4, fontFamily:"'Be Vietnam Pro',sans-serif" }}>{anime.title_native}</div>
             )}
             {anime.studio && (
               <div style={{ fontSize:13, color:'#2a6070', marginBottom:16, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
@@ -442,9 +443,9 @@ export function AnimeDetailPage({ animeId }) {
             {/* Stats chips */}
             <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap' }}>
               {[
-                { label: 'SCORE',    value: anime.average_score ? `★ ${anime.average_score}` : 'N/A', color:'#FBBF24' },
+                { label: 'SCORE',    value: anime.mean_score ? `★ ${anime.mean_score}` : (anime.score ? `★ ${(+anime.score * 10).toFixed(0)}` : 'N/A'), color:'#FBBF24' },
                 { label: lang==='vi'?'TẬP':'EPISODES', value: anime.episodes || '?', color:ACCENT },
-                { label: lang==='vi'?'THỜI LƯỢNG':'DURATION', value: anime.duration ? `${anime.duration}m` : '?', color:'#94A3B8' },
+                { label: lang==='vi'?'THỜI LƯỢNG':'DURATION', value: anime.duration_min ? `${anime.duration_min}m` : '?', color:'#94A3B8' },
                 { label: lang==='vi'?'NĂM':'YEAR',  value: anime.season_year || '?', color:'#94A3B8' },
                 { label: lang==='vi'?'YÊU THÍCH':'FAVS', value: anime.favourites ? (anime.favourites/1000).toFixed(0)+'k' : '?', color:'#F472B6' },
               ].map(chip => (
@@ -521,7 +522,7 @@ export function AnimeDetailPage({ animeId }) {
           <div style={{ padding:'24px 0 0' }}>
             {recs.length > 0 && (
               <SectionCarousel title={lang==='vi'?'Có thể bạn thích':'You May Also Like'}>
-                {recs.map(r => <MiniCard key={r.id} item={{ ...r, title: r.title_english||r.title_romaji, cover_url: r.cover_large||r.cover_url, score: r.average_score ? String(r.average_score) : null }} url={animeUrl({ id: r.id, title_english: r.title_english, title_romaji: r.title_romaji })} />)}
+                {recs.map(r => <MiniCard key={r.id} item={r} url={animeUrl(r)} />)}
               </SectionCarousel>
             )}
           </div>
@@ -569,7 +570,7 @@ export function AnimeDetailPage({ animeId }) {
             <div style={{ flex:1, minWidth:0, overflow:'hidden', padding:'32px 16px 48px' }}>
               {recs.length > 0 && (
                 <SectionCarousel title={lang==='vi'?'Có thể bạn thích':'You May Also Like'}>
-                  {recs.map(r => <MiniCard key={r.id} item={{ ...r, title: r.title_english||r.title_romaji, cover_url: r.cover_large||r.cover_url, score: r.average_score ? String(r.average_score) : null }} url={animeUrl({ id: r.id, title_english: r.title_english, title_romaji: r.title_romaji })} />)}
+                  {recs.map(r => <MiniCard key={r.id} item={r} url={animeUrl(r)} />)}
                 </SectionCarousel>
               )}
               {recs.length === 0 && (
