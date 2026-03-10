@@ -312,10 +312,10 @@ export function MangaDetailPage({ mangaId }) {
         )}
         <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to bottom, rgba(12,4,8,0.5) 0%, rgba(12,4,8,0.95) 100%)' }} />
 
-        <div style={{ position:'relative', zIndex:2, padding: isMobile ? '20px 16px 28px' : '32px 32px 40px',
+        <div style={{ position:'relative', zIndex:2, padding: isMobile ? '20px 16px 28px' : '32px 32px 40px', paddingLeft: isMobile ? 16 : 228,
           display:'flex', gap: isMobile ? 14 : 32, alignItems:'flex-start' }}>
           {/* Back */}
-          <button onClick={()=>window.history.back()} style={{ position:'absolute', top: isMobile?8:16, left: isMobile?16:32,
+          <button onClick={()=>window.history.back()} style={{ position:'absolute', top: isMobile?8:16, left: isMobile?16:228,
             background:'none', border:'none', color:'#3a1020', cursor:'pointer',
             fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif", display:'flex', alignItems:'center', gap:4 }}>
             ← {lang==='vi'?'Quay lại':'Back'}
