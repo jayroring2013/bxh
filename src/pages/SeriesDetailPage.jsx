@@ -188,7 +188,24 @@ function SeriesSaveButton({ seriesId, title, coverUrl }) {
 }
 
 // ── Mini card for carousels ───────────────────────────────────────
-function MiniCard({ series, accent }) {
+const RELATION_LABELS = {
+  SEQUEL:        { vi: 'Tiếp theo',  en: 'Sequel'        },
+  PREQUEL:       { vi: 'Tiền truyện', en: 'Prequel'      },
+  SIDE_STORY:    { vi: 'Ngoại truyện', en: 'Side Story'  },
+  ALTERNATIVE:   { vi: 'Dị bản',    en: 'Alternative'   },
+  SPIN_OFF:      { vi: 'Spin-off',   en: 'Spin-off'      },
+  ADAPTATION:    { vi: 'Chuyển thể', en: 'Adaptation'    },
+  SOURCE:        { vi: 'Nguyên tác', en: 'Source'        },
+  PARENT:        { vi: 'Bộ chính',   en: 'Parent'        },
+  CHARACTER:     { vi: 'Nhân vật',   en: 'Character'     },
+  SUMMARY:       { vi: 'Tóm tắt',   en: 'Summary'       },
+  OTHER:         { vi: 'Khác',       en: 'Other'         },
+}
+
+function MiniCard({ series, accent, lang }) {
+  const relLabel = series.relation_type
+    ? (RELATION_LABELS[series.relation_type]?.[lang || 'en'] || series.relation_type)
+    : null
   return (
     <div onClick={() => { window.location.hash = seriesUrl(series) }}
       style={{
@@ -212,6 +229,16 @@ function MiniCard({ series, accent }) {
         }
         <div style={{ position: 'absolute', inset: 0,
           background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%)' }} />
+        {/* Relation type badge — top left */}
+        {relLabel && (
+          <div style={{
+            position: 'absolute', top: 7, left: 7,
+            background: `${accent}cc`, backdropFilter: 'blur(6px)',
+            color: '#fff', fontSize: 9, fontWeight: 700, letterSpacing: 0.5,
+            padding: '3px 7px', borderRadius: 6, textTransform: 'uppercase',
+            fontFamily: "'Be Vietnam Pro', sans-serif",
+          }}>{relLabel}</div>
+        )}
         {series.publisher && (
           <div style={{
             position: 'absolute', bottom: 6, left: 6, right: 6,
@@ -372,7 +399,7 @@ function TabPanelContent({ activeTab, lang, series, volumes, related, PURPLE, Mi
       <h3 style={headingStyle}>{lang === 'vi' ? 'Series liên quan' : 'Related Series'}</h3>
       {related.length > 0
         ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-            {related.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+            {related.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} lang={lang} />)}
           </div>
         : <PlaceholderPanel icon="🔗" text={lang === 'vi' ? 'Chưa có dữ liệu về series liên quan' : 'No relation data yet'} />
       }
@@ -717,7 +744,7 @@ export function SeriesDetailPage({ seriesId }) {
             </SectionCarousel>
             {recs.length > 0 && (
               <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
-                {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+                {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} lang={lang} />)}
               </SectionCarousel>
             )}
           </div>
@@ -806,7 +833,7 @@ export function SeriesDetailPage({ seriesId }) {
               </SectionCarousel>
               {recs.length > 0 && (
                 <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
-                  {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+                  {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} lang={lang} />)}
                 </SectionCarousel>
               )}
             </div>
