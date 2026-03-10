@@ -663,6 +663,59 @@ export function SeriesDetailPage({ seriesId }) {
         </div>
       </div>
 
+      {/* ── Below hero: sidebar left | carousels+tabs right ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+
+        <aside style={{
+          width: 196, flexShrink: 0,
+          position: 'sticky', top: 56, alignSelf: 'flex-start',
+          borderRight: '1px solid rgba(255,248,240,0.08)',
+          background: '#0f0b09',
+          zIndex: 10,
+          paddingTop: 24,
+        }}>
+          {[
+            { key: 'info',      icon: 'ℹ️',  vi: 'Thông tin',        en: 'Information'  },
+            { key: 'relations', icon: '🔗',  vi: 'Series liên quan',  en: 'Relations',   badge: related.length || null },
+            { key: 'ranking',   icon: '🏆',  vi: 'Xếp hạng',         en: 'Rankings'     },
+          ].map(tab => {
+            const isActive = activeTab === tab.key
+            return (
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 14px',
+                background: isActive ? `${PURPLE}18` : 'none',
+                border: 'none',
+                borderRight: isActive ? `3px solid ${PURPLE}` : '3px solid transparent',
+                borderRadius: '8px 0 0 8px',
+                cursor: 'pointer', transition: 'all 0.15s', marginBottom: 2,
+                textAlign: 'left',
+              }}
+                onMouseEnter={e => !isActive && (e.currentTarget.style.background = 'rgba(255,248,240,0.04)')}
+                onMouseLeave={e => !isActive && (e.currentTarget.style.background = 'none')}
+              >
+                <span style={{ fontSize: 14, flexShrink: 0 }}>{tab.icon}</span>
+                <span style={{
+                  flex: 1, fontSize: 13, fontWeight: isActive ? 700 : 500,
+                  color: isActive ? '#C4B5FD' : '#a08060',
+                  fontFamily: "'Be Vietnam Pro', sans-serif",
+                }}>{lang === 'vi' ? tab.vi : tab.en}</span>
+                {tab.badge != null && tab.badge > 0 && (
+                  <span style={{
+                    background: isActive ? PURPLE : 'rgba(255,248,240,0.1)',
+                    color: isActive ? '#fff' : '#a08060',
+                    fontSize: 10, fontWeight: 700,
+                    padding: '1px 6px', borderRadius: 10,
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                  }}>{tab.badge}</span>
+                )}
+              </button>
+            )
+          })}
+        </aside>
+
+        {/* ── Right column ── */}
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
 
           {/* ── Carousels ── */}
           <div style={{ padding: '32px 16px 0' }}>
