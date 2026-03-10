@@ -414,11 +414,12 @@ export function SeriesDetailPage({ seriesId }) {
           background:'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, rgba(8,13,26,0.95) 100%)' }} />
 
         <div style={{ position:'relative', zIndex:2,
-          padding: '32px 32px 40px', display:'flex', gap: 36, alignItems:'flex-start' }}>
+          padding: '32px 32px 40px', paddingLeft: 228,
+          display:'flex', gap: 36, alignItems:'flex-start' }}>
 
           {/* Back button */}
           <button onClick={goBack} style={{
-            position:'absolute', top: 0, left: 24,
+            position:'absolute', top: 0, left: 228,
             background:'none', border:'none', color:'#5a4a3a', cursor:'pointer',
             fontSize: 12, fontWeight: 600, fontFamily:"'Be Vietnam Pro',sans-serif",
             display:'flex', alignItems:'center', gap: 4, padding: '4px 0',
