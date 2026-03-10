@@ -537,33 +537,40 @@ export function useRelatedSeries(seriesId, genres, publisher) {
   const [recs,    setRecs]    = useState([])
   const [loading, setLoading] = useState(true)
 
+  // Relations: fire as soon as seriesId is known — no genre guard
   useEffect(() => {
     if (!seriesId) return
-    // Wait until we have genre/publisher info (passed from parent after series loads)
-    const g0 = (genres || [])[0]
-    if (!g0 && !publisher) return   // series not loaded yet
+    sbFetch('series_relations', `series_id=eq.${seriesId}&select=related_id,relation_type&limit=20`)
+      .then(rows => {
+        if (!rows.length) { setRelated([]); setLoading(false); return }
+        const ids = rows.map(r => r.related_id).join(',')
+        return sbFetch('series', `id=in.(${ids})&select=id,title,cover_url,publisher,status,genres,item_type&limit=20`)
+          .then(series => {
+            const withType = series.map(s => ({
+              ...s,
+              relation_type: rows.find(r => r.related_id === s.id)?.relation_type ?? null,
+            }))
+            setRelated(withType)
+            setLoading(false)
+          })
+      })
+      .catch(() => { setRelated([]); setLoading(false) })
+  }, [seriesId])
 
-    Promise.all([
-      // Related via series_relations table
-      sbFetch('series_relations', `series_id=eq.${seriesId}&select=related_id&limit=20`)
-        .then(rows => {
-          if (!rows.length) return []
-          const ids = rows.map(r => r.related_id).join(',')
-          return sbFetch('series', `id=in.(${ids})&select=id,title,cover_url,publisher,status,genres&limit=20`)
-        }).catch(() => []),
-      // Recommendations: same genre first, fall back to same publisher
-      g0
-        ? sbFetch('series', `genres=cs.{"${g0}"}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`)
-            .catch(() => [])
-        : sbFetch('series', `publisher=eq.${publisher}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`)
-            .catch(() => []),
-    ]).then(([rel, rec]) => {
-      setRelated(rel || [])
-      const relIds = new Set((rel || []).map(r => r.id))
-      setRecs((rec || []).filter(r => !relIds.has(r.id)))
-      setLoading(false)
-    })
-  }, [seriesId, genres, publisher])   // re-run when genres/publisher arrive
+  // Recs: wait for genres/publisher to arrive
+  useEffect(() => {
+    if (!seriesId) return
+    const g0 = (genres || [])[0]
+    if (!g0 && !publisher) return
+    const q = g0
+      ? `genres=cs.{"${g0}"}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`
+      : `publisher=eq.${publisher}&item_type=eq.novel&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,publisher,status,genres&limit=16`
+    sbFetch('series', q)
+      .then(rec => {
+        setRecs(rec || [])
+      })
+      .catch(() => {})
+  }, [seriesId, genres, publisher])
 
   return { related, recs, loading }
 }
