@@ -157,6 +157,55 @@ function AnimeSaveButton({ animeId, title, coverUrl }) {
   </>)
 }
 
+// ── Related series card (uses series table rows with item_type) ──
+function RelatedCard({ item, lang }) {
+  const RELATION_LABELS = {
+    ADAPTATION: 'Adaptation', SOURCE: 'Source', PREQUEL: 'Prequel',
+    SEQUEL: 'Sequel', SIDE_STORY: 'Side Story', CHARACTER: 'Character',
+    SUMMARY: 'Summary', ALTERNATIVE: 'Alternative', SPIN_OFF: 'Spin-off',
+    OTHER: 'Other', MANGA: 'Manga', ANIME: 'Anime', NOVEL: 'Light Novel',
+  }
+  const itemUrl = item.item_type === 'anime'
+    ? `#/anime/${item.external_id||item.id}`
+    : item.item_type === 'manga'
+    ? `#/manga/${item.external_id||item.id}`
+    : item.item_type === 'novel'
+    ? `#/novel/${item.external_id||item.id}`
+    : '#/'
+  const relLabel = RELATION_LABELS[item.relation_type] || item.relation_type || ''
+  return (
+    <div onClick={() => { window.location.hash = itemUrl }}
+      style={{ width:156, flexShrink:0, cursor:'pointer', display:'flex', flexDirection:'column', gap:6 }}>
+      <div style={{ width:156, height:234, borderRadius:12, overflow:'hidden', background:'#050c18',
+        position:'relative', boxShadow:'0 4px 16px rgba(0,0,0,0.5)',
+        transition:'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s' }}
+        onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-5px)';e.currentTarget.style.boxShadow=`0 12px 32px ${ACCENT}44`}}
+        onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.5)'}}>
+        {item.cover_url
+          ? <img src={item.cover_url} alt={item.title||''} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
+          : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32 }}>🎌</div>}
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
+        {relLabel && (
+          <div style={{ position:'absolute', top:6, left:6, fontSize:9, fontWeight:700, padding:'2px 7px', borderRadius:10,
+            background:`${ACCENT}cc`, color:'#fff', fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:0.5 }}>
+            {relLabel.toUpperCase()}
+          </div>
+        )}
+        {item.item_type && (
+          <div style={{ position:'absolute', bottom:6, right:6, fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:8,
+            background:'rgba(0,0,0,0.6)', color:'#94A3B8', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+            {item.item_type}
+          </div>
+        )}
+      </div>
+      <div style={{ fontSize:11, fontWeight:600, color:'#e2e8f0', lineHeight:1.35, fontFamily:"'Be Vietnam Pro',sans-serif",
+        display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+        {item.title_vi || item.title || ''}
+      </div>
+    </div>
+  )
+}
+
 // ── Mini card (navigates to anime/manga detail) ──────────────────
 function MiniCard({ item, url, emoji = '🎌' }) {
   return (
@@ -251,7 +300,7 @@ function TabContent({ activeTab, lang, anime, related }) {
       <h3 style={h}>{lang==='vi'?'Series liên quan':'Related Series'}</h3>
       {related.length > 0
         ? <div style={{ display:'flex', flexWrap:'wrap', gap:16 }}>
-            {related.map(r => <MiniCard key={r.id} item={{ ...r, title: r.title||r.title_english||r.title_romaji, cover_url: r.cover_url||r.cover_large }} url={r.external_id ? animeUrl({ id: r.external_id, title_english: r.title, title_romaji: r.title }) : '#/anime'} />)}
+            {related.map(r => <RelatedCard key={r.id} item={r} lang={lang} />)}
           </div>
         : <Placeholder icon="🔗" text={lang==='vi'?'Chưa có dữ liệu liên quan':'No relation data yet'} />}
     </div>
