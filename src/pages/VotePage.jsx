@@ -468,8 +468,8 @@ export function VotePage() {
         borderBottom:'1px solid rgba(255,248,240,0.06)', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0,
           background:`radial-gradient(ellipse at 15% 60%, ${PURPLE}14 0%, transparent 55%)` }} />
-        <div style={{ position:'relative', zIndex:1 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+        <div style={{ position:'relative', zIndex:1, textAlign:'center', maxWidth:560, margin:'0 auto' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginBottom:10 }}>
             <span style={{ fontSize:11, fontWeight:700, letterSpacing:3, textTransform:'uppercase',
               color:PURPLE, fontFamily:"'Barlow Condensed',sans-serif" }}>
               🏆 {lang==='vi' ? 'Bầu chọn tháng này' : 'Monthly Vote'}
