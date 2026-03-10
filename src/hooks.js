@@ -189,46 +189,44 @@ export function useAnime({ search, sort, status, format, genre }) {
       setError(null)
 
       const sortCol =
-          sort === 'POPULARITY_DESC' ? 'popularity.desc'
-        : sort === 'SCORE_DESC'      ? 'average_score.desc'
-        : sort === 'TRENDING_DESC'   ? 'popularity.desc'
-        : sort === 'START_DATE_DESC' ? 'season_year.desc'
-        : sort === 'START_DATE'      ? 'season_year.asc'
-        : sort === 'TITLE_ROMAJI'    ? 'title_romaji.asc'
-        : sort === 'FAVOURITES_DESC' ? 'favourites.desc'
-        : 'popularity.desc'
+          sort === 'POPULARITY_DESC' ? 'score.desc.nullslast'
+        : sort === 'SCORE_DESC'      ? 'score.desc.nullslast'
+        : sort === 'TRENDING_DESC'   ? 'score.desc.nullslast'
+        : sort === 'START_DATE_DESC' ? 'updated_at.desc.nullslast'
+        : sort === 'START_DATE'      ? 'updated_at.asc.nullslast'
+        : sort === 'TITLE_ROMAJI'    ? 'title.asc'
+        : sort === 'FAVOURITES_DESC' ? 'score.desc.nullslast'
+        : 'score.desc.nullslast'
 
       const params = new URLSearchParams()
-      params.append('limit',  LIMIT)
-      params.append('offset', off)
-      params.append('order',  sortCol)
-      params.append('select', '*')
+      params.append('item_type', 'eq.anime')
+      params.append('limit',     LIMIT)
+      params.append('offset',    off)
+      params.append('order',     sortCol)
+      params.append('select',    '*,anime_meta(*)')
 
-      if (search)                params.append('or', `(title_romaji.ilike.*${search}*,title_english.ilike.*${search}*)`)
-      if (status)                params.append('status', `eq.${status}`)
-      if (format)                params.append('format', `eq.${format}`)
-      if (genre && genre !== 'All') params.append('genres', `cs.{"${genre}"}`)
+      if (search)                   params.append('or',      `(title.ilike.*${search}*,title_native.ilike.*${search}*)`)
+      if (status)                   params.append('status',  `eq.${status}`)
+      if (format)                   params.set('select',     `*,anime_meta!inner(*)`) // inner join when filtering by meta
+      if (format)                   params.append('anime_meta.format', `eq.${format}`)
+      if (genre && genre !== 'All') params.append('genres',  `cs.{"${genre}"}`)
 
-      // Get total count
       const countParams = new URLSearchParams(params)
       countParams.set('limit', 1)
       countParams.set('offset', 0)
 
       const [data, countRes] = await Promise.all([
-        sbFetch('anime', params.toString()),
-        fetch(`${SUPABASE_URL}/rest/v1/anime?${countParams}`, {
-          headers: {
-            apikey: SUPABASE_ANON,
-            Authorization: `Bearer ${SUPABASE_ANON}`,
-            Prefer: 'count=exact',
-          },
+        sbFetch('series', params.toString()),
+        fetch(`${SUPABASE_URL}/rest/v1/series?${countParams}`, {
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`, Prefer: 'count=exact' },
         }),
       ])
 
+      const normalized = (data || []).map(normalizeAnime)
       const total = parseInt(countRes.headers?.get?.('content-range')?.split('/')?.[1] || 0)
-      setAnime(prev => reset ? data : [...prev, ...data])
+      setAnime(prev => reset ? normalized : [...prev, ...normalized])
       setHasNext(off + LIMIT < total)
-      setTotalCount(total || data.length)
+      setTotalCount(total || normalized.length)
       setOffset(off)
     } catch (e) {
       setError(e.message)
@@ -283,60 +281,44 @@ export function useManga({ search, sort, status, demographic, tag }) {
       setError(null)
 
       const sortCol =
-          sort === 'followedCount'         ? 'follows.desc'
-        : sort === 'rating'                ? 'rating.desc'
-        : sort === 'latestUploadedChapter' ? 'synced_at.desc'
-        : sort === 'createdAt'             ? 'year.desc'
-        : sort === 'title'                 ? 'title_en.asc'
-        : 'follows.desc'
+          sort === 'followedCount'         ? 'score.desc.nullslast'
+        : sort === 'rating'                ? 'score.desc.nullslast'
+        : sort === 'latestUploadedChapter' ? 'updated_at.desc.nullslast'
+        : sort === 'createdAt'             ? 'updated_at.desc.nullslast'
+        : sort === 'title'                 ? 'title.asc'
+        : 'score.desc.nullslast'
 
       const params = new URLSearchParams()
-      params.append('limit',  LIMIT)
-      params.append('offset', off)
-      params.append('order',  sortCol)
-      params.append('select', '*')
+      params.append('item_type', 'eq.manga')
+      params.append('limit',     LIMIT)
+      params.append('offset',    off)
+      params.append('order',     sortCol)
+      params.append('select',    '*,manga_meta(*)')
 
-      if (search)      params.append('or',            `(title_en.ilike.*${search}*,title_ja_ro.ilike.*${search}*)`)
-      if (status)      params.append('status',        `eq.${status}`)
-      if (demographic) params.append('demographic',   `eq.${demographic}`)
-      if (tag)         params.append('genres',        `cs.{"${tag}"}`)
+      if (search)      params.append('or',      `(title.ilike.*${search}*,title_native.ilike.*${search}*)`)
+      if (status)      params.append('status',  `eq.${status}`)
+      if (tag)         params.append('genres',  `cs.{"${tag}"}`)
+      if (demographic) {
+        params.set('select', '*,manga_meta!inner(*)')
+        params.append('manga_meta.demographic', `eq.${demographic}`)
+      }
 
-      const [data] = await Promise.all([
-        sbFetch('manga', params.toString()),
+      const countParams = new URLSearchParams(params)
+      countParams.set('limit', 1)
+      countParams.set('offset', 0)
+
+      const [data, countRes] = await Promise.all([
+        sbFetch('series', params.toString()),
+        fetch(`${SUPABASE_URL}/rest/v1/series?${countParams}`, {
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`, Prefer: 'count=exact' },
+        }),
       ])
 
-      // Normalize to same shape the cards/modals expect
-      const normalized = data.map(m => ({
-        id: m.id,
-        attributes: {
-          title:                  { en: m.title_en, 'ja-ro': m.title_ja_ro, ja: m.title_ja },
-          description:            { en: m.description_en },
-          status:                 m.status,
-          publicationDemographic: m.demographic,
-          year:                   m.year,
-          lastChapter:            m.last_chapter,
-          lastVolume:             m.last_volume,
-          originalLanguage:       m.original_language,
-          tags: [
-            ...(m.genres || []).map(g => ({ attributes: { group: 'genre',  name: { en: g } } })),
-            ...(m.themes || []).map(t => ({ attributes: { group: 'theme',  name: { en: t } } })),
-          ],
-        },
-        relationships: [
-          ...(m.author ? [{ type: 'author', attributes: { name: m.author } }] : []),
-        ],
-        _cover_url: m.cover_url,
-        _stats: {
-          rating:   m.rating   ? String(parseFloat(m.rating).toFixed(2)) : null,
-          follows:  m.follows,
-          chapters: m.chapters,
-          volumes:  m.volumes,
-        },
-      }))
-
+      const normalized = (data || []).map(normalizeManga)
+      const total = parseInt(countRes.headers?.get?.('content-range')?.split('/')?.[1] || 0)
       setManga(prev => reset ? normalized : [...prev, ...normalized])
-      setHasNext(off + LIMIT < (totalCount || 999))
-      setTotalCount(prev => reset ? (data.length < LIMIT ? off + data.length : prev) : prev)
+      setHasNext(off + LIMIT < total)
+      setTotalCount(total || normalized.length)
       setOffset(off)
     } catch (e) {
       setError(e.message)
@@ -617,21 +599,20 @@ export function useAnimeCarousel({ status = '', format = '', genre = 'All', sort
   const [loading, setLoading] = useState(true)
   useEffect(() => {
     setLoading(true)
-    const sortCol =
-        sort === 'SCORE_DESC'      ? 'average_score.desc'
-      : sort === 'START_DATE_DESC' ? 'season_year.desc'
-      : sort === 'FAVOURITES_DESC' ? 'favourites.desc'
-      : 'popularity.desc'
     const params = new URLSearchParams()
-    params.append('limit',  limit)
-    params.append('offset', 0)
-    params.append('order',  sortCol)
-    params.append('select', '*')
-    if (status)                  params.append('status', `eq.${status}`)
-    if (format)                  params.append('format', `eq.${format}`)
-    if (genre && genre !== 'All') params.append('genres', `cs.{"${genre}"}`)
-    sbFetch('anime', params.toString())
-      .then(setItems)
+    params.append('item_type', 'eq.anime')
+    params.append('limit',     limit)
+    params.append('offset',    0)
+    params.append('order',     'score.desc.nullslast')
+    params.append('select',    '*,anime_meta(*)')
+    if (status)                   params.append('status',  `eq.${status}`)
+    if (genre && genre !== 'All') params.append('genres',  `cs.{"${genre}"}`)
+    if (format) {
+      params.set('select', '*,anime_meta!inner(*)')
+      params.append('anime_meta.format', `eq.${format}`)
+    }
+    sbFetch('series', params.toString())
+      .then(rows => setItems(rows.map(normalizeAnime)))
       .catch(() => setItems([]))
       .finally(() => setLoading(false))
   }, [status, format, genre, sort, limit])
@@ -640,6 +621,29 @@ export function useAnimeCarousel({ status = '', format = '', genre = 'All', sort
 
 /* ── Manga carousel (single carousel fetch, no pagination) ───── */
 export function useMangaCarousel({ status = '', demographic = '', genre = '', sort = 'follows', limit = 18 }) {
+  const [items,   setItems]   = useState([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    setLoading(true)
+    const params = new URLSearchParams()
+    params.append('item_type', 'eq.manga')
+    params.append('limit',     limit)
+    params.append('offset',    0)
+    params.append('order',     'score.desc.nullslast')
+    params.append('select',    '*,manga_meta(*)')
+    if (status)      params.append('status',  `eq.${status}`)
+    if (genre)       params.append('genres',  `cs.{"${genre}"}`)
+    if (demographic) {
+      params.set('select', '*,manga_meta!inner(*)')
+      params.append('manga_meta.demographic', `eq.${demographic}`)
+    }
+    sbFetch('series', params.toString())
+      .then(rows => setItems(rows.map(normalizeManga)))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false))
+  }, [status, demographic, genre, sort, limit])
+  return { items, loading }
+}) {
   const [items,   setItems]   = useState([])
   const [loading, setLoading] = useState(true)
   useEffect(() => {
@@ -680,34 +684,93 @@ export function useMangaCarousel({ status = '', demographic = '', genre = '', so
 }
 
 /* ── URL helpers for anime + manga detail pages ──────────────── */
+// ── Normalization helpers ────────────────────────────────────────────────────
+function normalizeAnime(row) {
+  if (!row) return null
+  const meta = Array.isArray(row.anime_meta) ? (row.anime_meta[0] || {}) : (row.anime_meta || {})
+  return {
+    id:           row.id,
+    external_id:  row.external_id,
+    title:        row.title || '',
+    title_native: row.title_native || '',
+    cover_url:    row.cover_url,
+    banner_url:   row.banner_url,
+    description:  row.description || '',
+    genres:       row.genres || [],
+    status:       row.status,
+    score:        row.score,
+    studio:       row.publisher || row.studio || null,
+    author:       row.author || null,
+    // from anime_meta
+    episodes:     meta.episodes     ?? null,
+    duration_min: meta.duration_min ?? null,
+    format:       meta.format       ?? null,
+    season:       meta.season       ?? null,
+    season_year:  meta.season_year  ?? null,
+    mean_score:   meta.mean_score   ?? null,
+    popularity:   meta.popularity   ?? null,
+    favourites:   meta.favourites   ?? null,
+    start_date:   meta.start_date   ?? null,
+    end_date:     meta.end_date     ?? null,
+  }
+}
+
+function normalizeManga(row) {
+  if (!row) return null
+  const meta = Array.isArray(row.manga_meta) ? (row.manga_meta[0] || {}) : (row.manga_meta || {})
+  return {
+    id:               row.id,
+    external_id:      row.external_id,
+    title:            row.title || '',
+    title_native:     row.title_native || '',
+    cover_url:        row.cover_url,
+    description:      row.description || '',
+    genres:           row.genres || [],
+    status:           row.status,
+    score:            row.score,
+    author:           row.author || null,
+    publisher:        row.publisher || null,
+    // from manga_meta
+    demographic:      meta.demographic      ?? null,
+    content_rating:   meta.content_rating   ?? null,
+    original_language: meta.original_language ?? 'ja',
+    year:             meta.year             ?? null,
+    last_chapter:     meta.last_chapter     ?? null,
+    last_volume:      meta.last_volume      ?? null,
+    chapters:         meta.chapters         ?? null,
+    volumes:          meta.volumes          ?? null,
+    follows:          meta.follows          ?? null,
+  }
+}
+
+/* ── URL helpers ─────────────────────────────────────────────── */
 export function animeUrl(a) {
-  const title = a.title_english || a.title_romaji || a.title || ''
+  const title = a.title || ''
   return `#/anime/${slugify(title)}-${a.id}`
 }
 
 export function mangaUrl(m) {
-  const title = m.title_en || m.title_ja_ro || m.title || ''
+  const title = m.title || ''
   return `#/manga/${slugify(title)}-${m.id}`
 }
 
 export function parseAnimeId(hash) {
   const base = hash.replace(/^#\/anime\//, '')
-  // trailing integer
   const m = base.match(/-(\d+)$/)
   return m ? m[1] : base || null
 }
 
 export function parseMangaId(hash) {
   const base = hash.replace(/^#\/manga\//, '')
-  // UUID
+  // UUID (old MangaDex links)
   const uuidM = base.match(UUID_RE)
   if (uuidM) return uuidM[0]
-  // trailing integer
+  // trailing integer (series.id or old AniList id)
   const m = base.match(/-(\d+)$/)
   return m ? m[1] : base || null
 }
 
-/* ── Fetch a single anime row (flat) ─────────────────────────── */
+/* ── Fetch a single anime from series + anime_meta ───────────── */
 export function useAnimeById(id) {
   const [anime,   setAnime]   = useState(null)
   const [loading, setLoading] = useState(true)
@@ -715,73 +778,20 @@ export function useAnimeById(id) {
   useEffect(() => {
     if (!id) return
     setLoading(true)
-    // Try by rowid first (integer), then by external_id in series table
-    sbFetch('anime', `id=eq.${id}&select=*&limit=1`)
+    const qs = `item_type=eq.anime&select=*,anime_meta(*)&limit=1`
+    // Try series.id (bigint) first, then fall back to external_id for old URLs
+    sbFetch('series', `id=eq.${id}&${qs}`)
       .then(rows => {
-        if (rows[0]) { setAnime(rows[0]); setLoading(false); return }
-        // fallback: look up via series table external_id
-        return sbFetch('series', `external_id=eq.${id}&item_type=eq.anime&select=*&limit=1`)
-          .then(rows2 => { setAnime(rows2[0] || null); setLoading(false) })
+        if (rows[0]) { setAnime(normalizeAnime(rows[0])); setLoading(false); return }
+        return sbFetch('series', `external_id=eq.${id}&${qs}`)
+          .then(rows2 => { setAnime(normalizeAnime(rows2[0] || null)); setLoading(false) })
       })
       .catch(e => { setError(e.message); setLoading(false) })
   }, [id])
   return { anime, loading, error }
 }
 
-/* ── Fetch anime_meta for a series_id ────────────────────────── */
-export function useAnimeMeta(seriesId) {
-  const [meta, setMeta] = useState(null)
-  useEffect(() => {
-    if (!seriesId) return
-    sbFetch('anime_meta', `series_id=eq.${seriesId}&select=*&limit=1`)
-      .then(rows => setMeta(rows[0] || null))
-      .catch(() => {})
-  }, [seriesId])
-  return meta
-}
-
-/* ── Related anime via series_relations ──────────────────────── */
-export function useAnimeRelated(animeId, genres) {
-  const [related, setRelated] = useState([])
-  const [recs,    setRecs]    = useState([])
-  useEffect(() => {
-    if (!animeId) return
-    // series_relations uses bigint series.id — look up the series row first
-    sbFetch('series', `external_id=eq.${animeId}&item_type=eq.anime&select=id,genres&limit=1`)
-      .then(rows => {
-        const row = rows[0]
-        if (!row) return Promise.all([Promise.resolve([]), Promise.resolve([])])
-        const sid = row.id
-        const g0  = (row.genres || [])[0]
-        return Promise.all([
-          sbFetch('series_relations', `series_id=eq.${sid}&select=related_id,relation_type&limit=20`)
-            .then(rels => {
-              if (!rels.length) return []
-              const ids = rels.map(r => r.related_id).join(',')
-              return sbFetch('series',
-                `id=in.(${ids})&select=id,external_id,title,cover_url,genres,status&limit=20`)
-                .then(rows => rows.map(r => ({ ...r, relation_type: rels.find(rel => rel.related_id === r.id)?.relation_type })))
-            }).catch(() => []),
-          g0
-            ? sbFetch('anime',
-                `genres=cs.{"${g0}"}&id=neq.${animeId}&order=popularity.desc.nullslast&select=id,title_english,title_romaji,cover_large,average_score,season_year,genres&limit=12`)
-                .catch(() => [])
-            : Promise.resolve([]),
-        ])
-      })
-      .then(([rel, rec]) => {
-        const arr = Array.isArray(rel) ? rel : []
-        const recArr = Array.isArray(rec) ? rec : []
-        setRelated(arr)
-        const relExtIds = new Set(arr.map(r => r.external_id))
-        setRecs(recArr.filter(r => !relExtIds.has(String(r.id))))
-      })
-      .catch(() => {})
-  }, [animeId])
-  return { related, recs }
-}
-
-/* ── Fetch a single manga row (flat) ─────────────────────────── */
+/* ── Fetch a single manga from series + manga_meta ───────────── */
 export function useMangaById(id) {
   const [manga,   setManga]   = useState(null)
   const [loading, setLoading] = useState(true)
@@ -789,55 +799,85 @@ export function useMangaById(id) {
   useEffect(() => {
     if (!id) return
     setLoading(true)
-    // id can be UUID or integer
+    const qs = `item_type=eq.manga&select=*,manga_meta(*)&limit=1`
     const isUuid = UUID_RE.test(id)
-    const query  = isUuid
-      ? `id=eq.${id}&select=*&limit=1`
-      : `id=eq.${id}&select=*&limit=1`
-    sbFetch('manga', query)
-      .then(rows => { setManga(rows[0] || null); setLoading(false) })
+    // UUID → external_id lookup (old MangaDex links)
+    // Integer → try series.id first, then external_id
+    const primary = isUuid
+      ? sbFetch('series', `external_id=eq.${id}&${qs}`)
+      : sbFetch('series', `id=eq.${id}&${qs}`)
+    primary
+      .then(rows => {
+        if (rows[0]) { setManga(normalizeManga(rows[0])); setLoading(false); return }
+        if (!isUuid) {
+          return sbFetch('series', `external_id=eq.${id}&${qs}`)
+            .then(rows2 => { setManga(normalizeManga(rows2[0] || null)); setLoading(false) })
+        }
+        setManga(null); setLoading(false)
+      })
       .catch(e => { setError(e.message); setLoading(false) })
   }, [id])
   return { manga, loading, error }
 }
 
-/* ── Related manga via series_relations ──────────────────────── */
-export function useMangaRelated(mangaId, genres) {
+/* ── Related anime via series_relations (seriesId = series.id) ── */
+export function useAnimeRelated(seriesId, genres) {
   const [related, setRelated] = useState([])
   const [recs,    setRecs]    = useState([])
+
   useEffect(() => {
-    if (!mangaId) return
+    if (!seriesId) return
+    sbFetch('series_relations', `series_id=eq.${seriesId}&select=related_id,relation_type&limit=20`)
+      .then(rels => {
+        if (!rels.length) { setRelated([]); return }
+        const ids = rels.map(r => r.related_id).join(',')
+        return sbFetch('series', `id=in.(${ids})&select=id,title,cover_url,genres,status,item_type&limit=20`)
+          .then(rows => setRelated(rows.map(r => ({
+            ...r, relation_type: rels.find(rel => rel.related_id === r.id)?.relation_type ?? null
+          }))))
+      })
+      .catch(() => setRelated([]))
+  }, [seriesId])
+
+  useEffect(() => {
+    if (!seriesId) return
     const g0 = (genres || [])[0]
+    if (!g0) return
+    sbFetch('series', `genres=cs.{"${g0}"}&item_type=eq.anime&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,genres,status&limit=12`)
+      .then(rows => setRecs(rows.filter(r => r.id !== seriesId)))
+      .catch(() => {})
+  }, [seriesId, (genres||[]).join(',')])
 
-    // Recs: query manga table directly using genres from the row (no series lookup needed)
-    const recsPromise = g0
-      ? sbFetch('manga',
-          `genres=cs.{"${g0}"}&id=neq.${mangaId}&order=follows.desc.nullslast&select=id,title_en,title_ja_ro,cover_url,rating,follows,genres&limit=12`)
-          .catch(() => [])
-      : Promise.resolve([])
+  return { related, recs }
+}
 
-    // Related: look up series row, then series_relations → series table
-    const relatedPromise = sbFetch('series', `external_id=eq.${mangaId}&item_type=eq.manga&select=id&limit=1`)
-      .then(rows => {
-        const sid = rows[0]?.id
-        if (!sid) return []
-        return sbFetch('series_relations', `series_id=eq.${sid}&select=related_id,relation_type&limit=20`)
-          .then(rels => {
-            if (!rels.length) return []
-            const ids = rels.map(r => r.related_id).join(',')
-            return sbFetch('series',
-              `id=in.(${ids})&select=id,external_id,title,title_vi,cover_url,status,item_type&limit=20`)
-              .then(rows => rows.map(r => ({
-                ...r,
-                relation_type: rels.find(rel => rel.related_id === r.id)?.relation_type,
-              })))
-          })
-      }).catch(() => [])
+/* ── Related manga via series_relations (seriesId = series.id) ── */
+export function useMangaRelated(seriesId, genres) {
+  const [related, setRelated] = useState([])
+  const [recs,    setRecs]    = useState([])
 
-    Promise.all([relatedPromise, recsPromise]).then(([rel, rec]) => {
-      setRelated(Array.isArray(rel) ? rel : [])
-      setRecs(Array.isArray(rec) ? rec : [])
-    }).catch(() => {})
-  }, [mangaId, (genres||[]).join(',')])
+  useEffect(() => {
+    if (!seriesId) return
+    sbFetch('series_relations', `series_id=eq.${seriesId}&select=related_id,relation_type&limit=20`)
+      .then(rels => {
+        if (!rels.length) { setRelated([]); return }
+        const ids = rels.map(r => r.related_id).join(',')
+        return sbFetch('series', `id=in.(${ids})&select=id,title,cover_url,genres,status,item_type&limit=20`)
+          .then(rows => setRelated(rows.map(r => ({
+            ...r, relation_type: rels.find(rel => rel.related_id === r.id)?.relation_type ?? null
+          }))))
+      })
+      .catch(() => setRelated([]))
+  }, [seriesId])
+
+  useEffect(() => {
+    if (!seriesId) return
+    const g0 = (genres || [])[0]
+    if (!g0) return
+    sbFetch('series', `genres=cs.{"${g0}"}&item_type=eq.manga&id=neq.${seriesId}&order=score.desc.nullslast&select=id,title,cover_url,genres,status&limit=12`)
+      .then(rows => setRecs(rows.filter(r => r.id !== seriesId)))
+      .catch(() => {})
+  }, [seriesId, (genres||[]).join(',')])
+
   return { related, recs }
 }
