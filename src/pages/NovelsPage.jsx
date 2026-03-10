@@ -56,7 +56,7 @@ function SortDropdown({ value, options, onChange, accent }) {
 
 // ── Advanced filter panel (single button → popover with all filters) ──
 function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGenre,
-  statusOptions, publisherOptions, genreOptions, hasActive, onClear, accent, lang }) {
+  statusOptions, publisherOptions, genreOptions, hasActive, onClear, accent, lang, isMobile }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -116,17 +116,17 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
           </div>
 
           {/* Filter columns — horizontal layout */}
-          <div style={{ display: 'flex', gap: 0 }}>
+          <div style={{ display: 'flex', gap: 0, flexDirection: isMobile ? 'column' : 'row' }}>
             <FilterSection
               label={lang === 'vi' ? 'Trạng thái' : 'Status'}
               value={status} options={statusOptions} onChange={onStatus} accent={accent} />
-            <div style={{ width: 1, background: 'rgba(255,248,240,0.06)', margin: '0 12px', flexShrink: 0 }} />
+            {!isMobile && <div style={{ width: 1, background: 'rgba(255,248,240,0.06)', margin: '0 12px', flexShrink: 0 }} />}
             <FilterSection
               label={lang === 'vi' ? 'Nhà xuất bản' : 'Publisher'}
               value={publisher} options={publisherOptions} onChange={onPublisher} accent={accent} />
             {genreOptions.length > 1 && (
               <>
-                <div style={{ width: 1, background: 'rgba(255,248,240,0.06)', margin: '0 12px', flexShrink: 0 }} />
+                {!isMobile && <div style={{ width: 1, background: 'rgba(255,248,240,0.06)', margin: '0 12px', flexShrink: 0 }} />}
                 <FilterSection
                   label={lang === 'vi' ? 'Thể loại' : 'Genre'}
                   value={genre} options={genreOptions} onChange={onGenre} accent={accent} />
@@ -236,13 +236,13 @@ function Carousel({ title, items, loading, onSelect, accent }) {
       }}>
         {loading
           ? Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} style={{ width: 260, flexShrink: 0, aspectRatio: '2/3',
+              <div key={i} style={{ width: isMobile ? 150 : 260, flexShrink: 0, aspectRatio: '2/3',
                 borderRadius: 14, background: 'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
                 backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
             ))
           : items.map((s, i) => (
               <div key={s.id} onClick={() => onSelect(s)} style={{
-                width: 260, flexShrink: 0, aspectRatio: '2/3', borderRadius: 14,
+                width: isMobile ? 150 : 260, flexShrink: 0, aspectRatio: '2/3', borderRadius: 14,
                 overflow: 'hidden', cursor: 'pointer', position: 'relative',
                 background: '#1a1410', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
@@ -289,6 +289,12 @@ export function NovelsPage() {
   const { lang } = useLang()
   const [browseMode, setBrowseMode] = useState(false)
   const [searchInput,setSearchInput]= useState('')
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
   const [sort,       setSort]       = useState('title_asc')
   const [status,     setStatus]     = useState('all')
   const [genre,      setGenre]      = useState('all')
@@ -362,7 +368,7 @@ export function NovelsPage() {
 
       {/* Hero — title + tagline/count only, NO search bar */}
       <div style={{ position: 'relative', background: 'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)',
-        padding: '32px 20px 28px', textAlign: 'center' }}>
+        padding: isMobile ? '20px 16px 18px' : '32px 20px 28px', textAlign: 'center' }}>
         <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)',
           width: 700, height: 280, background: `radial-gradient(ellipse, ${PURPLE}20 0%, transparent 70%)`,
           pointerEvents: 'none' }} />
@@ -387,10 +393,11 @@ export function NovelsPage() {
         <div style={{ background: 'rgba(255,248,240,0.02)',
           borderBottom: '1px solid rgba(255,248,240,0.06)', padding: '10px 20px' }}>
           <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex',
-            alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            alignItems: 'center', gap: 8, flexWrap: 'wrap',
+            flexDirection: isMobile ? 'column' : 'row' }}>
 
             {/* Inline search */}
-            <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 180, maxWidth: 340 }}>
+            <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 180, maxWidth: isMobile ? '100%' : 340, width: isMobile ? '100%' : undefined }}>
               <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
                 opacity: 0.3, pointerEvents: 'none' }}
                 width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -424,12 +431,13 @@ export function NovelsPage() {
               status={status} publisher={publisher} genre={genre}
               onStatus={setStatus} onPublisher={setPublisher} onGenre={setGenre}
               statusOptions={STATUS_OPTIONS} publisherOptions={PUBLISHER_OPTIONS} genreOptions={GENRE_OPTIONS}
-              hasActive={hasActiveFilters} onClear={clearFilters} accent={PURPLE} lang={lang} />
+              hasActive={hasActiveFilters} onClear={clearFilters} accent={PURPLE} lang={lang} isMobile={isMobile} />
 
             {/* Spacer */}
-            <div style={{ flex: 1 }} />
+            {!isMobile && <div style={{ flex: 1 }} />}
 
-            {/* Sort */}
+            {/* Sort + back on same row on mobile */}
+            <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end', alignItems: 'center' }}>
             <SortDropdown value={sort} options={NOVEL_SORTS} onChange={setSort} accent={PURPLE} />
 
             {/* Back */}
@@ -440,6 +448,7 @@ export function NovelsPage() {
                 display: 'flex', alignItems: 'center', gap: 4, padding: '4px 0',
               }}>← {lang === 'vi' ? 'Quay lại' : 'Back'}</button>
             )}
+            </div>{/* end sort+back row */}
           </div>
         </div>
       )}
