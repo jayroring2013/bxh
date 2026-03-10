@@ -210,7 +210,7 @@ function FilterSection({ label, value, options, onChange, accent }) {
 }
 
 // ── Horizontal carousel ───────────────────────────────────────────
-function Carousel({ title, items, loading, onSelect, accent }) {
+function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
   const ref = useRef(null)
   const scroll = dir => ref.current?.scrollBy({ left: dir * (260 * 4 + 14 * 3), behavior: 'smooth' })
 
@@ -489,9 +489,9 @@ export function NovelsPage() {
               </div>
             </div>
             <Carousel title={lang === 'vi' ? '🏆 Phổ biến nhất' : '🏆 Most Popular'}
-              items={popular} loading={loadingPop} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} />
+              items={popular} loading={loadingPop} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} isMobile={isMobile} />
             <Carousel title={lang === 'vi' ? '🆕 Mới thêm gần đây' : '🆕 Recently Added'}
-              items={recent} loading={loadingRec} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} />
+              items={recent} loading={loadingRec} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} isMobile={isMobile} />
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
               <button onClick={() => setBrowseMode(true)} style={{
                 padding: '12px 32px', background: `linear-gradient(135deg,${PURPLE},#6366F1)`,
