@@ -671,3 +671,160 @@ export function useMangaCarousel({ status = '', demographic = '', genre = '', so
   }, [status, demographic, genre, sort, limit])
   return { items, loading }
 }
+
+/* ── URL helpers for anime + manga detail pages ──────────────── */
+export function animeUrl(a) {
+  const title = a.title_english || a.title_romaji || a.title || ''
+  return `#/anime/${slugify(title)}-${a.id}`
+}
+
+export function mangaUrl(m) {
+  const title = m.title_en || m.title_ja_ro || m.title || ''
+  return `#/manga/${slugify(title)}-${m.id}`
+}
+
+export function parseAnimeId(hash) {
+  const base = hash.replace(/^#\/anime\//, '')
+  // trailing integer
+  const m = base.match(/-(\d+)$/)
+  return m ? m[1] : base || null
+}
+
+export function parseMangaId(hash) {
+  const base = hash.replace(/^#\/manga\//, '')
+  // UUID
+  const uuidM = base.match(UUID_RE)
+  if (uuidM) return uuidM[0]
+  // trailing integer
+  const m = base.match(/-(\d+)$/)
+  return m ? m[1] : base || null
+}
+
+/* ── Fetch a single anime row (flat) ─────────────────────────── */
+export function useAnimeById(id) {
+  const [anime,   setAnime]   = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState(null)
+  useEffect(() => {
+    if (!id) return
+    setLoading(true)
+    // Try by rowid first (integer), then by external_id in series table
+    sbFetch('anime', `id=eq.${id}&select=*&limit=1`)
+      .then(rows => {
+        if (rows[0]) { setAnime(rows[0]); setLoading(false); return }
+        // fallback: look up via series table external_id
+        return sbFetch('series', `external_id=eq.${id}&item_type=eq.anime&select=*&limit=1`)
+          .then(rows2 => { setAnime(rows2[0] || null); setLoading(false) })
+      })
+      .catch(e => { setError(e.message); setLoading(false) })
+  }, [id])
+  return { anime, loading, error }
+}
+
+/* ── Fetch anime_meta for a series_id ────────────────────────── */
+export function useAnimeMeta(seriesId) {
+  const [meta, setMeta] = useState(null)
+  useEffect(() => {
+    if (!seriesId) return
+    sbFetch('anime_meta', `series_id=eq.${seriesId}&select=*&limit=1`)
+      .then(rows => setMeta(rows[0] || null))
+      .catch(() => {})
+  }, [seriesId])
+  return meta
+}
+
+/* ── Related anime via series_relations ──────────────────────── */
+export function useAnimeRelated(animeId, genres) {
+  const [related, setRelated] = useState([])
+  const [recs,    setRecs]    = useState([])
+  useEffect(() => {
+    if (!animeId) return
+    // series_relations uses bigint series.id — look up the series row first
+    sbFetch('series', `external_id=eq.${animeId}&item_type=eq.anime&select=id,genres&limit=1`)
+      .then(rows => {
+        const row = rows[0]
+        if (!row) return Promise.all([Promise.resolve([]), Promise.resolve([])])
+        const sid = row.id
+        const g0  = (row.genres || [])[0]
+        return Promise.all([
+          sbFetch('series_relations', `series_id=eq.${sid}&select=related_id,relation_type&limit=20`)
+            .then(rels => {
+              if (!rels.length) return []
+              const ids = rels.map(r => r.related_id).join(',')
+              return sbFetch('series',
+                `id=in.(${ids})&select=id,external_id,title,cover_url,genres,status&limit=20`)
+                .then(rows => rows.map(r => ({ ...r, relation_type: rels.find(rel => rel.related_id === r.id)?.relation_type })))
+            }).catch(() => []),
+          g0
+            ? sbFetch('anime',
+                `genres=cs.{"${g0}"}&id=neq.${animeId}&order=popularity.desc.nullslast&select=id,title_english,title_romaji,cover_large,average_score,season_year,genres&limit=12`)
+                .catch(() => [])
+            : Promise.resolve([]),
+        ])
+      })
+      .then(([rel, rec]) => {
+        const arr = Array.isArray(rel) ? rel : []
+        const recArr = Array.isArray(rec) ? rec : []
+        setRelated(arr)
+        const relExtIds = new Set(arr.map(r => r.external_id))
+        setRecs(recArr.filter(r => !relExtIds.has(String(r.id))))
+      })
+      .catch(() => {})
+  }, [animeId])
+  return { related, recs }
+}
+
+/* ── Fetch a single manga row (flat) ─────────────────────────── */
+export function useMangaById(id) {
+  const [manga,   setManga]   = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState(null)
+  useEffect(() => {
+    if (!id) return
+    setLoading(true)
+    // id can be UUID or integer
+    const isUuid = UUID_RE.test(id)
+    const query  = isUuid
+      ? `id=eq.${id}&select=*&limit=1`
+      : `id=eq.${id}&select=*&limit=1`
+    sbFetch('manga', query)
+      .then(rows => { setManga(rows[0] || null); setLoading(false) })
+      .catch(e => { setError(e.message); setLoading(false) })
+  }, [id])
+  return { manga, loading, error }
+}
+
+/* ── Related manga via series_relations ──────────────────────── */
+export function useMangaRelated(mangaId, genres) {
+  const [related, setRelated] = useState([])
+  const [recs,    setRecs]    = useState([])
+  useEffect(() => {
+    if (!mangaId) return
+    sbFetch('series', `external_id=eq.${mangaId}&item_type=eq.manga&select=id,genres&limit=1`)
+      .then(rows => {
+        const row = rows[0]
+        if (!row) return Promise.all([Promise.resolve([]), Promise.resolve([])])
+        const sid = row.id
+        const g0  = (row.genres || [])[0]
+        return Promise.all([
+          sbFetch('series_relations', `series_id=eq.${sid}&select=related_id,relation_type&limit=20`)
+            .then(rels => {
+              if (!rels.length) return []
+              const ids = rels.map(r => r.related_id).join(',')
+              return sbFetch('series', `id=in.(${ids})&select=id,external_id,title,cover_url,genres,status&limit=20`)
+            }).catch(() => []),
+          g0
+            ? sbFetch('manga',
+                `genres=cs.{"${g0}"}&id=neq.${mangaId}&order=follows.desc.nullslast&select=id,title_en,cover_url,rating,follows,genres&limit=12`)
+                .catch(() => [])
+            : Promise.resolve([]),
+        ])
+      })
+      .then(([rel, rec]) => {
+        setRelated(Array.isArray(rel) ? rel : [])
+        setRecs(Array.isArray(rec) ? rec : [])
+      })
+      .catch(() => {})
+  }, [mangaId])
+  return { related, recs }
+}
