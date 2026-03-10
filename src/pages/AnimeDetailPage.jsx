@@ -476,7 +476,7 @@ export function AnimeDetailPage({ animeId }) {
             {/* Action buttons */}
             <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
               <AnimeSaveButton animeId={anime.id} title={title} coverUrl={cover} />
-              {siteUrl && (
+              {siteUrl && !links.some(l => l.link_type === 'anilist') && (
                 <a href={siteUrl} target="_blank" rel="noreferrer" style={{ fontSize:12, fontWeight:600, padding:'8px 14px', borderRadius:10,
                   background:`${ACCENT}18`, border:`1px solid ${ACCENT}40`, color:'#67E8F9', textDecoration:'none', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   AniList ↗
