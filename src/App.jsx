@@ -17,7 +17,9 @@ import { RankingPage }     from './pages/RankingPage.jsx'
 import { AdminPage }      from './pages/AdminPage.jsx'
 import { SeriesDetailPage } from './pages/SeriesDetailPage.jsx'
 import { VolumeDetailPage } from './pages/VolumeDetailPage.jsx'
-import { parseSeriesId, parseVolumeNumber } from './hooks.js'
+import { AnimeDetailPage } from './pages/AnimeDetailPage.jsx'
+import { MangaDetailPage } from './pages/MangaDetailPage.jsx'
+import { parseSeriesId, parseVolumeNumber, parseAnimeId, parseMangaId } from './hooks.js'
 
 function Router() {
   const hash   = useHash()
@@ -50,7 +52,16 @@ function Router() {
   }
 
   if (hash.startsWith('#/novels'))    return wrap(NovelsPage)
+
+  if (hash.startsWith('#/anime/')) {
+    const aid = parseAnimeId(hash)
+    if (aid) return wrap(AnimeDetailPage, { animeId: aid })
+  }
   if (hash.startsWith('#/anime'))     return wrap(AnimePage)
+  if (hash.startsWith('#/manga/')) {
+    const mid = parseMangaId(hash)
+    if (mid) return wrap(MangaDetailPage, { mangaId: mid })
+  }
   if (hash.startsWith('#/manga'))     return wrap(MangaPage)
   if (hash.startsWith('#/vote'))      return wrap(VotePage)
   if (hash.startsWith('#/list'))      return wrap(MyListPage)
