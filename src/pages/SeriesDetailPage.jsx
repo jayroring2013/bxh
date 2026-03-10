@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { PURPLE, novelStatusColor } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
 import { useSeriesById, useSeriesVolumes, useSeriesLinks, useRelatedSeries, useSeriesNuData, seriesUrl } from '../hooks.js'
@@ -337,6 +337,56 @@ function SectionCarousel({ title, children, count }) {
 }
 
 // ── Main page ─────────────────────────────────────────────────────
+function TabPanelContent({ activeTab, lang, series, volumes, related, PURPLE, MiniCard, PlaceholderPanel }) {
+  const headingStyle = {
+    fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
+    fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
+    textTransform: 'uppercase',
+  }
+  if (activeTab === 'info') return (
+    <div>
+      <h3 style={headingStyle}>{lang === 'vi' ? 'Thông tin' : 'Information'}</h3>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        {[
+          { label: lang === 'vi' ? 'Tên gốc'      : 'Original title', value: series?.title_orig || '—' },
+          { label: lang === 'vi' ? 'Tác giả'       : 'Author',         value: series?.author || '—' },
+          { label: lang === 'vi' ? 'Nhà xuất bản'  : 'Publisher',      value: series?.publisher || '—' },
+          { label: lang === 'vi' ? 'Trạng thái'    : 'Status',         value: series?.status || '—' },
+          { label: lang === 'vi' ? 'Số tập'        : 'Volumes',        value: volumes.length ? `${volumes.length} tập` : '—' },
+          { label: 'NovelUpdates Score',                                 value: series?.score != null ? `★ ${Number(series.score).toFixed(1)}` : '—' },
+          { label: lang === 'vi' ? 'Thể loại'      : 'Genres',         value: (series?.genres || []).join(', ') || '—' },
+        ].map((row, i) => (
+          <tr key={i} style={{ borderBottom: '1px solid rgba(255,248,240,0.05)' }}>
+            <td style={{ padding: '9px 16px 9px 0', width: '38%', fontSize: 12, color: '#a08060',
+              fontWeight: 600, fontFamily: "'Be Vietnam Pro',sans-serif",
+              textTransform: 'uppercase', letterSpacing: 0.6, verticalAlign: 'top' }}>{row.label}</td>
+            <td style={{ padding: '9px 0', fontSize: 13, color: '#c8a882',
+              fontFamily: "'Be Vietnam Pro',sans-serif" }}>{row.value}</td>
+          </tr>
+        ))}
+      </table>
+    </div>
+  )
+  if (activeTab === 'relations') return (
+    <div>
+      <h3 style={headingStyle}>{lang === 'vi' ? 'Series liên quan' : 'Related Series'}</h3>
+      {related.length > 0
+        ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+            {related.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+          </div>
+        : <PlaceholderPanel icon="🔗" text={lang === 'vi' ? 'Chưa có dữ liệu về series liên quan' : 'No relation data yet'} />
+      }
+    </div>
+  )
+  if (activeTab === 'ranking') return (
+    <div>
+      <h3 style={headingStyle}>{lang === 'vi' ? 'Lịch sử xếp hạng' : 'Ranking History'}</h3>
+      <PlaceholderPanel icon="🏆" text={lang === 'vi' ? 'Dữ liệu xếp hạng đang được cập nhật' : 'Ranking data coming soon'} />
+    </div>
+  )
+  return null
+}
+
 export function SeriesDetailPage({ seriesId }) {
   const { lang } = useLang()
   const { series, loading, error } = useSeriesById(seriesId)
@@ -414,8 +464,8 @@ export function SeriesDetailPage({ seriesId }) {
           background:'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, rgba(8,13,26,0.95) 100%)' }} />
 
         <div style={{ position:'relative', zIndex:2,
-          padding: '32px 32px 40px', paddingLeft: 228,
-          display:'flex', gap: 36, alignItems:'flex-start' }}>
+          padding: isMobile ? '20px 16px 28px' : '32px 32px 40px', paddingLeft: isMobile ? 16 : 228,
+          display:'flex', gap: isMobile ? 14 : 36, alignItems:'flex-start' }}>
 
           {/* Back button */}
           <button onClick={goBack} style={{
@@ -428,7 +478,7 @@ export function SeriesDetailPage({ seriesId }) {
           {/* Cover */}
           <div style={{ flexShrink: 0, marginTop: 20 }}>
             <div style={{
-              width: 264, borderRadius: 16, overflow: 'hidden',
+              width: isMobile ? 110 : 264, borderRadius: 16, overflow: 'hidden',
               boxShadow: `0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,248,240,0.07)`,
               aspectRatio: '2/3', background: '#1a1410',
             }}>
@@ -609,159 +659,153 @@ export function SeriesDetailPage({ seriesId }) {
         </div>
       </div>{/* end hero */}
 
-      {/* ── Below hero: sidebar left | carousels+tabs right ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-
-        <aside style={{
-          width: 196, flexShrink: 0,
-          position: 'sticky', top: 56, alignSelf: 'flex-start',
-          borderRight: '1px solid rgba(255,248,240,0.08)',
-          background: '#0f0b09',
-          zIndex: 10,
-          paddingTop: 24,
-        }}>
-          {[
-            { key: 'info',      icon: 'ℹ️',  vi: 'Thông tin',        en: 'Information'  },
-            { key: 'relations', icon: '🔗',  vi: 'Series liên quan',  en: 'Relations',   badge: related.length || null },
-            { key: 'ranking',   icon: '🏆',  vi: 'Xếp hạng',         en: 'Rankings'     },
-          ].map(tab => {
-            const isActive = activeTab === tab.key
-            return (
-              <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 14px',
-                background: isActive ? `${PURPLE}18` : 'none',
-                border: 'none',
-                borderRight: isActive ? `3px solid ${PURPLE}` : '3px solid transparent',
-                borderRadius: '8px 0 0 8px',
-                cursor: 'pointer', transition: 'all 0.15s', marginBottom: 2,
-                textAlign: 'left',
-              }}
-                onMouseEnter={e => !isActive && (e.currentTarget.style.background = 'rgba(255,248,240,0.04)')}
-                onMouseLeave={e => !isActive && (e.currentTarget.style.background = 'none')}
-              >
-                <span style={{ fontSize: 14, flexShrink: 0 }}>{tab.icon}</span>
-                <span style={{
-                  flex: 1, fontSize: 13, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#C4B5FD' : '#a08060',
+      {/* ── Below hero: sidebar | content ── */}
+      {isMobile ? (
+        /* ── MOBILE layout ── */
+        <div style={{ padding: '0 0 48px' }}>
+          {/* Mobile tab pills */}
+          <div style={{ display: 'flex', gap: 8, padding: '16px 16px 0', overflowX: 'auto' }}>
+            {[
+              { key: 'info',      icon: 'ℹ️',  vi: 'Thông tin',       en: 'Info'      },
+              { key: 'relations', icon: '🔗',  vi: 'Liên quan',        en: 'Relations', badge: related.length || null },
+              { key: 'ranking',   icon: '🏆',  vi: 'Xếp hạng',        en: 'Rankings'  },
+            ].map(tab => {
+              const isActive = activeTab === tab.key
+              return (
+                <button key={tab.key} onClick={() => toggleTab(tab.key)} style={{
+                  flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '7px 14px', borderRadius: 20,
+                  background: isActive ? PURPLE : 'rgba(255,248,240,0.07)',
+                  border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                  color: isActive ? '#fff' : '#a08060',
+                  fontSize: 12, fontWeight: isActive ? 700 : 500,
                   fontFamily: "'Be Vietnam Pro', sans-serif",
-                }}>{lang === 'vi' ? tab.vi : tab.en}</span>
-                {tab.badge != null && tab.badge > 0 && (
-                  <span style={{
-                    background: isActive ? PURPLE : 'rgba(255,248,240,0.1)',
-                    color: isActive ? '#fff' : '#a08060',
-                    fontSize: 10, fontWeight: 700,
-                    padding: '1px 6px', borderRadius: 10,
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                  }}>{tab.badge}</span>
-                )}
-              </button>
-            )
-          })}
-        </aside>
+                }}>
+                  <span>{tab.icon}</span>
+                  <span>{lang === 'vi' ? tab.vi : tab.en}</span>
+                  {tab.badge > 0 && <span style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 10, padding: '0 5px', fontSize: 10 }}>{tab.badge}</span>}
+                </button>
+              )
+            })}
+          </div>
 
-        {/* ── Right column ── */}
-        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-
-          {/* ── Carousels ── */}
-          <div style={{ padding: '32px 16px 0' }}>
-
-          {/* Always-visible: Volumes carousel */}
-          <SectionCarousel
-            title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'}
-            count={volumes.length}>
-            {loadingVols
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
-                    background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
-                    backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
-                ))
-              : volumes.map(v => (
-                  <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />
-                ))
-            }
-          </SectionCarousel>
-
-          {/* Always-visible: Recommendations carousel */}
-          {recs.length > 0 && (
-            <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
-              {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
-            </SectionCarousel>
-          )}
-          </div>{/* end carousels padding */}
-
-          {/* Tab panel */}
-          <div style={{ padding: '0 32px 48px' }}>
-          {/* Divider before tab content */}
-          <div style={{ height: 1, background: 'rgba(255,248,240,0.07)', margin: '8px 0 28px' }} />
-
-          {/* INFO TAB */}
-          {activeTab === 'info' && (
-            <div>
-              <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
-                fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
-                textTransform: 'uppercase' }}>
-                {lang === 'vi' ? 'Thông tin' : 'Information'}
-              </h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                {[
-                  { label: lang === 'vi' ? 'Tên gốc' : 'Original title', value: series?.title_orig || '—' },
-                  { label: lang === 'vi' ? 'Tác giả' : 'Author', value: series?.author || '—' },
-                  { label: lang === 'vi' ? 'Nhà xuất bản' : 'Publisher', value: series?.publisher || '—' },
-                  { label: lang === 'vi' ? 'Trạng thái' : 'Status', value: series?.status || '—' },
-                  { label: lang === 'vi' ? 'Số tập' : 'Volumes', value: volumes.length ? `${volumes.length} tập` : '—' },
-                  { label: 'NovelUpdates Score', value: series?.score != null ? `★ ${Number(series.score).toFixed(1)}` : '—' },
-                  { label: lang === 'vi' ? 'Thể loại' : 'Genres', value: (series?.genres || []).join(', ') || '—' },
-                ].map((row, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,248,240,0.05)' }}>
-                    <td style={{ padding: '10px 16px 10px 0', width: '38%',
-                      fontSize: 12, color: '#a08060', fontWeight: 600,
-                      fontFamily: "'Be Vietnam Pro',sans-serif",
-                      textTransform: 'uppercase', letterSpacing: 0.6, verticalAlign: 'top' }}>
-                      {row.label}
-                    </td>
-                    <td style={{ padding: '10px 0', fontSize: 13, color: '#c8a882',
-                      fontFamily: "'Be Vietnam Pro',sans-serif" }}>
-                      {row.value}
-                    </td>
-                  </tr>
-                ))}
-              </table>
+          {/* Mobile tab panel */}
+          {activeTab && (
+            <div style={{ padding: '20px 16px 4px' }}>
+              <TabPanelContent activeTab={activeTab} lang={lang} series={series} volumes={volumes} related={related} PURPLE={PURPLE} MiniCard={MiniCard} PlaceholderPanel={PlaceholderPanel} />
             </div>
           )}
 
-          {/* RELATIONS TAB */}
-          {activeTab === 'relations' && (
-            <div>
-              <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
-                fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
-                textTransform: 'uppercase' }}>
-                {lang === 'vi' ? 'Series liên quan' : 'Related Series'}
-              </h3>
-              {related.length > 0
-                ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-                    {related.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
-                  </div>
-                : <PlaceholderPanel icon="🔗" text={lang === 'vi' ? 'Chưa có dữ liệu về series liên quan' : 'No relation data yet'} />
+          {/* Mobile carousels */}
+          <div style={{ padding: '24px 0 0' }}>
+            <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length}>
+              {loadingVols
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} style={{ width:120, height:180, borderRadius:10, flexShrink:0,
+                      background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
+                      backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
+                  ))
+                : volumes.map(v => <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />)
               }
-            </div>
-          )}
+            </SectionCarousel>
+            {recs.length > 0 && (
+              <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
+                {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+              </SectionCarousel>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* ── DESKTOP layout ── */
+        <div>
 
-          {/* RANKINGS TAB */}
-          {activeTab === 'ranking' && (
-            <div>
-              <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
-                fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
-                textTransform: 'uppercase' }}>
-                {lang === 'vi' ? 'Lịch sử xếp hạng' : 'Ranking History'}
-              </h3>
-              <PlaceholderPanel icon="🏆" text={lang === 'vi' ? 'Dữ liệu xếp hạng đang được cập nhật' : 'Ranking data coming soon'} />
+        {/* ── Collapsible tab panel: appears BESIDE sidebar, above carousels ── */}
+        {activeTab && !isMobile && (
+          <div style={{
+            borderBottom: '1px solid rgba(255,248,240,0.08)',
+            background: 'rgba(255,248,240,0.02)',
+          }}>
+            {/* sidebar-width spacer so content aligns with right column */}
+            <div style={{ display: 'flex' }}>
+              <div style={{ width: 196, flexShrink: 0 }} />
+              <div style={{ flex: 1, padding: '24px 32px 28px', minWidth: 0 }}>
+                <TabPanelContent activeTab={activeTab} lang={lang} series={series} volumes={volumes} related={related} PURPLE={PURPLE} MiniCard={MiniCard} PlaceholderPanel={PlaceholderPanel} />
+              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          </div>{/* end tab panel padding */}
-        </div>{/* end right column */}
-      </div>{/* end body flex */}
+          {/* Sidebar + right column */}
+          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            <aside style={{
+              width: 196, flexShrink: 0,
+              position: 'sticky', top: 56, alignSelf: 'flex-start',
+              borderRight: '1px solid rgba(255,248,240,0.08)',
+              background: '#0f0b09',
+              zIndex: 10,
+              paddingTop: 24,
+            }}>
+              {[
+                { key: 'info',      icon: 'ℹ️',  vi: 'Thông tin',        en: 'Information'  },
+                { key: 'relations', icon: '🔗',  vi: 'Series liên quan',  en: 'Relations',   badge: related.length || null },
+                { key: 'ranking',   icon: '🏆',  vi: 'Xếp hạng',         en: 'Rankings'     },
+              ].map(tab => {
+                const isActive = activeTab === tab.key
+                return (
+                  <button key={tab.key} onClick={() => toggleTab(tab.key)} style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 14px',
+                    background: isActive ? `${PURPLE}18` : 'none',
+                    border: 'none',
+                    borderRight: isActive ? `3px solid ${PURPLE}` : '3px solid transparent',
+                    borderRadius: '8px 0 0 8px',
+                    cursor: 'pointer', transition: 'all 0.15s', marginBottom: 2,
+                    textAlign: 'left',
+                  }}
+                    onMouseEnter={e => !isActive && (e.currentTarget.style.background = 'rgba(255,248,240,0.04)')}
+                    onMouseLeave={e => !isActive && (e.currentTarget.style.background = 'none')}
+                  >
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>{tab.icon}</span>
+                    <span style={{
+                      flex: 1, fontSize: 13, fontWeight: isActive ? 700 : 500,
+                      color: isActive ? '#C4B5FD' : '#a08060',
+                      fontFamily: "'Be Vietnam Pro', sans-serif",
+                    }}>{lang === 'vi' ? tab.vi : tab.en}</span>
+                    {tab.badge != null && tab.badge > 0 && (
+                      <span style={{
+                        background: isActive ? PURPLE : 'rgba(255,248,240,0.1)',
+                        color: isActive ? '#fff' : '#a08060',
+                        fontSize: 10, fontWeight: 700,
+                        padding: '1px 6px', borderRadius: 10,
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                      }}>{tab.badge}</span>
+                    )}
+                  </button>
+                )
+              })}
+            </aside>
+
+            {/* Carousels in right column */}
+            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', padding: '32px 16px 48px' }}>
+              <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length}>
+                {loadingVols
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
+                        background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
+                        backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
+                    ))
+                  : volumes.map(v => <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />)
+                }
+              </SectionCarousel>
+              {recs.length > 0 && (
+                <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
+                  {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} />)}
+                </SectionCarousel>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <PageFooter color={PURPLE} src="NovelTrend" />
     </div>
