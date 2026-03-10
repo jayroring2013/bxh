@@ -400,7 +400,14 @@ export function SeriesDetailPage({ seriesId }) {
   )
 
   const [descExpanded, setDescExpanded] = useState(false)
-  const [activeTab, setActiveTab] = useState('volumes')
+  const [activeTab, setActiveTab] = useState(null)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  const toggleTab = (key) => setActiveTab(prev => prev === key ? null : key)
   const goBack = () => window.history.back()
 
   if (loading) return (
