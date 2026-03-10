@@ -145,11 +145,11 @@ function RelatedCard({ item, lang }) {
     OTHER: 'Other', MANGA: 'Manga', ANIME: 'Anime', NOVEL: 'Light Novel',
   }
   const itemUrl = item.item_type === 'anime'
-    ? `#/anime/${item.external_id||item.id}`
+    ? animeUrl(item)
     : item.item_type === 'manga'
-    ? `#/manga/${item.external_id||item.id}`
+    ? mangaUrl(item)
     : item.item_type === 'novel'
-    ? `#/novel/${item.external_id||item.id}`
+    ? seriesUrl(item)
     : '#/'
   const relLabel = RELATION_LABELS[item.relation_type] || item.relation_type || ''
   return (
@@ -245,11 +245,11 @@ function SectionCarousel({ title, children }) {
 // ── Tab content ───────────────────────────────────────────────────
 function TabContent({ activeTab, lang, manga, related }) {
   const h = { fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, letterSpacing:1.5, color:'#f1f5f9', margin:'0 0 20px', textTransform:'uppercase' }
-  const themes = manga.themes || []
+  // themes merged into genres in series table
 
   if (activeTab === 'info') {
     const rows = [
-      { label: lang==='vi'?'Tên gốc':'Original title',     value: manga.title_ja || manga.title_ja_ro || '—' },
+      { label: lang==='vi'?'Tên gốc':'Original title',     value: manga.title_native || '—' },
       { label: lang==='vi'?'Tác giả':'Author',              value: manga.author || '—' },
       { label: lang==='vi'?'Đối tượng':'Demographic',       value: manga.demographic ? manga.demographic.charAt(0).toUpperCase()+manga.demographic.slice(1) : '—' },
       { label: lang==='vi'?'Trạng thái':'Status',           value: manga.status ? manga.status.charAt(0).toUpperCase()+manga.status.slice(1) : '—' },
@@ -258,7 +258,7 @@ function TabContent({ activeTab, lang, manga, related }) {
       { label: lang==='vi'?'Số volume':'Volumes',           value: manga.volumes || manga.last_volume || '—' },
       { label: lang==='vi'?'Ngôn ngữ gốc':'Original lang', value: (manga.original_language||'ja').toUpperCase() },
       { label: lang==='vi'?'Thể loại':'Genres',             value: (manga.genres||[]).join(', ') || '—' },
-      { label: 'MangaDex Rating',                            value: manga.rating ? `★ ${parseFloat(manga.rating).toFixed(2)}` : '—' },
+      { label: 'MangaDex Rating',                            value: manga.score ? `★ ${parseFloat(manga.score).toFixed(2)}` : '—' },
       { label: lang==='vi'?'Lượt theo dõi':'Follows',       value: manga.follows ? manga.follows.toLocaleString() : '—' },
     ]
     return (
@@ -308,7 +308,7 @@ function TabContent({ activeTab, lang, manga, related }) {
 export function MangaDetailPage({ mangaId }) {
   const { lang } = useLang()
   const { manga, loading, error } = useMangaById(mangaId)
-  const { related, recs } = useMangaRelated(mangaId, manga?.genres)
+  const { related, recs } = useMangaRelated(manga?.id, manga?.genres)
 
   const [descExpanded, setDescExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
@@ -336,12 +336,13 @@ export function MangaDetailPage({ mangaId }) {
   )
 
   const cover   = manga.cover_url
-  const title   = manga.title_en || manga.title_ja_ro || '—'
+  const title   = manga.title || '—'
   const genres  = manga.genres || []
   const status  = manga.status
   const statusColor = STATUS_COLORS[status] || 'rgba(150,150,150,0.8)'
-  const mdUrl   = `https://mangadex.org/title/${manga.id}`
-  const desc    = (manga.description_en || '').replace(/\[.*?\]/g,'').trim()
+  // MangaDex URL via external_id (UUID)
+  const mdUrl   = manga.external_id ? `https://mangadex.org/title/${manga.external_id}` : null
+  const desc    = (manga.description || '').replace(/\[.*?\]/g,'').trim()
   const LIMIT   = 380
 
   const TABS = [
@@ -405,11 +406,8 @@ export function MangaDetailPage({ mangaId }) {
             <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:'clamp(22px,4vw,40px)',
               fontWeight:900, color:'#f1f5f9', margin:'0 0 4px', lineHeight:1.1, letterSpacing:1 }}>{title}</h1>
 
-            {manga.title_ja_ro && manga.title_ja_ro !== title && (
-              <div style={{ fontSize:13, color:'#5a2030', marginBottom:4, fontFamily:"'Be Vietnam Pro',sans-serif" }}>{manga.title_ja_ro}</div>
-            )}
-            {manga.title_ja && (
-              <div style={{ fontSize:13, color:'#3a1020', marginBottom:4, fontFamily:"'Be Vietnam Pro',sans-serif" }}>{manga.title_ja}</div>
+            {manga.title_native && manga.title_native !== title && (
+              <div style={{ fontSize:13, color:'#5a2030', marginBottom:4, fontFamily:"'Be Vietnam Pro',sans-serif" }}>{manga.title_native}</div>
             )}
             {manga.author && (
               <div style={{ fontSize:13, color:'#3a1020', marginBottom:16, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
@@ -420,7 +418,7 @@ export function MangaDetailPage({ mangaId }) {
             {/* Stats chips */}
             <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap' }}>
               {[
-                { label: 'SCORE',    value: manga.rating ? `★ ${parseFloat(manga.rating).toFixed(2)}` : 'N/A', color:'#FBBF24' },
+                { label: 'SCORE',    value: manga.score ? `★ ${parseFloat(manga.score).toFixed(2)}` : 'N/A', color:'#FBBF24' },
                 { label: lang==='vi'?'CHAPTER':'CHAPTERS', value: manga.chapters||manga.last_chapter||'?', color:ACCENT },
                 { label: lang==='vi'?'VOLUME':'VOLUMES',   value: manga.volumes||manga.last_volume||'?', color:'#FDA4AF' },
                 { label: lang==='vi'?'NĂM':'YEAR',         value: manga.year || '?', color:'#94A3B8' },
@@ -487,7 +485,7 @@ export function MangaDetailPage({ mangaId }) {
           <div style={{ padding:'24px 0 0' }}>
             {recs.length > 0 && (
               <SectionCarousel title={lang==='vi'?'Có thể bạn thích':'You May Also Like'}>
-                {recs.map(r => <MiniCard key={r.id} item={{ cover_url: r.cover_url, title: r.title_en||r.title_ja_ro, rating: r.rating }} url={mangaUrl({ id: r.id, title_en: r.title_en, title_ja_ro: r.title_ja_ro })} />)}
+                {recs.map(r => <MiniCard key={r.id} item={r} url={mangaUrl(r)} />)}
               </SectionCarousel>
             )}
           </div>
@@ -533,7 +531,7 @@ export function MangaDetailPage({ mangaId }) {
             <div style={{ flex:1, minWidth:0, overflow:'hidden', padding:'32px 16px 48px' }}>
               {recs.length > 0 && (
                 <SectionCarousel title={lang==='vi'?'Có thể bạn thích':'You May Also Like'}>
-                  {recs.map(r => <MiniCard key={r.id} item={{ cover_url: r.cover_url, title: r.title_en||r.title_ja_ro, rating: r.rating }} url={mangaUrl({ id: r.id, title_en: r.title_en, title_ja_ro: r.title_ja_ro })} />)}
+                  {recs.map(r => <MiniCard key={r.id} item={r} url={mangaUrl(r)} />)}
                 </SectionCarousel>
               )}
               {recs.length === 0 && (
