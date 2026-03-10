@@ -221,15 +221,17 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
   )
 }
 
-// Normalize raw anime row → carousel card shape
+// Normalize series-table anime row → carousel card shape
 function na(a) {
   return {
     id:        a.id,
-    cover_url: a.cover_large || a.cover_url,
-    title:     a.title_english || a.title_romaji || 'Unknown',
-    score:     a.average_score ? String(a.average_score) : null,
+    cover_url: a.cover_url,
+    title:     a.title || 'Unknown',
+    score:     a.mean_score ? String(a.mean_score) : null,
     year:      a.season_year,
     eps:       a.episodes,
+    genres:    a.genres || [],
+    status:    a.status,
     _raw: a,
   }
 }
@@ -405,19 +407,19 @@ export function AnimePage() {
 
             <Carousel title={lang === 'vi' ? '📺 Đang chiếu' : '📺 Currently Airing'}
               items={airingRaw.map(na)} loading={l1}
-              onSelect={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} accent={CYAN} isMobile={isMobile} />
+              onSelect={a => { window.location.hash = animeUrl(a) }} accent={CYAN} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '🏆 Điểm cao nhất' : '🏆 Highest Rated'}
               items={topRaw.map(na)} loading={l2}
-              onSelect={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} accent={CYAN} isMobile={isMobile} />
+              onSelect={a => { window.location.hash = animeUrl(a) }} accent={CYAN} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '🎬 Phim & OVA' : '🎬 Movies & OVAs'}
               items={moviesRaw.map(na)} loading={l3}
-              onSelect={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} accent={CYAN} isMobile={isMobile} />
+              onSelect={a => { window.location.hash = animeUrl(a) }} accent={CYAN} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '⚡ Hành động' : '⚡ Action'}
               items={actionRaw.map(na)} loading={l4}
-              onSelect={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} accent={CYAN} isMobile={isMobile} />
+              onSelect={a => { window.location.hash = animeUrl(a) }} accent={CYAN} isMobile={isMobile} />
 
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
               <button onClick={() => setBrowseMode(true)} style={{
@@ -439,7 +441,7 @@ export function AnimePage() {
               <>
                 <CardGrid>
                   {anime.map((a, i) => (
-                    <AnimeCard key={a.id} anime={a} rank={i + 1} onClick={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} />
+                    <AnimeCard key={a.id} anime={a} rank={i + 1} onClick={a => { window.location.hash = animeUrl(a) }} />
                   ))}
                 </CardGrid>
                 {hasNext && <LoadMoreBtn onLoad={loadMore} loading={loadingMore} color={CYAN} />}
