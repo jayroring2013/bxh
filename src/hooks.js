@@ -800,31 +800,37 @@ export function useMangaRelated(mangaId, genres) {
   const [recs,    setRecs]    = useState([])
   useEffect(() => {
     if (!mangaId) return
-    sbFetch('series', `external_id=eq.${mangaId}&item_type=eq.manga&select=id,genres&limit=1`)
+    const g0 = (genres || [])[0]
+
+    // Recs: query manga table directly using genres from the row (no series lookup needed)
+    const recsPromise = g0
+      ? sbFetch('manga',
+          `genres=cs.{"${g0}"}&id=neq.${mangaId}&order=follows.desc.nullslast&select=id,title_en,title_ja_ro,cover_url,rating,follows,genres&limit=12`)
+          .catch(() => [])
+      : Promise.resolve([])
+
+    // Related: look up series row, then series_relations → series table
+    const relatedPromise = sbFetch('series', `external_id=eq.${mangaId}&item_type=eq.manga&select=id&limit=1`)
       .then(rows => {
-        const row = rows[0]
-        if (!row) return Promise.all([Promise.resolve([]), Promise.resolve([])])
-        const sid = row.id
-        const g0  = (row.genres || [])[0]
-        return Promise.all([
-          sbFetch('series_relations', `series_id=eq.${sid}&select=related_id,relation_type&limit=20`)
-            .then(rels => {
-              if (!rels.length) return []
-              const ids = rels.map(r => r.related_id).join(',')
-              return sbFetch('series', `id=in.(${ids})&select=id,external_id,title,cover_url,genres,status&limit=20`)
-            }).catch(() => []),
-          g0
-            ? sbFetch('manga',
-                `genres=cs.{"${g0}"}&id=neq.${mangaId}&order=follows.desc.nullslast&select=id,title_en,cover_url,rating,follows,genres&limit=12`)
-                .catch(() => [])
-            : Promise.resolve([]),
-        ])
-      })
-      .then(([rel, rec]) => {
-        setRelated(Array.isArray(rel) ? rel : [])
-        setRecs(Array.isArray(rec) ? rec : [])
-      })
-      .catch(() => {})
-  }, [mangaId])
+        const sid = rows[0]?.id
+        if (!sid) return []
+        return sbFetch('series_relations', `series_id=eq.${sid}&select=related_id,relation_type&limit=20`)
+          .then(rels => {
+            if (!rels.length) return []
+            const ids = rels.map(r => r.related_id).join(',')
+            return sbFetch('series',
+              `id=in.(${ids})&select=id,external_id,title,title_vi,cover_url,status,item_type&limit=20`)
+              .then(rows => rows.map(r => ({
+                ...r,
+                relation_type: rels.find(rel => rel.related_id === r.id)?.relation_type,
+              })))
+          })
+      }).catch(() => [])
+
+    Promise.all([relatedPromise, recsPromise]).then(([rel, rec]) => {
+      setRelated(Array.isArray(rel) ? rel : [])
+      setRecs(Array.isArray(rec) ? rec : [])
+    }).catch(() => {})
+  }, [mangaId, (genres||[]).join(',')])
   return { related, recs }
 }
