@@ -747,13 +747,13 @@ export function useAnimeRelated(animeId, genres) {
         const sid = row.id
         const g0  = (row.genres || [])[0]
         return Promise.all([
-          sbFetch('series_relations', `series_id=eq.${sid}&select=related_id,relation_type&limit=20`)
+          sbFetch('series_relations', `series_id=eq.${sid}&select=related_series_id,relation_type&limit=20`)
             .then(rels => {
               if (!rels.length) return []
-              const ids = rels.map(r => r.related_id).join(',')
+              const ids = rels.map(r => r.related_series_id).join(',')
               return sbFetch('series',
                 `id=in.(${ids})&select=id,external_id,title,cover_url,genres,status&limit=20`)
-                .then(rows => rows.map(r => ({ ...r, relation_type: rels.find(rel => rel.related_id === r.id)?.relation_type })))
+                .then(rows => rows.map(r => ({ ...r, relation_type: rels.find(rel => rel.related_series_id === r.id)?.relation_type })))
             }).catch(() => []),
           g0
             ? sbFetch('anime',
@@ -814,15 +814,15 @@ export function useMangaRelated(mangaId, genres) {
       .then(rows => {
         const sid = rows[0]?.id
         if (!sid) return []
-        return sbFetch('series_relations', `series_id=eq.${sid}&select=related_id,relation_type&limit=20`)
+        return sbFetch('series_relations', `series_id=eq.${sid}&select=related_series_id,relation_type&limit=20`)
           .then(rels => {
             if (!rels.length) return []
-            const ids = rels.map(r => r.related_id).join(',')
+            const ids = rels.map(r => r.related_series_id).join(',')
             return sbFetch('series',
               `id=in.(${ids})&select=id,external_id,title,title_vi,cover_url,status,item_type&limit=20`)
               .then(rows => rows.map(r => ({
                 ...r,
-                relation_type: rels.find(rel => rel.related_id === r.id)?.relation_type,
+                relation_type: rels.find(rel => rel.related_series_id === r.id)?.relation_type,
               })))
           })
       }).catch(() => [])
