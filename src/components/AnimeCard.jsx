@@ -5,12 +5,12 @@ import { QuickAddButton } from './QuickAddButton.jsx'
 
 export function AnimeCard({ anime, rank, onClick }) {
   // Support both AniList shape (nested) and Supabase shape (flat)
-  const cover = anime.cover_large || anime.coverImage?.extraLarge || anime.coverImage?.large
-  const title = anime.title_english || anime.title_romaji || anime.title?.english || anime.title?.romaji || 'Unknown'
+  const cover = anime.cover_url || anime.cover_large || anime.coverImage?.extraLarge || anime.coverImage?.large
+  const title = anime.title_english || anime.title_romaji || anime.title?.english || anime.title?.romaji || (typeof anime.title === 'string' ? anime.title : null) || 'Unknown'
   const score = anime.average_score ?? anime.averageScore
   const genre = (anime.genres)?.[0]
-  const year  = anime.season_year  || anime.startDate?.year
-  const eps   = anime.episodes
+  const year  = anime.season_year || anime.anime_meta?.season_year || anime.startDate?.year
+  const eps   = anime.episodes || anime.anime_meta?.episodes
   const status= anime.status
 
   return (
@@ -19,7 +19,6 @@ export function AnimeCard({ anime, rank, onClick }) {
 
       {status && status !== 'RELEASING' && (
         <div className="status-badge" style={{ background: animeStatusColor(status) }}>
-          {status === 'RELEASING' && <span className="status-badge__dot" />}
           {animeStatusLabel(status)}
         </div>
       )}
