@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { CYAN } from '../constants.js'
-import { useAnime, useAnimeCarousel, useDebounce } from '../hooks.js'
+import { useAnime, useAnimeCarousel, useDebounce, animeUrl } from '../hooks.js'
 import { useLang } from '../context/LangContext.jsx'
 import { AppHeader, SkeletonGrid, CardGrid, EmptyState, ErrorBox, LoadMoreBtn, PageFooter } from '../components/Shared.jsx'
 import { AnimeCard }  from '../components/AnimeCard.jsx'
-import { AnimeModal } from '../components/AnimeModal.jsx'
 
 // ── Sort dropdown ────────────────────────────────────────────────
 function SortDropdown({ value, options, onChange, accent }) {
@@ -238,7 +237,6 @@ function na(a) {
 // ── Main ─────────────────────────────────────────────────────────
 export function AnimePage() {
   const { lang } = useLang()
-  const [selected,    setSelected]    = useState(null)
   const [searchInput, setSearchInput] = useState('')
   const [browseMode,  setBrowseMode]  = useState(false)
   const [sort,        setSort]        = useState('POPULARITY_DESC')
@@ -407,19 +405,19 @@ export function AnimePage() {
 
             <Carousel title={lang === 'vi' ? '📺 Đang chiếu' : '📺 Currently Airing'}
               items={airingRaw.map(na)} loading={l1}
-              onSelect={a => setSelected(a)} accent={CYAN} isMobile={isMobile} />
+              onSelect={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} accent={CYAN} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '🏆 Điểm cao nhất' : '🏆 Highest Rated'}
               items={topRaw.map(na)} loading={l2}
-              onSelect={a => setSelected(a)} accent={CYAN} isMobile={isMobile} />
+              onSelect={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} accent={CYAN} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '🎬 Phim & OVA' : '🎬 Movies & OVAs'}
               items={moviesRaw.map(na)} loading={l3}
-              onSelect={a => setSelected(a)} accent={CYAN} isMobile={isMobile} />
+              onSelect={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} accent={CYAN} isMobile={isMobile} />
 
             <Carousel title={lang === 'vi' ? '⚡ Hành động' : '⚡ Action'}
               items={actionRaw.map(na)} loading={l4}
-              onSelect={a => setSelected(a)} accent={CYAN} isMobile={isMobile} />
+              onSelect={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} accent={CYAN} isMobile={isMobile} />
 
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
               <button onClick={() => setBrowseMode(true)} style={{
@@ -441,7 +439,7 @@ export function AnimePage() {
               <>
                 <CardGrid>
                   {anime.map((a, i) => (
-                    <AnimeCard key={a.id} anime={a} rank={i + 1} onClick={setSelected} />
+                    <AnimeCard key={a.id} anime={a} rank={i + 1} onClick={a => { window.location.hash = animeUrl({ id: a.id, title_english: a.title_english, title_romaji: a.title_romaji }) }} />
                   ))}
                 </CardGrid>
                 {hasNext && <LoadMoreBtn onLoad={loadMore} loading={loadingMore} color={CYAN} />}
@@ -455,7 +453,6 @@ export function AnimePage() {
       </main>
 
       <PageFooter color={CYAN} src="AniList" />
-      {selected && <AnimeModal anime={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }
