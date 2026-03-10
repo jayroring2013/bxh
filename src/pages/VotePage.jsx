@@ -58,11 +58,13 @@ function TrendArrow({ current, prev, t }) {
   return                     <span style={{ color: '#64748B', fontSize: 11 }}>—</span>
 }
 
-function SkeletonGrid() {
+function SkeletonGrid({ isMobile }) {
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:16 }}>
-      {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} style={{ height:300, borderRadius:16,
+    <div style={{ display:'grid',
+      gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(190px,1fr))',
+      gap: isMobile ? 10 : 16 }}>
+      {Array.from({ length: isMobile ? 6 : 12 }).map((_, i) => (
+        <div key={i} style={{ height: isMobile ? 220 : 300, borderRadius:14,
           background:'linear-gradient(90deg,#1e1410 25%,#2a1f14 50%,#1e1410 75%)',
           backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
       ))}
@@ -71,16 +73,17 @@ function SkeletonGrid() {
 }
 
 // ── VoteCard ──────────────────────────────────────────────────────────────────
-function VoteCard({ item, rank, voteCount, prevRank, hasVoted, onVote, voting, accent, t }) {
+function VoteCard({ item, rank, voteCount, prevRank, hasVoted, onVote, voting, accent, t, isMobile }) {
   const [hov, setHov] = useState(false)
   const isTop3 = rank <= 3
 
   return (
     <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+      onMouseEnter={() => !isMobile && setHov(true)}
+      onMouseLeave={() => !isMobile && setHov(false)}
       style={{
-        position: 'relative', borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+        position: 'relative', borderRadius: isMobile ? 12 : 16, overflow: 'hidden',
+        display: 'flex', flexDirection: 'column',
         background: isTop3 ? `${accent}09` : hov ? `${accent}06` : 'rgba(255,248,240,0.02)',
         border: `1px solid ${isTop3 ? (rank===1?'#FFD70045':rank===2?'#C0C0C045':'#CD7F3245') : hov ? `${accent}50` : 'rgba(255,248,240,0.06)'}`,
         transition: 'transform .22s ease, box-shadow .22s ease, border-color .15s',
@@ -90,47 +93,50 @@ function VoteCard({ item, rank, voteCount, prevRank, hasVoted, onVote, voting, a
     >
       {/* Rank badge */}
       <div style={{
-        position:'absolute', top:10, left:10, zIndex:2, width:34, height:34, borderRadius:'50%',
+        position:'absolute', top: isMobile ? 7 : 10, left: isMobile ? 7 : 10, zIndex:2,
+        width: isMobile ? 26 : 34, height: isMobile ? 26 : 34, borderRadius:'50%',
         background: rankBg(rank), display:'flex', alignItems:'center', justifyContent:'center',
-        fontFamily:"'Barlow Condensed',sans-serif", fontSize:14,
+        fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile ? 11 : 14,
         color: rank<=3?'#000':'#fff', boxShadow:'0 2px 8px rgba(0,0,0,0.6)',
+        fontWeight: 800,
       }}>#{rank}</div>
 
       {/* Trend */}
-      <div style={{ position:'absolute', top:12, right:12, zIndex:2 }}>
+      <div style={{ position:'absolute', top: isMobile ? 8 : 12, right: isMobile ? 8 : 12, zIndex:2 }}>
         <TrendArrow current={rank} prev={prevRank} t={t} />
       </div>
 
       {/* Cover */}
-      <div style={{ position:'relative', height:155, flexShrink:0, background:'#130d08', overflow:'hidden' }}>
+      <div style={{ position:'relative', height: isMobile ? 115 : 155, flexShrink:0, background:'#130d08', overflow:'hidden' }}>
         {item.cover_url
           ? <img src={item.cover_url} alt={item.title}
               style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'top',
                 transition:'transform .3s', transform: hov?'scale(1.05)':'scale(1)' }}
               onError={e => { e.target.style.display='none' }} />
           : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center',
-              justifyContent:'center', fontSize:48, background:`${accent}12` }}>
+              justifyContent:'center', fontSize: isMobile ? 32 : 48, background:`${accent}12` }}>
               {item.emoji}
             </div>
         }
-        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:56,
+        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:40,
           background:'linear-gradient(to bottom,transparent,rgba(8,5,3,0.96))' }} />
       </div>
 
       {/* Body */}
-      <div style={{ padding:'10px 14px 14px', flex:1, display:'flex', flexDirection:'column', gap:7 }}>
+      <div style={{ padding: isMobile ? '7px 9px 10px' : '10px 14px 14px', flex:1, display:'flex', flexDirection:'column', gap: isMobile ? 5 : 7 }}>
         <div>
           <div style={{
-            fontFamily:"'Barlow Condensed',sans-serif", fontSize:15, lineHeight:1.25, color:'#f1f5f9',
+            fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile ? 12 : 15,
+            lineHeight:1.25, color:'#f1f5f9',
             display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden',
           }}>{item.title}</div>
-          {item.sub && (
+          {!isMobile && item.sub && (
             <div style={{ fontSize:10, color:'#475569', marginTop:2,
               overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.sub}</div>
           )}
         </div>
 
-        {item.tags?.length > 0 && (
+        {!isMobile && item.tags?.length > 0 && (
           <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
             {item.tags.map(tag => (
               <span key={tag} style={{ fontSize:10, padding:'2px 7px', borderRadius:20, fontWeight:600,
@@ -143,40 +149,70 @@ function VoteCard({ item, rank, voteCount, prevRank, hasVoted, onVote, voting, a
 
         <div style={{ flex:1 }} />
 
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:2 }}>
-          <div>
-            <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, lineHeight:1,
-              color: isTop3 ? rankColor(rank) : accent }}>
-              {(voteCount||0).toLocaleString()}
+        {/* Vote count + button */}
+        {isMobile ? (
+          <div style={{ display:'flex', flexDirection:'column', gap:6, marginTop:2 }}>
+            <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
+              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, lineHeight:1,
+                color: isTop3 ? rankColor(rank) : accent, fontWeight:800 }}>
+                {(voteCount||0).toLocaleString()}
+              </span>
+              <span style={{ color:'#475569', fontSize:9, letterSpacing:1, textTransform:'uppercase' }}>
+                {t('vote_votes')}
+              </span>
             </div>
-            <div style={{ color:'#475569', fontSize:9, letterSpacing:1.5, textTransform:'uppercase' }}>
-              {t('vote_votes')}
-            </div>
+            <button
+              onClick={() => onVote(item)}
+              disabled={hasVoted || voting}
+              style={{
+                width:'100%', background: hasVoted ? 'rgba(74,222,128,0.14)' : accent,
+                border: `1px solid ${hasVoted ? 'rgba(74,222,128,0.4)' : accent}`,
+                color: hasVoted ? '#4ADE80' : '#fff',
+                padding:'7px 0', borderRadius:8,
+                cursor: hasVoted ? 'default' : voting ? 'wait' : 'pointer',
+                fontSize:11, fontWeight:700,
+                opacity: voting && !hasVoted ? 0.55 : 1,
+                transition:'all .18s', fontFamily:"'Be Vietnam Pro',sans-serif",
+              }}>
+              {hasVoted ? '✓ ' + t('vote_voted') : t('vote_cast')}
+            </button>
           </div>
-          <button
-            onClick={() => onVote(item)}
-            disabled={hasVoted || voting}
-            style={{
-              background: hasVoted ? 'rgba(74,222,128,0.14)' : accent,
-              border: `1px solid ${hasVoted ? 'rgba(74,222,128,0.4)' : accent}`,
-              color: hasVoted ? '#4ADE80' : '#fff',
-              padding: '8px 16px', borderRadius:10,
-              cursor: hasVoted ? 'default' : voting ? 'wait' : 'pointer',
-              fontSize:12, fontWeight:700,
-              opacity: voting && !hasVoted ? 0.55 : 1,
-              transition:'all .18s', fontFamily:"'Be Vietnam Pro',sans-serif",
-              boxShadow: hasVoted ? 'none' : `0 4px 14px ${accent}45`,
-            }}>
-            {hasVoted ? t('vote_voted') : t('vote_cast')}
-          </button>
-        </div>
+        ) : (
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:2 }}>
+            <div>
+              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, lineHeight:1,
+                color: isTop3 ? rankColor(rank) : accent }}>
+                {(voteCount||0).toLocaleString()}
+              </div>
+              <div style={{ color:'#475569', fontSize:9, letterSpacing:1.5, textTransform:'uppercase' }}>
+                {t('vote_votes')}
+              </div>
+            </div>
+            <button
+              onClick={() => onVote(item)}
+              disabled={hasVoted || voting}
+              style={{
+                background: hasVoted ? 'rgba(74,222,128,0.14)' : accent,
+                border: `1px solid ${hasVoted ? 'rgba(74,222,128,0.4)' : accent}`,
+                color: hasVoted ? '#4ADE80' : '#fff',
+                padding: '8px 16px', borderRadius:10,
+                cursor: hasVoted ? 'default' : voting ? 'wait' : 'pointer',
+                fontSize:12, fontWeight:700,
+                opacity: voting && !hasVoted ? 0.55 : 1,
+                transition:'all .18s', fontFamily:"'Be Vietnam Pro',sans-serif",
+                boxShadow: hasVoted ? 'none' : `0 4px 14px ${accent}45`,
+              }}>
+              {hasVoted ? t('vote_voted') : t('vote_cast')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
 // ── Per-category panel — lazy loads its own data ──────────────────────────────
-function CategoryPanel({ cat, month, year, lang, token, t }) {
+function CategoryPanel({ cat, month, year, lang, token, t, isMobile }) {
   const [items,    setItems]   = useState([])
   const [votes,    setVotes]   = useState({})
   const [loading,  setLoading] = useState(true)
@@ -339,7 +375,7 @@ function CategoryPanel({ cat, month, year, lang, token, t }) {
       )}
 
       {error   && <ErrorBox msg={error} onRetry={() => window.location.reload()} color={cat.accent} />}
-      {loading && <SkeletonGrid />}
+      {loading && <SkeletonGrid isMobile={isMobile} />}
 
       {!loading && !error && filtered.length === 0 && (
         <div style={{ textAlign:'center', padding:'60px 0', color:'#4B5563' }}>
@@ -351,14 +387,18 @@ function CategoryPanel({ cat, month, year, lang, token, t }) {
       )}
 
       {!loading && !error && filtered.length > 0 && (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:16 }}>
+        <div style={{
+          display:'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(190px,1fr))',
+          gap: isMobile ? 10 : 16,
+        }}>
           {filtered.map((item, i) => (
             <VoteCard
               key={item.id} item={item} rank={i+1}
               voteCount={votes[item.id]?.vote_count ?? 0}
               prevRank={votes[item.id]?.prev_rank ?? null}
               hasVoted={votedIds.has(`${item.id}-${month}-${year}`)}
-              onVote={castVote} voting={voting} accent={cat.accent} t={t}
+              onVote={castVote} voting={voting} accent={cat.accent} t={t} isMobile={isMobile}
             />
           ))}
         </div>
@@ -367,12 +407,13 @@ function CategoryPanel({ cat, month, year, lang, token, t }) {
       {/* Toast */}
       {toast && (
         <div style={{
-          position:'fixed', bottom:32, left:'50%', transform:'translateX(-50%)',
+          position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)',
           background: toast.ok ? 'rgba(74,222,128,0.14)' : 'rgba(239,68,68,0.14)',
           border: `1px solid ${toast.ok ? 'rgba(74,222,128,0.4)' : 'rgba(239,68,68,0.4)'}`,
           color: toast.ok ? '#4ADE80' : '#FCA5A5',
-          padding:'12px 28px', borderRadius:12, fontSize:14, fontWeight:600,
-          zIndex:9999, backdropFilter:'blur(12px)', whiteSpace:'nowrap',
+          padding:'12px 22px', borderRadius:12, fontSize:13, fontWeight:600,
+          zIndex:9999, backdropFilter:'blur(12px)',
+          maxWidth:'90vw', textAlign:'center', lineHeight:1.4,
           animation:'fadeIn .2s ease',
         }}>{toast.msg}</div>
       )}
@@ -482,12 +523,20 @@ export function VotePage() {
               ? `Bầu chọn ${monthLabel} ${year}`
               : `${monthLabel} ${year} Poll`}
           </h1>
-          <p style={{ fontSize:13, color:'#6b4f35', fontFamily:"'Be Vietnam Pro',sans-serif",
-            margin:0, lineHeight:1.7 }}>
-            {lang==='vi'
-              ? `Bình chọn tác phẩm yêu thích của bạn trong mỗi hạng mục. Còn ${daysNum} ngày.`
-              : `Cast one vote per category for your favorites. ${daysNum} days remaining.`}
-          </p>
+          {!isMobile && (
+            <p style={{ fontSize:13, color:'#6b4f35', fontFamily:"'Be Vietnam Pro',sans-serif",
+              margin:0, lineHeight:1.7 }}>
+              {lang==='vi'
+                ? `Bình chọn tác phẩm yêu thích của bạn trong mỗi hạng mục. Còn ${daysNum} ngày.`
+                : `Cast one vote per category for your favorites. ${daysNum} days remaining.`}
+            </p>
+          )}
+          {isMobile && (
+            <p style={{ fontSize:12, color:'#6b4f35', fontFamily:"'Be Vietnam Pro',sans-serif",
+              margin:0, lineHeight:1.6 }}>
+              {lang==='vi' ? `Còn ${daysNum} ngày` : `${daysNum} days left`}
+            </p>
+          )}
         </div>
       </div>
 
@@ -496,24 +545,25 @@ export function VotePage() {
 
         {isMobile ? (
           /* ── Mobile pills ── */
-          <div style={{ width:'100%', display:'flex', gap:8, padding:'14px 16px',
-            overflowX:'auto', borderBottom:'1px solid rgba(255,248,240,0.07)',
-            background:'#0f0b09', position:'sticky', top:56, zIndex:20,
-            WebkitOverflowScrolling:'touch' }}>
+          <div style={{ width:'100%', display:'flex', padding:'10px 12px',
+            gap:8,
+            borderBottom:'1px solid rgba(255,248,240,0.07)',
+            background:'rgba(15,11,9,0.97)', backdropFilter:'blur(12px)',
+            position:'sticky', top:56, zIndex:20 }}>
             {CATS.map(c => {
               const isActive = activeCat === c.id
               return (
                 <button key={c.id} onClick={() => switchCat(c.id)} style={{
-                  flexShrink:0, display:'flex', alignItems:'center', gap:7,
-                  padding:'8px 18px', borderRadius:20, cursor:'pointer',
+                  flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                  padding:'9px 4px', borderRadius:12, cursor:'pointer',
                   fontFamily:"'Be Vietnam Pro',sans-serif", fontWeight: isActive?700:500,
-                  fontSize:13, transition:'all .15s', whiteSpace:'nowrap',
-                  background: isActive ? c.accent : 'rgba(255,248,240,0.07)',
-                  border: `1px solid ${isActive ? c.accent : 'transparent'}`,
-                  color: isActive ? '#fff' : '#a08060',
-                  boxShadow: isActive ? `0 4px 14px ${c.accent}40` : 'none',
+                  fontSize:12, transition:'all .15s',
+                  background: isActive ? `${c.accent}18` : 'rgba(255,248,240,0.05)',
+                  border: `1.5px solid ${isActive ? c.accent : 'transparent'}`,
+                  color: isActive ? c.accent : '#6b4f35',
+                  boxShadow: isActive ? `0 2px 10px ${c.accent}30` : 'none',
                 }}>
-                  <span>{c.icon}</span>
+                  <span style={{ fontSize:15 }}>{c.icon}</span>
                   <span>{lang==='vi' ? c.label.vi : c.label.en}</span>
                 </button>
               )
@@ -550,25 +600,35 @@ export function VotePage() {
         {/* ── Right: category panel ── */}
         <div ref={contentRef} style={{
           flex:1, minWidth:0,
-          padding: isMobile ? '24px 16px 60px' : '32px 32px 72px',
+          padding: isMobile ? '16px 12px 72px' : '32px 32px 72px',
         }}>
           {/* Section header */}
-          <div style={{ marginBottom:24, paddingBottom:18,
+          <div style={{ marginBottom: isMobile ? 16 : 24, paddingBottom: isMobile ? 14 : 18,
             borderBottom:'1px solid rgba(255,248,240,0.07)' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-              <span style={{ fontSize:30 }}>{cat.icon}</span>
+            <div style={{ display:'flex', alignItems:'center', gap: isMobile ? 10 : 14 }}>
+              <span style={{ fontSize: isMobile ? 22 : 30 }}>{cat.icon}</span>
               <div>
-                <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:28,
+                <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif",
+                  fontSize: isMobile ? 20 : 28,
                   fontWeight:900, color:'#f1f5f9', margin:0, letterSpacing:.5 }}>
                   {lang==='vi' ? cat.label.vi : cat.label.en}
                 </h2>
-                <p style={{ fontSize:12, color:'#6b4f35', margin:'4px 0 0',
-                  fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  {lang==='vi' ? cat.desc.vi : cat.desc.en}
-                  {' · '}
-                  <span style={{ color: cat.accent }}>{monthLabel} {year}</span>
-                </p>
+                {!isMobile && (
+                  <p style={{ fontSize:12, color:'#6b4f35', margin:'4px 0 0',
+                    fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                    {lang==='vi' ? cat.desc.vi : cat.desc.en}
+                    {' · '}
+                    <span style={{ color: cat.accent }}>{monthLabel} {year}</span>
+                  </p>
+                )}
               </div>
+              {isMobile && (
+                <span style={{ marginLeft:'auto', fontSize:11, color: cat.accent,
+                  background:`${cat.accent}15`, padding:'3px 10px', borderRadius:20,
+                  fontWeight:700, whiteSpace:'nowrap', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {monthLabel}
+                </span>
+              )}
             </div>
           </div>
 
@@ -576,7 +636,7 @@ export function VotePage() {
           <CategoryPanel
             key={activeCat}
             cat={cat} month={month} year={year}
-            lang={lang} token={token} t={t}
+            lang={lang} token={token} t={t} isMobile={isMobile}
           />
         </div>
       </div>
