@@ -421,8 +421,8 @@ export function MangaDetailPage({ mangaId }) {
               const isActive = activeTab === tab.key
               return (
                 <button key={tab.key} onClick={()=>toggleTab(tab.key)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:6,
-                  padding:'7px 14px', borderRadius:20, background: isActive ? ACCENT : 'rgba(244,63,94,0.07)',
-                  border:'none', cursor:'pointer', color: isActive ? '#fff' : '#5a2030',
+                  padding:'7px 14px', borderRadius:20, background: isActive ? ACCENT : 'rgba(255,248,240,0.07)',
+                  border:'none', cursor:'pointer', color: isActive ? '#fff' : '#a08060',
                   fontSize:12, fontWeight: isActive ? 700 : 500, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   <span>{tab.icon}</span><span>{lang==='vi'?tab.vi:tab.en}</span>
                   {tab.badge > 0 && <span style={{ background:'rgba(0,0,0,0.25)', borderRadius:10, padding:'0 5px', fontSize:10 }}>{tab.badge}</span>}
@@ -446,7 +446,7 @@ export function MangaDetailPage({ mangaId }) {
       ) : (
         <div>
           {activeTab && (
-            <div style={{ borderBottom:'1px solid rgba(244,63,94,0.07)', background:'rgba(244,63,94,0.01)' }}>
+            <div style={{ borderBottom:'1px solid rgba(255,248,240,0.08)', background:'rgba(255,248,240,0.02)' }}>
               <div style={{ display:'flex' }}>
                 <div style={{ width:196, flexShrink:0 }} />
                 <div style={{ flex:1, padding:'24px 32px 28px', minWidth:0 }}>
@@ -457,7 +457,7 @@ export function MangaDetailPage({ mangaId }) {
           )}
           <div style={{ display:'flex', alignItems:'flex-start' }}>
             <aside style={{ width:196, flexShrink:0, position:'sticky', top:56, alignSelf:'flex-start',
-              borderRight:'1px solid rgba(244,63,94,0.07)', background:BG_DARK, zIndex:10, paddingTop:24 }}>
+              borderRight:'1px solid rgba(255,248,240,0.08)', background:'#0f0b09', zIndex:10, paddingTop:24 }}>
               {TABS.map(tab => {
                 const isActive = activeTab === tab.key
                 return (
@@ -465,16 +465,16 @@ export function MangaDetailPage({ mangaId }) {
                     padding:'10px 14px', background: isActive ? `${ACCENT}18` : 'none', border:'none',
                     borderRight: isActive ? `3px solid ${ACCENT}` : '3px solid transparent',
                     borderRadius:'8px 0 0 8px', cursor:'pointer', transition:'all 0.15s', marginBottom:2, textAlign:'left' }}
-                    onMouseEnter={e=>!isActive&&(e.currentTarget.style.background='rgba(244,63,94,0.04)')}
+                    onMouseEnter={e=>!isActive&&(e.currentTarget.style.background='rgba(255,248,240,0.04)')}
                     onMouseLeave={e=>!isActive&&(e.currentTarget.style.background='none')}>
                     <span style={{ fontSize:14, flexShrink:0 }}>{tab.icon}</span>
                     <span style={{ flex:1, fontSize:13, fontWeight: isActive ? 700 : 500,
-                      color: isActive ? '#FDA4AF' : '#5a2030', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                      color: isActive ? '#FDA4AF' : '#a08060', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                       {lang==='vi'?tab.vi:tab.en}
                     </span>
                     {tab.badge > 0 && (
-                      <span style={{ background: isActive ? ACCENT : 'rgba(244,63,94,0.1)',
-                        color: isActive ? '#fff' : '#5a2030', fontSize:10, fontWeight:700,
+                      <span style={{ background: isActive ? ACCENT : 'rgba(255,248,240,0.1)',
+                        color: isActive ? '#fff' : '#a08060', fontSize:10, fontWeight:700,
                         padding:'1px 6px', borderRadius:10, fontFamily:"'Barlow Condensed',sans-serif" }}>{tab.badge}</span>
                     )}
                   </button>
