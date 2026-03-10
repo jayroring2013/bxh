@@ -13,8 +13,8 @@ export function AnimeModal({ anime, onClose }) {
   const title  = anime.title_english || anime.title_romaji || anime.title?.english || anime.title?.romaji
   const romaji = anime.title_romaji  || anime.title?.romaji
   const native = anime.title_native  || anime.title?.native
-  const cover  = anime.cover_large   || anime.coverImage?.extraLarge || anime.coverImage?.large
-  const banner = anime.banner_image  || anime.bannerImage
+  const cover  = anime.cover_url || anime.cover_large || anime.coverImage?.extraLarge || anime.coverImage?.large
+  const banner = anime.banner_url || anime.banner_image || anime.bannerImage
   const desc   = (anime.description  || '').replace(/<[^>]*>/g, '')
   const studio = anime.studio        || anime.studios?.nodes?.[0]?.name
   const score  = anime.average_score ?? anime.averageScore
