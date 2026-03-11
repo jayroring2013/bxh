@@ -255,9 +255,7 @@ export function QuickAddButton({ itemId, itemType, title, coverUrl }) {
 
   const entries  = getItemEntries(String(itemId), itemType)
   const isAdded  = entries.length > 0
-  const label    = isAdded
-    ? (lang === 'vi' ? '✓ Danh sách' : '✓ Listed')
-    : (lang === 'vi' ? '+ Danh sách' : '+ List')
+  const label = isAdded ? '✓' : '+'
 
   return (
     <>
@@ -268,11 +266,12 @@ export function QuickAddButton({ itemId, itemType, title, coverUrl }) {
           background: isAdded ? 'rgba(74,222,94,0.2)' : 'rgba(139,92,246,0.85)',
           border: `1px solid ${isAdded ? 'rgba(74,222,94,0.5)' : 'rgba(139,92,246,0.6)'}`,
           color: isAdded ? '#4ADE80' : '#fff',
-          borderRadius: 8, padding: '5px 10px', cursor: 'pointer',
-          fontSize: 11, fontWeight: 700, backdropFilter: 'blur(8px)',
-          fontFamily: "'Be Vietnam Pro', sans-serif",
+          borderRadius: 7, width: 26, height: 26,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', fontSize: 15, fontWeight: 700,
+          backdropFilter: 'blur(8px)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-          transition: 'all 0.2s', whiteSpace: 'nowrap',
+          transition: 'all 0.2s', padding: 0,
         }}
       >{label}</button>
 
