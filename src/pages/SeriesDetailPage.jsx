@@ -380,10 +380,11 @@ function PlaceholderPanel({ icon, text }) {
 }
 
 // ── Horizontal scroll carousel ────────────────────────────────────
-function SectionCarousel({ title, children, count }) {
+function SectionCarousel({ title, children, count, loading }) {
   const ref = useRef(null)
   const scroll = dir => ref.current?.scrollBy({ left: dir * 700, behavior: 'smooth' })
-  if (!children || (Array.isArray(children) && children.length === 0)) return null
+  // Hide only when not loading AND children is genuinely empty
+  if (!loading && (!children || (Array.isArray(children) && children.length === 0))) return null
 
   return (
     <section style={{ marginBottom: 48 }}>
@@ -921,7 +922,7 @@ export function SeriesDetailPage({ seriesId }) {
 
           {/* Mobile carousels */}
           <div style={{ padding: '24px 0 0' }}>
-            <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length}>
+            <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length} loading={loadingVols}>
               {loadingVols
                 ? Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} style={{ width:120, height:180, borderRadius:10, flexShrink:0,
@@ -1010,7 +1011,7 @@ export function SeriesDetailPage({ seriesId }) {
 
             {/* Carousels in right column */}
             <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', padding: '32px 16px 48px' }}>
-              <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length}>
+              <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length} loading={loadingVols}>
                 {loadingVols
                   ? Array.from({ length: 6 }).map((_, i) => (
                       <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
