@@ -281,9 +281,9 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
                 background: '#1a1a2e', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
                 transform: 'translateZ(0)',
-                WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+                isolation: 'isolate',
               }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px) scale(1.03)'; e.currentTarget.style.boxShadow = `0 16px 40px ${accent}44` }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px) scale(1.03) translateZ(0)'; e.currentTarget.style.boxShadow = `0 16px 40px ${accent}44` }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'translateZ(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)' }}
               >
                 <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, width: 24, height: 24,
@@ -295,16 +295,16 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
                   color: i < 3 ? '#000' : '#fff',
                 }}>#{i+1}</div>
                 {s.cover_url
-                  ? <img src={s.cover_url} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  ? <img src={s.cover_url} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}
                       onError={e => e.target.style.display='none'} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center',
-                      justifyContent: 'center' }}>
+                      justifyContent: 'center', borderRadius: 14 }}>
                       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                       </svg>
                     </div>
                 }
-                <div style={{ position: 'absolute', inset: 0,
+                <div style={{ position: 'absolute', inset: 0, borderRadius: 14,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)' }} />
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 8 }}>
                   <div style={{ fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: 600,
