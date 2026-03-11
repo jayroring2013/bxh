@@ -731,99 +731,100 @@ export function SeriesDetailPage({ seriesId }) {
               </div>
             )}
 
-            {/* Stats chips */}
-            <div style={{ display:'flex', gap: 16, marginBottom: 20, flexWrap:'wrap' }}>
-              {/* Volume count chip */}
-              <div style={{
-                textAlign:'center', background:'rgba(255,248,240,0.04)',
-                border:'1px solid rgba(255,248,240,0.08)', borderRadius: 12,
-                padding: '8px 16px', minWidth: 70,
-              }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#C4B5FD',
-                  fontFamily:"'Barlow Condensed',sans-serif" }}>
-                  {loadingVols ? '…' : (volCount ?? '?')}
-                </div>
-                <div style={{ fontSize: 10, color: '#a08060', fontWeight: 600, letterSpacing: 0.8,
-                  textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  {lang==='vi'?'Tập':'Volumes'}
-                </div>
-              </div>
+            {/* ── Unified metadata strip ── */}
+            <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap: '6px 0', marginBottom: 20 }}>
+              {/* NU Score */}
+              {(series.score != null || nuData?.nu_rating) && (() => {
+                const score = series.score != null ? Number(series.score).toFixed(1) : nuData.nu_rating
+                return (
+                  <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: '#FBBF24', fontFamily:"'Barlow Condensed',sans-serif", letterSpacing: 0.3 }}>{score}</span>
+                    <span style={{ fontSize: 10, color: '#6b5030', fontFamily:"'Be Vietnam Pro',sans-serif", marginLeft: 2 }}>NU</span>
+                    <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
+                  </div>
+                )
+              })()}
 
-              {/* Publisher chip — clickable → filter by publisher */}
-              <div onClick={() => {
-                  window.location.hash = '#/novels'
-                  setTimeout(() => window.dispatchEvent(new CustomEvent('nt:filter', {
-                    detail: { publisher: series.publisher }
-                  })), 80)
-                }}
-                style={{
-                  textAlign:'center', background:'rgba(255,248,240,0.04)',
-                  border:'1px solid rgba(255,248,240,0.08)', borderRadius: 12,
-                  padding: '8px 16px', minWidth: 70,
-                  cursor: series.publisher ? 'pointer' : 'default',
-                  transition: 'background 0.15s, border-color 0.15s',
-                }}
-                onMouseEnter={e => { if (series.publisher) { e.currentTarget.style.background='rgba(139,92,246,0.12)'; e.currentTarget.style.borderColor='rgba(139,92,246,0.35)' }}}
-                onMouseLeave={e => { e.currentTarget.style.background='rgba(255,248,240,0.04)'; e.currentTarget.style.borderColor='rgba(255,248,240,0.08)' }}
-              >
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#C4B5FD',
-                  fontFamily:"'Barlow Condensed',sans-serif" }}>
-                  {series.publisher || '—'}
+              {/* Volumes */}
+              {(loadingVols || volCount != null) && (
+                <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                  </svg>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#C4B5FD', fontFamily:"'Barlow Condensed',sans-serif" }}>
+                    {loadingVols ? '…' : volCount}
+                  </span>
+                  <span style={{ fontSize: 10, color: '#6b5030', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                    {lang === 'vi' ? 'tập' : 'vols'}
+                  </span>
+                  <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
                 </div>
-                <div style={{ fontSize: 10, color: '#a08060', fontWeight: 600, letterSpacing: 0.8,
-                  textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  NPH
-                </div>
-              </div>
+              )}
 
-              {/* NU Score chip */}
-              <div style={{
-                textAlign:'center', background:'rgba(255,248,240,0.04)',
-                border:'1px solid rgba(255,248,240,0.08)', borderRadius: 12,
-                padding: '8px 16px', minWidth: 70,
-              }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#FBBF24',
-                  fontFamily:"'Barlow Condensed',sans-serif" }}>
-                  {series.score != null
-                    ? `★ ${Number(series.score).toFixed(1)}`
-                    : nuData?.nu_rating ? `★ ${nuData.nu_rating}` : 'N/A'}
+              {/* Publisher */}
+              {series.publisher && (
+                <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                  </svg>
+                  <button onClick={() => {
+                    window.location.hash = '#/novels'
+                    setTimeout(() => window.dispatchEvent(new CustomEvent('nt:filter', { detail: { publisher: series.publisher } })), 80)
+                  }} style={{
+                    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                    fontSize: 13, fontWeight: 600, color: '#94A3B8',
+                    fontFamily:"'Be Vietnam Pro',sans-serif",
+                    textDecoration: 'underline', textDecorationColor: 'rgba(148,163,184,0.3)',
+                    textUnderlineOffset: 3, transition: 'color 0.15s',
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.color='#C4B5FD'}
+                    onMouseLeave={e => e.currentTarget.style.color='#94A3B8'}
+                  >{series.publisher}</button>
+                  <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
                 </div>
-                <div style={{ fontSize: 10, color: '#a08060', fontWeight: 600, letterSpacing: 0.8,
-                  textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  NU_SCORE
-                </div>
-              </div>
-            </div>
+              )}
 
-            {/* ── Stats bar (views / bookmarks / rating) ── */}
-            <div style={{ display:'flex', gap: 20, marginBottom: 18, flexWrap:'wrap' }}>
               {/* Views */}
-              <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                </svg>
-                <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  {seriesStats?.views != null ? Number(seriesStats.views).toLocaleString() : '—'}
-                </span>
-              </div>
+              {seriesStats?.views != null && (
+                <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                    {Number(seriesStats.views).toLocaleString()}
+                  </span>
+                  <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
+                </div>
+              )}
+
               {/* Bookmarks */}
-              <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
-                </svg>
-                <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  {seriesStats?.bookmarks != null ? Number(seriesStats.bookmarks).toLocaleString() : '—'}
-                </span>
-              </div>
+              {seriesStats?.bookmarks != null && (
+                <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                  </svg>
+                  <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                    {Number(seriesStats.bookmarks).toLocaleString()}
+                  </span>
+                  <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
+                </div>
+              )}
+
               {/* Community rating */}
-              <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>
-                <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  {seriesStats?.avg_rating ? `${Number(seriesStats.avg_rating).toFixed(1)} (${seriesStats.rating_count})` : '—'}
-                </span>
-              </div>
+              {seriesStats?.avg_rating && (
+                <div style={{ display:'flex', alignItems:'center', gap: 5 }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                    {Number(seriesStats.avg_rating).toFixed(1)}
+                    <span style={{ opacity: 0.5, marginLeft: 3 }}>({seriesStats.rating_count})</span>
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Description */}
