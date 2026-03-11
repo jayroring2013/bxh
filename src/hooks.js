@@ -890,6 +890,8 @@ export function useUserRating(seriesId, userToken) {
 
   const submitRating = async (stars) => {
     if (!userToken || saving) return
+    const value = Math.round(stars * 2) / 2  // snap to nearest 0.5
+    if (value < 0.5 || value > 5) return
     setSaving(true)
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/series_ratings`, {
@@ -900,9 +902,9 @@ export function useUserRating(seriesId, userToken) {
           'Content-Type': 'application/json',
           Prefer: 'resolution=merge-duplicates,return=minimal',
         },
-        body: JSON.stringify({ series_id: seriesId, rating: stars }),
+        body: JSON.stringify({ series_id: seriesId, rating: value }),
       })
-      setRating(stars)
+      setRating(value)
     } catch (e) {
       console.error('Rating submit failed:', e)
     } finally {
