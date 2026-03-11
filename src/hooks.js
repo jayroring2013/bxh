@@ -843,3 +843,72 @@ export function useMangaRelated(seriesId, genres) {
 
   return { related, recs }
 }
+
+/* ── Series stats (views, bookmarks, avg rating) ─────────────── */
+export function useSeriesStats(seriesId) {
+  const [stats, setStats] = useState(null)
+
+  useEffect(() => {
+    if (!seriesId) return
+    sbFetch('series_stats_view', `series_id=eq.${seriesId}&select=views,bookmarks,avg_rating,rating_count`)
+      .then(rows => setStats(rows[0] || null))
+      .catch(() => {})
+
+    // fire-and-forget view increment
+    fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_series_view`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON,
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ p_series_id: seriesId }),
+    }).catch(() => {})
+  }, [seriesId])
+
+  return stats
+}
+
+/* ── User's own rating for a series ─────────────────────────── */
+export function useUserRating(seriesId, userToken) {
+  const [rating,    setRating]    = useState(null)   // 1-5 or null
+  const [saving,    setSaving]    = useState(false)
+  const [hovered,   setHovered]   = useState(0)
+
+  useEffect(() => {
+    if (!seriesId || !userToken) { setRating(null); return }
+    fetch(`${SUPABASE_URL}/rest/v1/series_ratings?series_id=eq.${seriesId}&select=rating`, {
+      headers: {
+        apikey:        SUPABASE_ANON,
+        Authorization: `Bearer ${userToken}`,
+      },
+    })
+      .then(r => r.json())
+      .then(rows => setRating(rows[0]?.rating ?? null))
+      .catch(() => {})
+  }, [seriesId, userToken])
+
+  const submitRating = async (stars) => {
+    if (!userToken || saving) return
+    setSaving(true)
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/series_ratings`, {
+        method: 'POST',
+        headers: {
+          apikey:        SUPABASE_ANON,
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates,return=minimal',
+        },
+        body: JSON.stringify({ series_id: seriesId, rating: stars }),
+      })
+      setRating(stars)
+    } catch (e) {
+      console.error('Rating submit failed:', e)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return { rating, hovered, setHovered, submitRating, saving }
+}
