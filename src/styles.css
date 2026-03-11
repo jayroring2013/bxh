@@ -103,6 +103,9 @@ input::placeholder {
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
               box-shadow 0.35s ease;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  /* Fix for border-radius clipping on hover */
+  transform: translateZ(0);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .novel-card:hover {
@@ -243,6 +246,9 @@ input::placeholder {
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
               box-shadow 0.35s ease;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  /* Fix for border-radius clipping on hover */
+  transform: translateZ(0);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .anime-card:hover {
@@ -725,7 +731,7 @@ input::placeholder {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%; /* Changed from 100vw to fix mobile scaling/horizontal scroll */
   height: 100vh;
   z-index: 9999;
   background: rgba(0, 0, 0, 0.88);
