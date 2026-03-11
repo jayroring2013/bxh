@@ -63,7 +63,7 @@ const refreshToken = async (refresh) => {
 // ── Provider ──────────────────────────────────────────────────
 export function AuthProvider({ children }) {
   const [user,    setUser]    = useState(null)
-  const [token,   setToken]   = useState(null)
+  const [token,   setToken]   = useState(() => localStorage.getItem(TOKEN_KEY))
   const [loading, setLoading] = useState(true)
   const refreshTimer = useRef(null)
 
