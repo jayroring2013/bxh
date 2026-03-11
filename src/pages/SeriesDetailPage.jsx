@@ -624,8 +624,8 @@ export function SeriesDetailPage({ seriesId }) {
     series?.genres,
     series?.publisher
   )
-  const seriesStats  = useSeriesStats(seriesId)
-  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(seriesId, token)
+  const { stats: seriesStats, refreshStats } = useSeriesStats(seriesId)
+  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(seriesId, token, user?.id, refreshStats)
 
   const [descExpanded, setDescExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
