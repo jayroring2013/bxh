@@ -326,8 +326,8 @@ export function MangaDetailPage({ mangaId }) {
   const { user, token } = useAuth()
   const { manga, loading, error } = useMangaById(mangaId)
   const { related, recs } = useMangaRelated(manga?.id, manga?.genres)
-  const seriesStats = useSeriesStats(manga?.id || null)
-  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(manga?.id || null, token)
+  const { stats: seriesStats, refreshStats } = useSeriesStats(manga?.id || null)
+  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(manga?.id || null, token, user?.id, refreshStats)
 
   const [descExpanded, setDescExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
