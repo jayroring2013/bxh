@@ -245,22 +245,110 @@ function QuickAddPopup({ itemId, itemType, title, coverUrl, onClose }) {
   )
 }
 
+// ── Auth prompt shown to guests ──────────────────────────────────
+function GuestAuthPrompt({ onClose }) {
+  const { lang } = useLang()
+  const T = {
+    title:   lang === 'vi' ? 'Bạn chưa đăng nhập'               : 'You\'re not signed in',
+    body:    lang === 'vi' ? 'Đăng nhập hoặc tạo tài khoản để lưu danh sách của bạn.' : 'Sign in or create an account to save series to your list.',
+    login:   lang === 'vi' ? 'Đăng nhập'                         : 'Sign In',
+    signup:  lang === 'vi' ? 'Đăng ký'                           : 'Sign Up',
+  }
+
+  const go = (mode) => {
+    onClose()
+    // Fires a custom event that AppHeader listens for to open its AuthModal
+    window.dispatchEvent(new CustomEvent('nt:open-auth', { detail: { mode } }))
+  }
+
+  return createPortal(
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 2000,
+      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'linear-gradient(160deg,#0e0520,#120828)',
+        border: '1px solid rgba(139,92,246,0.25)',
+        borderRadius: 20, padding: '32px 28px', width: 320, textAlign: 'center',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.8)',
+      }}>
+        {/* Icon */}
+        <div style={{
+          width: 52, height: 52, borderRadius: 16, margin: '0 auto 16px',
+          background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+
+        <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 20,
+          fontWeight: 700, color: '#f1f5f9', marginBottom: 10, letterSpacing: 0.5 }}>
+          {T.title}
+        </div>
+        <div style={{ fontFamily: "'Be Vietnam Pro',sans-serif", fontSize: 13,
+          color: '#6b7280', lineHeight: 1.6, marginBottom: 24 }}>
+          {T.body}
+        </div>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => go('login')} style={{
+            flex: 1, padding: '11px 0', borderRadius: 12, border: '1px solid rgba(139,92,246,0.4)',
+            background: 'rgba(139,92,246,0.12)', color: '#A78BFA',
+            fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            fontFamily: "'Be Vietnam Pro',sans-serif", transition: 'all 0.2s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(139,92,246,0.22)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(139,92,246,0.12)'}
+          >{T.login}</button>
+          <button onClick={() => go('register')} style={{
+            flex: 1, padding: '11px 0', borderRadius: 12, border: 'none',
+            background: 'linear-gradient(135deg,#7C3AED,#6D28D9)',
+            color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            fontFamily: "'Be Vietnam Pro',sans-serif",
+            boxShadow: '0 4px 16px rgba(124,58,237,0.4)', transition: 'all 0.2s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >{T.signup}</button>
+        </div>
+
+        <button onClick={onClose} style={{
+          marginTop: 14, background: 'none', border: 'none',
+          color: '#4b5563', fontSize: 12, cursor: 'pointer',
+          fontFamily: "'Be Vietnam Pro',sans-serif",
+        }}>
+          {lang === 'vi' ? 'Để sau' : 'Maybe later'}
+        </button>
+      </div>
+    </div>,
+    document.getElementById('modal-root')
+  )
+}
+
 export function QuickAddButton({ itemId, itemType, title, coverUrl }) {
-  const { user }        = useAuth()
+  const { user }           = useAuth()
   const { getItemEntries } = useUserList()
-  const [open, setOpen] = useState(false)
-  const { lang }        = useLang()
+  const [open, setOpen]    = useState(false)
+  const [authPrompt, setAuthPrompt] = useState(false)
 
-  if (!user) return null
+  // Always render — guests see the button too
+  const entries = user ? getItemEntries(String(itemId), itemType) : []
+  const isAdded = entries.length > 0
+  const label   = isAdded ? '✓' : '+'
 
-  const entries  = getItemEntries(String(itemId), itemType)
-  const isAdded  = entries.length > 0
-  const label = isAdded ? '✓' : '+'
+  const handleClick = (e) => {
+    e.stopPropagation()
+    if (!user) { setAuthPrompt(true) }
+    else       { setOpen(true) }
+  }
 
   return (
     <>
       <button
-        onClick={e => { e.stopPropagation(); setOpen(true) }}
+        onClick={handleClick}
         style={{
           position: 'absolute', bottom: 10, right: 10, zIndex: 10,
           background: isAdded ? 'rgba(74,222,94,0.2)' : 'rgba(139,92,246,0.85)',
@@ -282,6 +370,8 @@ export function QuickAddButton({ itemId, itemType, title, coverUrl }) {
           onClose={() => setOpen(false)}
         />
       )}
+
+      {authPrompt && <GuestAuthPrompt onClose={() => setAuthPrompt(false)} />}
     </>
   )
 }
