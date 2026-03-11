@@ -4,10 +4,10 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useLang } from '../context/LangContext.jsx'
 import { PURPLE } from '../constants.js'
 
-export function AuthModal({ onClose }) {
+export function AuthModal({ onClose, initialMode = 'login' }) {
   const { signIn, signUp, signInWithGoogle } = useAuth()
   const { lang } = useLang()
-  const [mode,     setMode]     = useState('login')   // 'login' | 'register'
+  const [mode,     setMode]     = useState(initialMode)   // 'login' | 'register'
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [error,    setError]    = useState(null)
