@@ -32,7 +32,28 @@ function SeriesSaveButton({ seriesId, title, coverUrl }) {
   const [newName, setNewName] = useState('')
   const [showNew, setShowNew] = useState(false)
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent('nt:open-auth', { detail: { mode: 'login' } }))}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '12px 28px', borderRadius: 12, cursor: 'pointer',
+          fontSize: 15, fontWeight: 700,
+          fontFamily: "'Be Vietnam Pro', sans-serif",
+          border: 'none',
+          background: `linear-gradient(135deg, ${PURPLE}, #6366F1)`,
+          color: '#fff',
+          boxShadow: `0 6px 20px ${PURPLE}50`,
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = '' }}
+      >
+        {lang === 'vi' ? '+ Thêm vào danh sách' : '+ Add to list'}
+      </button>
+    )
+  }
 
   const entries = getItemEntries(String(seriesId), 'novel')
   const isSaved = entries.length > 0
