@@ -426,63 +426,80 @@ export function NovelsPage() {
         )}
       </div>
 
-      {/* Browse toolbar — search + filter + sort, all in one row */}
+      {/* Browse toolbar */}
       {isBrowsing && (
-        <div style={{ background: 'rgba(255,255,255,0.02)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '10px 16px' }}>
-          <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex',
-            flexDirection: 'column', gap: 8 }}>
+        <div style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '10px 16px' }}>
+          <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
 
-            {/* Row 1: Search (full width on mobile, capped on desktop) */}
-            <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : 480 }}>
-              <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
-                opacity: 0.4, pointerEvents: 'none' }}
-                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                className="nt-search-input"
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                placeholder={lang === 'vi' ? 'Tìm tên novel...' : 'Search title...'}
-                style={{
-                  width: '100%', boxSizing: 'border-box',
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 10, padding: '8px 32px 8px 32px',
-                  color: '#f1f5f9', fontSize: 13, outline: 'none',
+            {/* Back button — its own prominent row on both desktop and mobile */}
+            {!searchInput && !hasActiveFilters && (
+              <div>
+                <button onClick={() => setBrowseMode(false)} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 9, padding: '6px 14px', cursor: 'pointer',
+                  color: '#CBD5E1', fontSize: 13, fontWeight: 600,
                   fontFamily: "'Be Vietnam Pro', sans-serif",
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                  transition: 'background 0.15s, border-color 0.15s',
                 }}
-                onFocus={e => { e.target.style.borderColor = PURPLE + '70'; e.target.style.boxShadow = `0 0 0 3px ${PURPLE}18` }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }}
-              />
-              {searchInput && (
-                <button onClick={() => setSearchInput('')} style={{
-                  position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 16, lineHeight: 1,
-                }}>×</button>
-              )}
-            </div>
+                  onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.2)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.1)' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                  {lang === 'vi' ? 'Quay lại trang chính' : 'Back to discovery'}
+                </button>
+              </div>
+            )}
 
-            {/* Row 2: Filters + Sort + Back — all on one row, evenly spaced */}
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {/* Search + Filters on same row; Sort on right */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+
+              {/* Search — full width on mobile, flex-grows on desktop */}
+              <div style={{ position: 'relative', flex: '1 1 200px', minWidth: isMobile ? '100%' : 160, order: 0 }}>
+                <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none' }}
+                  width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input
+                  className="nt-search-input"
+                  value={searchInput}
+                  onChange={e => setSearchInput(e.target.value)}
+                  placeholder={lang === 'vi' ? 'Tìm tên novel...' : 'Search title...'}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 10, padding: '8px 32px 8px 32px',
+                    color: '#f1f5f9', fontSize: 13, outline: 'none',
+                    fontFamily: "'Be Vietnam Pro', sans-serif",
+                    transition: 'border-color 0.15s, box-shadow 0.15s',
+                  }}
+                  onFocus={e => { e.target.style.borderColor = PURPLE + '70'; e.target.style.boxShadow = `0 0 0 3px ${PURPLE}18` }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }}
+                />
+                {searchInput && (
+                  <button onClick={() => setSearchInput('')} style={{
+                    position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 16, lineHeight: 1,
+                  }}>×</button>
+                )}
+              </div>
+
+              {/* Filters — right next to search */}
               <AdvancedFilter
                 status={status} publisher={publisher} genre={genre}
                 onStatus={setStatus} onPublisher={setPublisher} onGenre={setGenre}
                 statusOptions={STATUS_OPTIONS} publisherOptions={PUBLISHER_OPTIONS} genreOptions={GENRE_OPTIONS}
                 hasActive={hasActiveFilters} onClear={clearFilters} accent={PURPLE} lang={lang} isMobile={isMobile} />
-              <div style={{ flex: 1 }} />
+
+              {/* Spacer pushes sort to the right on desktop; on mobile sort is on same row as filter */}
+              {!isMobile && <div style={{ flex: 1 }} />}
+
+              {/* Sort */}
               <SortDropdown value={sort} options={NOVEL_SORTS} onChange={setSort} accent={PURPLE} />
-              {!searchInput && !hasActiveFilters && (
-                <button onClick={() => setBrowseMode(false)} style={{
-                  background: 'none', border: 'none', color: '#64748B', cursor: 'pointer',
-                  fontSize: 12, fontWeight: 600, fontFamily: "'Be Vietnam Pro', sans-serif",
-                  display: 'flex', alignItems: 'center', gap: 4, padding: '4px 0', flexShrink: 0,
-                }}>
-                  <BackIcon /> {lang === 'vi' ? 'Quay lại' : 'Back'}
-                </button>
-              )}
             </div>
+
           </div>
         </div>
       )}
