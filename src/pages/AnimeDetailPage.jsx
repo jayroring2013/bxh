@@ -337,8 +337,8 @@ export function AnimeDetailPage({ animeId }) {
   const { anime, loading, error } = useAnimeById(animeId)
   const { related, recs } = useAnimeRelated(anime?.id, anime?.genres)
   const links = useSeriesLinks(anime?.id || null)
-  const seriesStats = useSeriesStats(anime?.id || null)
-  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(anime?.id || null, token)
+  const { stats: seriesStats, refreshStats } = useSeriesStats(anime?.id || null)
+  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(anime?.id || null, token, user?.id, refreshStats)
 
   const [descExpanded, setDescExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
