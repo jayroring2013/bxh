@@ -456,8 +456,8 @@ export function NovelsPage() {
             {/* Search + Filters on same row; Sort on right */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
 
-              {/* Search — full width on mobile, flex-grows on desktop */}
-              <div style={{ position: 'relative', flex: '1 1 200px', minWidth: isMobile ? '100%' : 160, order: 0 }}>
+              {/* Search — full width on mobile, capped on desktop */}
+              <div style={{ position: 'relative', width: isMobile ? '100%' : 280, flexShrink: 0 }}>
                 <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none' }}
                   width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5">
                   <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -493,8 +493,8 @@ export function NovelsPage() {
                 statusOptions={STATUS_OPTIONS} publisherOptions={PUBLISHER_OPTIONS} genreOptions={GENRE_OPTIONS}
                 hasActive={hasActiveFilters} onClear={clearFilters} accent={PURPLE} lang={lang} isMobile={isMobile} />
 
-              {/* Spacer pushes sort to the right on desktop; on mobile sort is on same row as filter */}
-              {!isMobile && <div style={{ flex: 1 }} />}
+              {/* Spacer — pushes sort right on both desktop and mobile */}
+              <div style={{ flex: 1 }} />
 
               {/* Sort */}
               <SortDropdown value={sort} options={NOVEL_SORTS} onChange={setSort} accent={PURPLE} />
