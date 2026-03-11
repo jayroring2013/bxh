@@ -787,10 +787,10 @@ export function SeriesDetailPage({ seriesId }) {
                       onClick={() => { if (starHovered) submitRating(starHovered) }}
                       disabled={ratingSaving}
                       style={{
-                        width: '100%', padding: '8px 0', borderRadius: 10,
+                        width: '100%', padding: '12px 0', borderRadius: 12,
                         background: userRating ? 'rgba(251,191,36,0.15)' : `linear-gradient(135deg,${PURPLE},#6366F1)`,
                         color: userRating ? '#FBBF24' : '#fff',
-                        fontSize: 13, fontWeight: 700, cursor: ratingSaving ? 'wait' : 'pointer',
+                        fontSize: 15, fontWeight: 700, cursor: ratingSaving ? 'wait' : 'pointer',
                         fontFamily: "'Be Vietnam Pro',sans-serif",
                         boxShadow: userRating ? 'none' : `0 4px 14px ${PURPLE}50`,
                         transition: 'all 0.2s',
@@ -806,14 +806,14 @@ export function SeriesDetailPage({ seriesId }) {
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('nt:open-auth', { detail: { mode: 'login' } }))}
                     style={{
-                      width: '100%', padding: '8px 0', borderRadius: 10, border: `1px solid rgba(251,191,36,0.25)`,
+                      width: '100%', padding: '12px 0', borderRadius: 12, border: `1px solid rgba(251,191,36,0.25)`,
                       background: 'rgba(251,191,36,0.08)', color: '#FBBF24',
-                      fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                      fontSize: 15, fontWeight: 700, cursor: 'pointer',
                       fontFamily: "'Be Vietnam Pro',sans-serif",
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
                     {lang === 'vi' ? 'Đánh giá' : 'Rate it'}
