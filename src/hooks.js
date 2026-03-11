@@ -854,16 +854,20 @@ export function useSeriesStats(seriesId) {
       .then(rows => setStats(rows[0] || null))
       .catch(() => {})
 
-    // fire-and-forget view increment
-    fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_series_view`, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON,
-        Authorization: `Bearer ${SUPABASE_ANON}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ p_series_id: seriesId }),
-    }).catch(() => {})
+    // Count view once per browser session per series (sessionStorage resets on tab close)
+    const key = `nt_viewed_${seriesId}`
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, '1')
+      fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_series_view`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON,
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ p_series_id: seriesId }),
+      }).catch(() => {})
+    }
   }, [seriesId])
 
   return stats
