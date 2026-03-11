@@ -9,6 +9,7 @@ export function NovelCard({ series, rank, onClick }) {
   const handleClick = onClick
     ? () => onClick(series)
     : () => { window.location.hash = seriesUrl(series) }
+
   // New series table shape: id, title, cover_url, description, publisher, author,
   // genres (array), score, status, external_id
   const cover  = series.cover_url || null
@@ -18,13 +19,12 @@ export function NovelCard({ series, rank, onClick }) {
   const desc   = typeof series.description === 'object'
     ? series.description?.en
     : series.description || null
-
   const statusBg = novelStatusColor(status)
 
   return (
     <div className="novel-card" onClick={handleClick}>
       <RankBadge rank={rank} />
-
+      
       {/* Status badge — only show non-ongoing */}
       {status && status !== 'ongoing' && (
         <div className="status-badge" style={{ background: statusBg }}>
@@ -75,7 +75,8 @@ export function NovelCard({ series, rank, onClick }) {
       </div>
 
       <QuickAddButton
-        itemId={series.id} itemType="novel"
+        itemId={series.id} 
+        itemType="novel"
         title={title}
         coverUrl={cover}
       />
