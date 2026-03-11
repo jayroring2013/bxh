@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLang } from '../context/LangContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { AuthModal } from './AuthModal.jsx'
@@ -115,7 +115,15 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
   const { t, lang, toggleLang } = useLang()
   const { user, signOut } = useAuth()
   const [showAuth,    setShowAuth]    = useState(false)
+  const [authMode,    setAuthMode]    = useState('login')
   const [showUserMenu, setShowUserMenu] = useState(false)
+
+  // Listen for guest auth prompt from QuickAddButton (and other components)
+  useEffect(() => {
+    const fn = e => { setAuthMode(e.detail?.mode || 'login'); setShowAuth(true) }
+    window.addEventListener('nt:open-auth', fn)
+    return () => window.removeEventListener('nt:open-auth', fn)
+  }, [])
 
   // Lucide icon components inline (no extra import needed — inline SVG paths)
   const NavIcon = ({ name, size = 15 }) => {
@@ -265,7 +273,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
       </div>
     </header>
 
-    {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+    {showAuth && <AuthModal onClose={() => setShowAuth(false)} initialMode={authMode} />}
 
     {/* Sub-bar: sort pills below header */}
     {!hideSorts && sorts.length > 0 && (
