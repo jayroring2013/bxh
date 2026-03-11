@@ -40,7 +40,7 @@ function SortDropdown({ value, options, onChange, accent }) {
               display: 'block', width: '100%', textAlign: 'left',
               padding: '7px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
               background: value === opt.id ? `${accent}25` : 'transparent',
-              color: value === opt.id ? '#C4B5FD' : '#b09070',
+              color: value === opt.id ? '#C4B5FD' : '#94A3B8',
               fontSize: 12, fontWeight: value === opt.id ? 700 : 400,
               fontFamily: "'Be Vietnam Pro', sans-serif",
             }}>
@@ -75,7 +75,7 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
         background: hasActive ? `${accent}20` : 'rgba(255,248,240,0.05)',
         border: `1px solid ${hasActive ? accent + '55' : 'rgba(255,255,255,0.1)'}`,
         borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
-        color: hasActive ? '#C4B5FD' : '#b09070', fontSize: 12, fontWeight: 600,
+        color: hasActive ? '#C4B5FD' : '#94A3B8', fontSize: 12, fontWeight: 600,
         fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap',
         transition: 'all 0.15s',
       }}>
@@ -153,7 +153,7 @@ function FilterSection({ label, value, options, onChange, accent }) {
 
   return (
     <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 140 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#5a4a3a', letterSpacing: 1,
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#64748B', letterSpacing: 1,
         textTransform: 'uppercase', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
         {label}
       </div>
@@ -163,7 +163,7 @@ function FilterSection({ label, value, options, onChange, accent }) {
           background: active ? `${accent}20` : 'rgba(255,248,240,0.04)',
           border: `1px solid ${active ? accent + '55' : 'rgba(255,255,255,0.1)'}`,
           borderRadius: 9, padding: '7px 11px', cursor: 'pointer',
-          color: active ? '#C4B5FD' : '#b09070', fontSize: 12, fontWeight: active ? 700 : 400,
+          color: active ? '#C4B5FD' : '#94A3B8', fontSize: 12, fontWeight: active ? 700 : 400,
           fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap',
           transition: 'all 0.15s',
         }}>
@@ -176,19 +176,19 @@ function FilterSection({ label, value, options, onChange, accent }) {
             background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 10, padding: 4, minWidth: '100%', maxHeight: 220, overflowY: 'auto',
             boxShadow: '0 12px 32px rgba(0,0,0,0.7)',
-            scrollbarWidth: 'thin', scrollbarColor: '#3d2e1e transparent',
+            scrollbarWidth: 'thin', scrollbarColor: '#334155 transparent',
           }}>
             {options.map(opt => (
               <button key={opt.id} onClick={() => { onChange(opt.id); setOpen(false) }} style={{
                 display: 'block', width: '100%', textAlign: 'left',
                 padding: '7px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
                 background: value === opt.id ? `${accent}25` : 'transparent',
-                color: value === opt.id ? '#C4B5FD' : '#b09070',
+                color: value === opt.id ? '#C4B5FD' : '#94A3B8',
                 fontSize: 12, fontWeight: value === opt.id ? 700 : 400,
                 fontFamily: "'Be Vietnam Pro', sans-serif",
                 display: 'flex', alignItems: 'center', gap: 7,
               }}
-                onMouseEnter={e => { if (value !== opt.id) e.currentTarget.style.background = 'rgba(255,248,240,0.06)' }}
+                onMouseEnter={e => { if (value !== opt.id) e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
                 onMouseLeave={e => { if (value !== opt.id) e.currentTarget.style.background = 'transparent' }}
               >
                 {value === opt.id
@@ -209,8 +209,31 @@ function FilterSection({ label, value, options, onChange, accent }) {
   )
 }
 
+// ── Placeholder color fix ─────────────────────────────────────────
+const inputPlaceholderStyle = `
+  .nt-search-input::placeholder { color: #64748B; opacity: 1; }
+  .nt-search-input::-webkit-input-placeholder { color: #64748B; }
+`
+
+// ── Inline Lucide icons for carousel titles ───────────────────────
+const ArrowLeftIcon = ({ size = 12 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6"/>
+  </svg>
+)
+const ArrowRightIcon = ({ size = 12 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18l6-6-6-6"/>
+  </svg>
+)
+const BackIcon = ({ size = 13 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6"/>
+  </svg>
+)
+
 // ── Horizontal carousel ───────────────────────────────────────────
-function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
+function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile }) {
   const ref = useRef(null)
   const scroll = dir => ref.current?.scrollBy({ left: dir * (260 * 4 + 14 * 3), behavior: 'smooth' })
 
@@ -219,14 +242,25 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 14, padding: '0 20px' }}>
         <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20,
-          fontWeight: 700, letterSpacing: 1, color: '#f1f5f9', margin: 0 }}>{title}</h2>
+          fontWeight: 700, letterSpacing: 1, color: '#f1f5f9', margin: 0,
+          display: 'flex', alignItems: 'center', gap: 8 }}>
+          {TitleIcon && <TitleIcon size={18} color={accent} />}
+          {title}
+        </h2>
         <div style={{ display: 'flex', gap: 6 }}>
-          {['←', '→'].map((arrow, i) => (
-            <button key={arrow} onClick={() => scroll(i === 0 ? -1 : 1)} style={{
-              width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,248,240,0.04)', color: '#7a6045', cursor: 'pointer',
-              fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>{arrow}</button>
+          {[0, 1].map(i => (
+            <button key={i} onClick={() => scroll(i === 0 ? -1 : 1)} style={{
+              width: 30, height: 30, borderRadius: 8,
+              border: `1px solid rgba(255,255,255,0.2)`,
+              background: 'rgba(255,255,255,0.1)', color: '#E2E8F0', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = `${accent}35`; e.currentTarget.style.borderColor = `${accent}60`; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#E2E8F0' }}
+            >
+              {i === 0 ? <ArrowLeftIcon /> : <ArrowRightIcon />}
+            </button>
           ))}
         </div>
       </div>
@@ -237,14 +271,14 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
         {loading
           ? Array.from({ length: 5 }).map((_, i) => (
               <div key={i} style={{ width: isMobile ? 150 : 260, flexShrink: 0, aspectRatio: '2/3',
-                borderRadius: 14, background: 'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
+                borderRadius: 14, background: 'linear-gradient(90deg,#1a1a2e 25%,#242440 50%,#1a1a2e 75%)',
                 backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
             ))
           : items.map((s, i) => (
               <div key={s.id} onClick={() => onSelect(s)} style={{
                 width: isMobile ? 150 : 260, flexShrink: 0, aspectRatio: '2/3', borderRadius: 14,
                 overflow: 'hidden', cursor: 'pointer', position: 'relative',
-                background: '#1a1410', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
+                background: '#1a1a2e', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
               }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px) scale(1.03)'; e.currentTarget.style.boxShadow = `0 16px 40px ${accent}44` }}
@@ -262,18 +296,21 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
                   ? <img src={s.cover_url} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={e => e.target.style.display='none'} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: 32 }}>📖</div>
+                      justifyContent: 'center' }}>
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                      </svg>
+                    </div>
                 }
                 <div style={{ position: 'absolute', inset: 0,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)' }} />
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 8 }}>
-                  <div style={{ fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 11, fontWeight: 600,
+                  <div style={{ fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: 600,
                     color: '#f1f5f9', lineHeight: 1.3,
-                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                    fontSize: 13 }}>
+                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {s.title}
                   </div>
-                  {s.publisher && <div style={{ fontSize: 10, color: '#7a6045', marginTop: 2,
+                  {s.publisher && <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2,
                     fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>{s.publisher}</div>}
                 </div>
               </div>
@@ -362,6 +399,7 @@ export function NovelsPage() {
 
   return (
     <div className="page-enter">
+      <style>{inputPlaceholderStyle}</style>
       {/* No search in AppHeader on novels page — search is in the browse bar */}
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput=""
         onSearch={() => {}} sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
@@ -378,40 +416,40 @@ export function NovelsPage() {
           {lang === 'vi' ? 'Light Novel' : 'Light Novels'}
         </div>
         {!isBrowsing && (
-          <div style={{ fontSize: 13, color: '#7a6045', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+          <div style={{ fontSize: 13, color: '#64748B', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
             {lang === 'vi' ? 'Khám phá và theo dõi light novel yêu thích của bạn'
                            : 'Discover and track your favourite light novels'}
           </div>
         )}
         {isBrowsing && totalCount > 0 && !loading && (
-          <div style={{ fontSize: 12, color: '#7a6045' }}>{totalCount} series</div>
+          <div style={{ fontSize: 12, color: '#64748B' }}>{totalCount} series</div>
         )}
       </div>
 
       {/* Browse toolbar — search + filter + sort, all in one row */}
       {isBrowsing && (
-        <div style={{ background: 'rgba(255,248,240,0.02)',
-          borderBottom: '1px solid rgba(255,248,240,0.06)', padding: '10px 20px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.02)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '10px 16px' }}>
           <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex',
-            alignItems: 'center', gap: 8, flexWrap: 'wrap',
-            flexDirection: isMobile ? 'column' : 'row' }}>
+            flexDirection: 'column', gap: 8 }}>
 
-            {/* Inline search */}
-            <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 180, maxWidth: isMobile ? '100%' : 340, width: isMobile ? '100%' : undefined }}>
+            {/* Row 1: Search (full width on mobile, capped on desktop) */}
+            <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : 480 }}>
               <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
-                opacity: 0.3, pointerEvents: 'none' }}
-                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                opacity: 0.4, pointerEvents: 'none' }}
+                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
               </svg>
               <input
+                className="nt-search-input"
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
                 placeholder={lang === 'vi' ? 'Tìm tên novel...' : 'Search title...'}
                 style={{
                   width: '100%', boxSizing: 'border-box',
-                  background: 'rgba(255,248,240,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: 10, padding: '8px 32px 8px 32px',
-                  color: '#fff', fontSize: 12, outline: 'none',
+                  color: '#f1f5f9', fontSize: 13, outline: 'none',
                   fontFamily: "'Be Vietnam Pro', sans-serif",
                   transition: 'border-color 0.15s, box-shadow 0.15s',
                 }}
@@ -421,34 +459,30 @@ export function NovelsPage() {
               {searchInput && (
                 <button onClick={() => setSearchInput('')} style={{
                   position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', color: '#7a6045', cursor: 'pointer', fontSize: 16, lineHeight: 1,
+                  background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 16, lineHeight: 1,
                 }}>×</button>
               )}
             </div>
 
-            {/* Advanced filter (single button → popover) */}
-            <AdvancedFilter
-              status={status} publisher={publisher} genre={genre}
-              onStatus={setStatus} onPublisher={setPublisher} onGenre={setGenre}
-              statusOptions={STATUS_OPTIONS} publisherOptions={PUBLISHER_OPTIONS} genreOptions={GENRE_OPTIONS}
-              hasActive={hasActiveFilters} onClear={clearFilters} accent={PURPLE} lang={lang} isMobile={isMobile} />
-
-            {/* Spacer */}
-            {!isMobile && <div style={{ flex: 1 }} />}
-
-            {/* Sort + back on same row on mobile */}
-            <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end', alignItems: 'center' }}>
-            <SortDropdown value={sort} options={NOVEL_SORTS} onChange={setSort} accent={PURPLE} />
-
-            {/* Back */}
-            {!searchInput && !hasActiveFilters && (
-              <button onClick={() => setBrowseMode(false)} style={{
-                background: 'none', border: 'none', color: '#5a4a3a', cursor: 'pointer',
-                fontSize: 12, fontWeight: 600, fontFamily: "'Be Vietnam Pro', sans-serif",
-                display: 'flex', alignItems: 'center', gap: 4, padding: '4px 0',
-              }}>← {lang === 'vi' ? 'Quay lại' : 'Back'}</button>
-            )}
-            </div>{/* end sort+back row */}
+            {/* Row 2: Filters + Sort + Back — all on one row, evenly spaced */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <AdvancedFilter
+                status={status} publisher={publisher} genre={genre}
+                onStatus={setStatus} onPublisher={setPublisher} onGenre={setGenre}
+                statusOptions={STATUS_OPTIONS} publisherOptions={PUBLISHER_OPTIONS} genreOptions={GENRE_OPTIONS}
+                hasActive={hasActiveFilters} onClear={clearFilters} accent={PURPLE} lang={lang} isMobile={isMobile} />
+              <div style={{ flex: 1 }} />
+              <SortDropdown value={sort} options={NOVEL_SORTS} onChange={setSort} accent={PURPLE} />
+              {!searchInput && !hasActiveFilters && (
+                <button onClick={() => setBrowseMode(false)} style={{
+                  background: 'none', border: 'none', color: '#64748B', cursor: 'pointer',
+                  fontSize: 12, fontWeight: 600, fontFamily: "'Be Vietnam Pro', sans-serif",
+                  display: 'flex', alignItems: 'center', gap: 4, padding: '4px 0', flexShrink: 0,
+                }}>
+                  <BackIcon /> {lang === 'vi' ? 'Quay lại' : 'Back'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -466,6 +500,7 @@ export function NovelsPage() {
                   <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                 </svg>
                 <input
+                  className="nt-search-input"
                   value={searchInput}
                   onChange={e => { setSearchInput(e.target.value); if (e.target.value) setBrowseMode(true) }}
                   placeholder={lang === 'vi' ? 'Tìm tên novel...' : 'Search novels...'}
@@ -483,14 +518,26 @@ export function NovelsPage() {
                 {searchInput && (
                   <button onClick={() => setSearchInput('')} style={{
                     position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', color: '#7a6045', cursor: 'pointer', fontSize: 18, lineHeight: 1,
+                    background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 18, lineHeight: 1,
                   }}>×</button>
                 )}
               </div>
             </div>
-            <Carousel title={lang === 'vi' ? '🏆 Phổ biến nhất' : '🏆 Most Popular'}
+            <Carousel
+              title={lang === 'vi' ? 'Phổ biến nhất' : 'Most Popular'}
+              TitleIcon={({ size, color }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              )}
               items={popular} loading={loadingPop} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} isMobile={isMobile} />
-            <Carousel title={lang === 'vi' ? '🆕 Mới thêm gần đây' : '🆕 Recently Added'}
+            <Carousel
+              title={lang === 'vi' ? 'Mới thêm gần đây' : 'Recently Added'}
+              TitleIcon={({ size, color }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              )}
               items={recent} loading={loadingRec} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} isMobile={isMobile} />
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
               <button onClick={() => setBrowseMode(true)} style={{
@@ -521,14 +568,15 @@ export function NovelsPage() {
               </>
             )}
             {!loading && !error && series.length === 0 && (
-              <EmptyState icon="📖"
+              <EmptyState
+                icon={<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>}
                 msg={lang === 'vi' ? 'Không tìm thấy kết quả' : 'No results found'} />
             )}
           </>
         )}
       </main>
 
-      <PageFooter color={PURPLE} src="NovelTrend" />
+      <PageFooter color={PURPLE} src="LiDex" />
     </div>
   )
 }
