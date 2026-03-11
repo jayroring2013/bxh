@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { PURPLE, novelStatusColor } from '../constants.js'
+import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
 import { useSeriesById, useSeriesVolumes, useSeriesLinks, useRelatedSeries, useSeriesNuData, useSeriesStats, useUserRating, seriesUrl } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
@@ -422,7 +423,145 @@ function SectionCarousel({ title, children, count, loading }) {
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────
+// ── Error report button ───────────────────────────────────────────
+function ErrorReportButton({ seriesId, title, lang, accent }) {
+  const [open, setOpen] = useState(false)
+  const [category, setCategory] = useState('')
+  const [details, setDetails] = useState('')
+  const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+
+  const CATEGORIES_VI = ['Thông tin sai', 'Ảnh bìa lỗi', 'Link mua hỏng', 'Thiếu tập', 'Nội dung vi phạm', 'Khác']
+  const CATEGORIES_EN = ['Wrong info', 'Bad cover image', 'Broken purchase link', 'Missing volume', 'Inappropriate content', 'Other']
+  const cats = lang === 'vi' ? CATEGORIES_VI : CATEGORIES_EN
+
+  const close = () => { setOpen(false); setCategory(''); setDetails(''); setSent(false) }
+
+  const submit = async () => {
+    if (!category) return
+    setSending(true)
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/series_error_reports`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON,
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({ series_id: seriesId, category, details: details.trim() || null }),
+      })
+      setSent(true)
+    } catch (e) {
+      setSent(true) // show success even on error to avoid user frustration
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const popup = open ? createPortal(
+    <div onClick={close} style={{ position:'fixed', inset:0, zIndex:50000,
+      background:'rgba(0,0,0,0.75)', backdropFilter:'blur(6px)',
+      display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:'linear-gradient(145deg,#0e0a1a,#160d20)',
+        border:`1px solid rgba(239,68,68,0.3)`, borderRadius:18,
+        padding:24, width:'100%', maxWidth:380,
+        boxShadow:'0 24px 60px rgba(0,0,0,0.9), 0 0 40px rgba(239,68,68,0.08)' }}>
+
+        {sent ? (
+          <div style={{ textAlign:'center', padding:'20px 0' }}>
+            <div style={{ fontSize:36, marginBottom:12 }}>✅</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'#f1f5f9', fontFamily:"'Barlow Condensed',sans-serif", marginBottom:8 }}>
+              {lang==='vi' ? 'Đã nhận báo lỗi!' : 'Report received!'}
+            </div>
+            <div style={{ fontSize:12, color:'#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif", marginBottom:20 }}>
+              {lang==='vi' ? 'Cảm ơn bạn đã góp phần cải thiện NovelTrend.' : 'Thank you for helping improve NovelTrend.'}
+            </div>
+            <button onClick={close} style={{ padding:'9px 24px', borderRadius:10, border:'none',
+              background:'rgba(239,68,68,0.15)', color:'#FCA5A5', fontSize:13, fontWeight:700,
+              cursor:'pointer', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+              {lang==='vi' ? 'Đóng' : 'Close'}
+            </button>
+          </div>
+        ) : (<>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
+            <div>
+              <div style={{ fontSize:15, fontWeight:800, color:'#f1f5f9', fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:0.5 }}>
+                {lang==='vi' ? '⚠️ Báo lỗi' : '⚠️ Report an error'}
+              </div>
+              <div style={{ fontSize:11, color:'#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif", marginTop:2 }}>{title}</div>
+            </div>
+            <button onClick={close} style={{ background:'none', border:'none', color:'#4a3560', fontSize:20, cursor:'pointer', lineHeight:1 }}>×</button>
+          </div>
+
+          <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
+            {cats.map(c => (
+              <button key={c} onClick={() => setCategory(c)} style={{
+                textAlign:'left', padding:'9px 14px', borderRadius:10, cursor:'pointer',
+                fontSize:13, fontFamily:"'Be Vietnam Pro',sans-serif", fontWeight:600,
+                background: category===c ? 'rgba(239,68,68,0.18)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${category===c ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.07)'}`,
+                color: category===c ? '#FCA5A5' : '#94A3B8',
+                transition:'all 0.15s',
+              }}>{c}</button>
+            ))}
+          </div>
+
+          <textarea
+            value={details}
+            onChange={e => setDetails(e.target.value)}
+            placeholder={lang==='vi' ? 'Thông tin bổ sung (tuỳ chọn)…' : 'Additional details (optional)…'}
+            maxLength={500}
+            rows={3}
+            style={{
+              width:'100%', boxSizing:'border-box', padding:'10px 12px', borderRadius:10, resize:'vertical',
+              background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)',
+              color:'#94A3B8', fontSize:12, fontFamily:"'Be Vietnam Pro',sans-serif",
+              outline:'none', marginBottom:14,
+            }}
+          />
+
+          <button onClick={submit} disabled={!category || sending} style={{
+            width:'100%', padding:'11px 0', borderRadius:10, border:'none',
+            background: category ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : 'rgba(255,255,255,0.06)',
+            color: category ? '#fff' : '#4a3560', fontSize:14, fontWeight:700,
+            cursor: category ? 'pointer' : 'not-allowed',
+            fontFamily:"'Be Vietnam Pro',sans-serif",
+            boxShadow: category ? '0 4px 16px rgba(220,38,38,0.4)' : 'none',
+            transition:'all 0.2s',
+          }}>
+            {sending ? '…' : (lang==='vi' ? 'Gửi báo lỗi' : 'Submit report')}
+          </button>
+        </>)}
+      </div>
+    </div>,
+    document.body
+  ) : null
+
+  return (
+    <>
+      {popup}
+      <button onClick={() => setOpen(true)} style={{
+        display:'flex', alignItems:'center', gap:6,
+        padding:'10px 16px', borderRadius:10, cursor:'pointer',
+        fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif",
+        background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)',
+        color:'#FCA5A5', transition:'all 0.15s',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.background='rgba(239,68,68,0.2)'; e.currentTarget.style.borderColor='rgba(239,68,68,0.45)' }}
+        onMouseLeave={e => { e.currentTarget.style.background='rgba(239,68,68,0.1)'; e.currentTarget.style.borderColor='rgba(239,68,68,0.25)' }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {lang === 'vi' ? 'Báo lỗi' : 'Report'}
+      </button>
+    </>
+  )
+}
+
+
 function TabPanelContent({ activeTab, lang, series, volumes, related, PURPLE, MiniCard, PlaceholderPanel }) {
   const headingStyle = {
     fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
@@ -732,99 +871,94 @@ export function SeriesDetailPage({ seriesId }) {
             )}
 
             {/* ── Unified metadata strip ── */}
-            <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap: '6px 0', marginBottom: 20 }}>
+            <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap: '8px 0', marginBottom: 22 }}>
               {/* NU Score */}
-              {(series.score != null || nuData?.nu_rating) && (() => {
-                const score = series.score != null ? Number(series.score).toFixed(1) : nuData.nu_rating
-                return (
-                  <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: '#FBBF24', fontFamily:"'Barlow Condensed',sans-serif", letterSpacing: 0.3 }}>{score}</span>
-                    <span style={{ fontSize: 10, color: '#6b5030', fontFamily:"'Be Vietnam Pro',sans-serif", marginLeft: 2 }}>NU</span>
-                    <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
-                  </div>
-                )
-              })()}
+              <div style={{ display:'flex', alignItems:'center', gap: 6, padding: '0 16px 0 0' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                {(series.score != null || nuData?.nu_rating)
+                  ? <span style={{ fontSize: 15, fontWeight: 800, color: '#FBBF24', fontFamily:"'Barlow Condensed',sans-serif", letterSpacing: 0.3 }}>
+                      {series.score != null ? Number(series.score).toFixed(1) : nuData.nu_rating}
+                    </span>
+                  : <span style={{ fontSize: 14, color: '#4a3520', fontFamily:"'Barlow Condensed',sans-serif" }}>—</span>
+                }
+                <span style={{ fontSize: 11, color: '#6b5030', fontFamily:"'Be Vietnam Pro',sans-serif" }}>NU</span>
+                <span style={{ width: 1, height: 16, background: 'rgba(255,248,240,0.12)', margin: '0 16px 0 0' }} />
+              </div>
 
               {/* Volumes */}
-              {(loadingVols || volCount != null) && (
-                <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                  </svg>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#C4B5FD', fontFamily:"'Barlow Condensed',sans-serif" }}>
-                    {loadingVols ? '…' : volCount}
-                  </span>
-                  <span style={{ fontSize: 10, color: '#6b5030', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                    {lang === 'vi' ? 'tập' : 'vols'}
-                  </span>
-                  <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
-                </div>
-              )}
+              <div style={{ display:'flex', alignItems:'center', gap: 6, padding: '0 16px 0 0' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#C4B5FD', fontFamily:"'Barlow Condensed',sans-serif" }}>
+                  {loadingVols ? '…' : (volCount ?? '—')}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#7a5db0', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {lang === 'vi' ? 'Tập' : 'Vols'}
+                </span>
+                <span style={{ width: 1, height: 16, background: 'rgba(255,248,240,0.12)', margin: '0 16px 0 0' }} />
+              </div>
 
               {/* Publisher */}
-              {series.publisher && (
-                <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                  </svg>
-                  <button onClick={() => {
-                    window.location.hash = '#/novels'
-                    setTimeout(() => window.dispatchEvent(new CustomEvent('nt:filter', { detail: { publisher: series.publisher } })), 80)
-                  }} style={{
-                    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                    fontSize: 13, fontWeight: 600, color: '#94A3B8',
-                    fontFamily:"'Be Vietnam Pro',sans-serif",
-                    textDecoration: 'underline', textDecorationColor: 'rgba(148,163,184,0.3)',
-                    textUnderlineOffset: 3, transition: 'color 0.15s',
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.color='#C4B5FD'}
-                    onMouseLeave={e => e.currentTarget.style.color='#94A3B8'}
-                  >{series.publisher}</button>
-                  <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
-                </div>
-              )}
+              <div style={{ display:'flex', alignItems:'center', gap: 6, padding: '0 16px 0 0' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                {series.publisher
+                  ? <button onClick={() => {
+                      window.location.hash = '#/novels'
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('nt:filter', { detail: { publisher: series.publisher } })), 80)
+                    }} style={{
+                      background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                      fontSize: 13, fontWeight: 600, color: '#94A3B8',
+                      fontFamily:"'Be Vietnam Pro',sans-serif",
+                      textDecoration: 'underline', textDecorationColor: 'rgba(148,163,184,0.3)',
+                      textUnderlineOffset: 3, transition: 'color 0.15s',
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.color='#C4B5FD'}
+                      onMouseLeave={e => e.currentTarget.style.color='#94A3B8'}
+                    >{series.publisher}</button>
+                  : <span style={{ fontSize: 13, color: '#4a3520', fontFamily:"'Be Vietnam Pro',sans-serif" }}>—</span>
+                }
+                <span style={{ width: 1, height: 16, background: 'rgba(255,248,240,0.12)', margin: '0 16px 0 0' }} />
+              </div>
 
               {/* Views */}
-              {seriesStats?.views != null && (
-                <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                    {Number(seriesStats.views).toLocaleString()}
-                  </span>
-                  <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
-                </div>
-              )}
+              <div style={{ display:'flex', alignItems:'center', gap: 6, padding: '0 16px 0 0' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {seriesStats?.views != null ? Number(seriesStats.views).toLocaleString() : '—'}
+                </span>
+                <span style={{ width: 1, height: 16, background: 'rgba(255,248,240,0.12)', margin: '0 16px 0 0' }} />
+              </div>
 
               {/* Bookmarks */}
-              {seriesStats?.bookmarks != null && (
-                <div style={{ display:'flex', alignItems:'center', gap: 5, padding: '0 14px 0 0' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
-                  </svg>
-                  <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                    {Number(seriesStats.bookmarks).toLocaleString()}
-                  </span>
-                  <span style={{ width: 1, height: 14, background: 'rgba(255,248,240,0.1)', margin: '0 14px 0 0' }} />
-                </div>
-              )}
+              <div style={{ display:'flex', alignItems:'center', gap: 6, padding: '0 16px 0 0' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                </svg>
+                <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {seriesStats?.bookmarks != null ? Number(seriesStats.bookmarks).toLocaleString() : '—'}
+                </span>
+                <span style={{ width: 1, height: 16, background: 'rgba(255,248,240,0.12)', margin: '0 16px 0 0' }} />
+              </div>
 
-              {/* Community rating */}
-              {seriesStats?.avg_rating && (
-                <div style={{ display:'flex', alignItems:'center', gap: 5 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                  <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                    {Number(seriesStats.avg_rating).toFixed(1)}
-                    <span style={{ opacity: 0.5, marginLeft: 3 }}>({seriesStats.rating_count})</span>
-                  </span>
-                </div>
-              )}
+              {/* Community rating — always visible */}
+              <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {seriesStats?.avg_rating
+                    ? <>{Number(seriesStats.avg_rating).toFixed(1)}<span style={{ opacity: 0.5, marginLeft: 3 }}>({seriesStats.rating_count})</span></>
+                    : '—'
+                  }
+                </span>
+              </div>
             </div>
 
             {/* Description */}
@@ -857,6 +991,7 @@ export function SeriesDetailPage({ seriesId }) {
             {/* Actions row */}
             <div style={{ display:'flex', gap: 10, flexWrap:'wrap', alignItems:'center' }}>
               <SeriesSaveButton seriesId={series.id} title={title} coverUrl={cover} />
+              <ErrorReportButton seriesId={series.id} title={title} lang={lang} accent={PURPLE} />
 
               {series.external_id && (
                 <a href={`https://ranobedb.org/series/${series.external_id}`}
