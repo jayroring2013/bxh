@@ -85,7 +85,7 @@ export const PageFooter = ({ color, src }) => {
   const { t } = useLang()
   return (
     <footer className="page-footer">
-      <span className="page-footer__brand" style={{ color }}>NOVELTREND</span>
+      <span className="page-footer__brand" style={{ color }}>LIDEX</span>
       {` · ${t('footer_powered')} ${src} · `}{new Date().getFullYear()}
     </footer>
   )
@@ -168,9 +168,9 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
 
         {/* Logo — links back to landing */}
         <a href="#/" className="app-header__logo" style={{ textDecoration: 'none' }}>
-          <div className="app-header__logo-icon" style={{ background: accent }}>NT</div>
+          <div className="app-header__logo-icon" style={{ background: accent }}>Li</div>
           <span className="app-header__logo-text">
-            NOVEL<span style={{ color: accent }}>TREND</span>
+            Li<span style={{ color: accent }}>Dex</span>
           </span>
         </a>
 
@@ -212,7 +212,11 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
           fontSize: 12, fontWeight: 700, flexShrink: 0, fontFamily: "'Be Vietnam Pro', sans-serif",
           display: 'flex', alignItems: 'center', gap: 5, marginLeft: 'auto',
         }}>
-          🌐 {lang === 'vi' ? 'EN' : 'VI'}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          {lang === 'vi' ? 'EN' : 'VI'}
         </button>
 
         {/* Notification bell — only when logged in */}
@@ -242,19 +246,31 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
                   {user.email}
                 </div>
                 <a href="#/list" onClick={() => setShowUserMenu(false)} style={{
-                  display: 'block', padding: '8px 12px', color: '#fff', textDecoration: 'none',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 12px', color: '#CBD5E1', textDecoration: 'none',
                   borderRadius: 8, fontSize: 13, fontWeight: 600,
-                }}>🔖 {lang === 'vi' ? 'Danh sách của tôi' : 'My List'}</a>
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  {lang === 'vi' ? 'Danh sách của tôi' : 'My List'}
+                </a>
                 <a href="#/admin" onClick={() => setShowUserMenu(false)} style={{
-                  display: 'block', padding: '8px 12px', color: '#A78BFA', textDecoration: 'none',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 12px', color: '#A78BFA', textDecoration: 'none',
                   borderRadius: 8, fontSize: 13, fontWeight: 600,
-                }}>⚙️ {lang === 'vi' ? 'Quản trị' : 'Admin Panel'}</a>
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.41 1.41l-1.42 2.46A7.5 7.5 0 0 0 17.5 8l-2.83-.01a7.5 7.5 0 0 0-.85-2.04l1.42-2.46a10 10 0 0 1 1.83.44zM4.93 4.93a10 10 0 0 0-1.41 1.41l1.42 2.46A7.5 7.5 0 0 1 6.5 8l2.83-.01a7.5 7.5 0 0 1 .85-2.04L8.76 3.49a10 10 0 0 0-1.83.44 10 10 0 0 0-2 1z"/></svg>
+                  {lang === 'vi' ? 'Quản trị' : 'Admin Panel'}
+                </a>
                 <button onClick={() => { signOut(); setShowUserMenu(false) }} style={{
-                  display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  width: '100%', textAlign: 'left', padding: '8px 12px',
                   background: 'none', border: 'none', color: '#F87171', cursor: 'pointer',
                   borderRadius: 8, fontSize: 13, fontWeight: 600,
                   fontFamily: "'Be Vietnam Pro', sans-serif",
-                }}>↩ {lang === 'vi' ? 'Đăng xuất' : 'Sign out'}</button>
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  {lang === 'vi' ? 'Đăng xuất' : 'Sign out'}
+                </button>
               </div>
             )}
           </div>
