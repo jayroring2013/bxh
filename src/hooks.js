@@ -475,7 +475,7 @@ export function useSeriesVolumes(seriesId) {
   useEffect(() => {
     if (!seriesId) return
     sbFetch('volumes',
-      `series_id=eq.${seriesId}&is_special=neq.true&order=volume_number.asc&select=id,volume_number,volume_label,title,cover_url,release_date,description&limit=200`)
+      `series_id=eq.${seriesId}&order=volume_number.asc,is_special.asc&select=id,volume_number,volume_label,title,cover_url,release_date,description,is_special&limit=200`)
       .then(rows => { setVolumes(Array.isArray(rows) ? rows : []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [seriesId])
