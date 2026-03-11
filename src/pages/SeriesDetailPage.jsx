@@ -543,16 +543,16 @@ function ErrorReportButton({ seriesId, title, lang, accent }) {
     <>
       {popup}
       <button onClick={() => setOpen(true)} style={{
-        display:'flex', alignItems:'center', gap:6,
-        padding:'10px 16px', borderRadius:10, cursor:'pointer',
-        fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif",
+        display:'flex', alignItems:'center', gap:8,
+        padding:'12px 28px', borderRadius:12, cursor:'pointer',
+        fontSize:15, fontWeight:700, fontFamily:"'Be Vietnam Pro',sans-serif",
         background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)',
         color:'#FCA5A5', transition:'all 0.15s',
       }}
         onMouseEnter={e => { e.currentTarget.style.background='rgba(239,68,68,0.2)'; e.currentTarget.style.borderColor='rgba(239,68,68,0.45)' }}
         onMouseLeave={e => { e.currentTarget.style.background='rgba(239,68,68,0.1)'; e.currentTarget.style.borderColor='rgba(239,68,68,0.25)' }}
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
         {lang === 'vi' ? 'Báo lỗi' : 'Report'}
