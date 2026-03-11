@@ -555,27 +555,62 @@ export function SeriesDetailPage({ seriesId }) {
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ display:'flex', justifyContent:'center', gap: 4, marginBottom: 8 }}>
                       {[1,2,3,4,5].map(star => {
-                        const filled = star <= (starHovered || userRating || 0)
+                        const val = starHovered || userRating || 0
+                        // full, half, or empty
+                        const full = val >= star
+                        const half = !full && val >= star - 0.5
+
+                        const StarPath = () => (
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        )
+
                         return (
-                          <svg key={star} width="28" height="28" viewBox="0 0 24 24"
-                            fill={filled ? '#FBBF24' : 'none'}
-                            stroke={filled ? '#FBBF24' : '#4b3a1a'}
-                            strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
-                            style={{ cursor: ratingSaving ? 'wait' : 'pointer', transition: 'all 0.15s', transform: filled ? 'scale(1.15)' : 'scale(1)' }}
-                            onMouseEnter={() => setStarHovered(star)}
-                            onMouseLeave={() => setStarHovered(0)}
-                            onClick={() => submitRating(star)}
-                          >
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                          </svg>
+                          <div key={star} style={{ position:'relative', width:28, height:28, cursor: ratingSaving ? 'wait' : 'pointer' }}>
+                            {/* Base empty star */}
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4b3a1a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ position:'absolute', top:0, left:0 }}>
+                              <StarPath/>
+                            </svg>
+                            {/* Half fill (clip left 50%) */}
+                            {half && (
+                              <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+                                style={{ position:'absolute', top:0, left:0, clipPath:'inset(0 50% 0 0)' }}>
+                                <StarPath/>
+                              </svg>
+                            )}
+                            {/* Full fill */}
+                            {full && (
+                              <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+                                style={{ position:'absolute', top:0, left:0, transition:'transform 0.12s', transform:'scale(1.15)' }}>
+                                <StarPath/>
+                              </svg>
+                            )}
+                            {/* Left half zone → star - 0.5 */}
+                            <div style={{ position:'absolute', top:0, left:0, width:'50%', height:'100%' }}
+                              onMouseEnter={() => setStarHovered(star - 0.5)}
+                              onMouseLeave={() => setStarHovered(0)}
+                              onClick={() => submitRating(star - 0.5)}
+                            />
+                            {/* Right half zone → star */}
+                            <div style={{ position:'absolute', top:0, right:0, width:'50%', height:'100%' }}
+                              onMouseEnter={() => setStarHovered(star)}
+                              onMouseLeave={() => setStarHovered(0)}
+                              onClick={() => submitRating(star)}
+                            />
+                          </div>
                         )
                       })}
+                    </div>
+                    {/* Label showing hovered or saved value */}
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontFamily:"'Be Vietnam Pro',sans-serif", minHeight:16 }}>
+                      {(starHovered || userRating)
+                        ? `${starHovered || userRating} / 5`
+                        : ''}
                     </div>
                     <button
                       onClick={() => { if (starHovered) submitRating(starHovered) }}
                       disabled={ratingSaving}
                       style={{
-                        width: '100%', padding: '8px 0', borderRadius: 10, border: 'none',
+                        width: '100%', padding: '8px 0', borderRadius: 10,
                         background: userRating ? 'rgba(251,191,36,0.15)' : `linear-gradient(135deg,${PURPLE},#6366F1)`,
                         color: userRating ? '#FBBF24' : '#fff',
                         fontSize: 13, fontWeight: 700, cursor: ratingSaving ? 'wait' : 'pointer',
@@ -730,31 +765,25 @@ export function SeriesDetailPage({ seriesId }) {
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
                 <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  {seriesStats?.views != null
-                    ? Number(seriesStats.views).toLocaleString()
-                    : '—'}
+                  {seriesStats?.views != null ? Number(seriesStats.views).toLocaleString() : '—'}
                 </span>
               </div>
               {/* Bookmarks */}
               <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
                 </svg>
-                <span style={{ fontSize: 13, color: '#8B5CF6', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  {seriesStats?.bookmarks != null
-                    ? Number(seriesStats.bookmarks).toLocaleString()
-                    : '—'}
+                <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {seriesStats?.bookmarks != null ? Number(seriesStats.bookmarks).toLocaleString() : '—'}
                 </span>
               </div>
               {/* Community rating */}
               <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                 </svg>
-                <span style={{ fontSize: 13, color: '#FBBF24', fontFamily:"'Be Vietnam Pro',sans-serif", fontWeight: 600 }}>
-                  {seriesStats?.avg_rating
-                    ? `${Number(seriesStats.avg_rating).toFixed(1)} (${seriesStats.rating_count})`
-                    : '—'}
+                <span style={{ fontSize: 13, color: '#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                  {seriesStats?.avg_rating ? `${Number(seriesStats.avg_rating).toFixed(1)} (${seriesStats.rating_count})` : '—'}
                 </span>
               </div>
             </div>
