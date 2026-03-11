@@ -278,10 +278,14 @@ function MiniCard({ series, accent, lang }) {
 }
 
 // ── Volume card ───────────────────────────────────────────────────
-function VolumeCard({ vol, seriesId, accent }) {
-  const label = vol.volume_label === 'Standalone' ? 'Tập 1' : (vol.volume_label || `Tập ${vol.volume_number}`)
+function VolumeCard({ vol, seriesId, accent, lang }) {
+  const baseLabel = vol.volume_label === 'Standalone' ? 'Tập 1' : (vol.volume_label || `Tập ${vol.volume_number}`)
+  const specialSuffix = vol.is_special
+    ? (lang === 'vi' ? ' - Bản đặc biệt' : ' - Special Edition')
+    : ''
+  const label = baseLabel + specialSuffix
+
   const handleClick = () => {
-    // Navigate to volume detail page - keep series slug from current hash
     const cur = window.location.hash
     const base = cur.replace(/\/volume\/\d+$/, '')
     window.location.hash = `${base}/volume/${vol.volume_number}`
@@ -294,26 +298,59 @@ function VolumeCard({ vol, seriesId, accent }) {
       <div style={{
         width: 156, height: 234, borderRadius: 12, overflow: 'hidden',
         background: '#1a1410', position: 'relative',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        boxShadow: vol.is_special
+          ? `0 4px 20px ${accent}55, 0 0 0 1.5px ${accent}60`
+          : '0 4px 16px rgba(0,0,0,0.4)',
         transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
       }}
         onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = `0 12px 32px ${accent}44` }}
-        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = vol.is_special ? `0 4px 20px ${accent}55, 0 0 0 1.5px ${accent}60` : '0 4px 16px rgba(0,0,0,0.4)' }}
       >
         {vol.cover_url
-          ? <img src={vol.cover_url} alt={label}
+          ? <img src={vol.cover_url} alt={baseLabel}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={e => e.target.style.display='none'} />
           : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center',
               justifyContent:'center', fontSize: 32 }}>📖</div>
         }
         <div style={{ position:'absolute', inset:0,
-          background:'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%)' }} />
+          background:'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 55%)' }} />
+
+        {/* Special edition corner badge */}
+        {vol.is_special && (
+          <div style={{
+            position: 'absolute', top: 8, right: 8,
+            background: `linear-gradient(135deg, ${accent}, ${accent}bb)`,
+            borderRadius: 5, padding: '2px 6px',
+            fontSize: 9, fontWeight: 800, color: '#fff',
+            fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.8,
+            textTransform: 'uppercase', boxShadow: `0 2px 8px ${accent}66`,
+          }}>
+            {lang === 'vi' ? 'ĐB' : 'SE'}
+          </div>
+        )}
+
+        {/* Volume label on cover */}
         <div style={{
           position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center',
-          fontSize: 11, fontWeight: 800, color: '#fff',
-          fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
-        }}>{label}</div>
+          padding: '0 6px',
+        }}>
+          <div style={{
+            fontSize: vol.is_special ? 10 : 11, fontWeight: 800, color: '#fff',
+            fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 0.5,
+            lineHeight: 1.3,
+          }}>
+            {baseLabel}
+          </div>
+          {vol.is_special && (
+            <div style={{
+              fontSize: 9, fontWeight: 700, color: `${accent}ee`,
+              fontFamily: "'Be Vietnam Pro', sans-serif", marginTop: 1,
+            }}>
+              {lang === 'vi' ? 'Bản đặc biệt' : 'Special Edition'}
+            </div>
+          )}
+        </div>
       </div>
       {vol.release_date && (
         <div style={{ fontSize: 10, color: '#7a6045', fontFamily: "'Be Vietnam Pro', sans-serif",
@@ -891,7 +928,7 @@ export function SeriesDetailPage({ seriesId }) {
                       background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
                       backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
                   ))
-                : volumes.map(v => <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />)
+                : volumes.map(v => <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} lang={lang} />)
               }
             </SectionCarousel>
             {recs.length > 0 && (
@@ -980,7 +1017,7 @@ export function SeriesDetailPage({ seriesId }) {
                         background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
                         backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
                     ))
-                  : volumes.map(v => <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} />)
+                  : volumes.map(v => <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} lang={lang} />)
                 }
               </SectionCarousel>
               {recs.length > 0 && (
