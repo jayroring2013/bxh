@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { CYAN } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
-import { useAnimeById, useAnimeRelated, useSeriesLinks, animeUrl, mangaUrl, seriesUrl, slugify } from '../hooks.js'
+import { useAnimeById, useAnimeRelated, useSeriesLinks, useSeriesStats, useUserRating, animeUrl, mangaUrl, seriesUrl, slugify } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useUserList } from '../useList.js'
@@ -43,7 +43,23 @@ function AnimeSaveButton({ animeId, title, coverUrl }) {
   const [newName, setNewName] = useState('')
   const [showNew, setShowNew] = useState(false)
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent('nt:open-auth', { detail: { mode: 'login' } }))}
+        style={{
+          display:'flex', alignItems:'center', gap:8, padding:'12px 28px', borderRadius:12,
+          cursor:'pointer', fontSize:15, fontWeight:700, fontFamily:"'Be Vietnam Pro',sans-serif",
+          border:'none', background:`linear-gradient(135deg,${ACCENT},#0e7490)`,
+          color:'#fff', boxShadow:`0 6px 20px ${ACCENT}50`, transition:'all 0.2s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.transform='translateY(-2px)'}
+        onMouseLeave={e => e.currentTarget.style.transform=''}
+      >
+        {lang==='vi' ? '+ Thêm vào danh sách' : '+ Add to list'}
+      </button>
+    )
+  }
 
   const entries = getItemEntries(String(animeId), 'anime')
   const isSaved = entries.length > 0
@@ -317,9 +333,12 @@ function TabContent({ activeTab, lang, anime, related }) {
 // ── Main page ─────────────────────────────────────────────────────
 export function AnimeDetailPage({ animeId }) {
   const { lang } = useLang()
+  const { user, token } = useAuth()
   const { anime, loading, error } = useAnimeById(animeId)
   const { related, recs } = useAnimeRelated(anime?.id, anime?.genres)
   const links = useSeriesLinks(anime?.id || null)
+  const seriesStats = useSeriesStats(anime?.id || null)
+  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(anime?.id || null, token)
 
   const [descExpanded, setDescExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
@@ -403,6 +422,56 @@ export function AnimeDetailPage({ animeId }) {
                 ? <img src={cover} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
                 : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:48 }}>🎌</div>}
             </div>
+
+            {/* ── Star rating widget ── */}
+            {!isMobile && (
+              <div style={{ marginTop:14, width:200 }}>
+                {user ? (
+                  <div style={{ textAlign:'center' }}>
+                    <div style={{ display:'flex', justifyContent:'center', gap:4, marginBottom:8 }}>
+                      {[1,2,3,4,5].map(star => {
+                        const val = starHovered || userRating || 0
+                        const full = val >= star
+                        const half = !full && val >= star - 0.5
+                        const StarPath = () => <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        return (
+                          <div key={star} style={{ position:'relative', width:28, height:28, cursor: ratingSaving ? 'wait' : 'pointer' }}>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1e3a4a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ position:'absolute', top:0, left:0 }}><StarPath/></svg>
+                            {half && <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ position:'absolute', top:0, left:0, clipPath:'inset(0 50% 0 0)' }}><StarPath/></svg>}
+                            {full && <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ position:'absolute', top:0, left:0, transition:'transform 0.12s', transform:'scale(1.15)' }}><StarPath/></svg>}
+                            <div style={{ position:'absolute', top:0, left:0, width:'50%', height:'100%' }} onMouseEnter={()=>setStarHovered(star-0.5)} onMouseLeave={()=>setStarHovered(0)} onClick={()=>submitRating(star-0.5)}/>
+                            <div style={{ position:'absolute', top:0, right:0, width:'50%', height:'100%' }} onMouseEnter={()=>setStarHovered(star)} onMouseLeave={()=>setStarHovered(0)} onClick={()=>submitRating(star)}/>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontFamily:"'Be Vietnam Pro',sans-serif", minHeight:16 }}>
+                      {(starHovered || userRating) ? `${starHovered || userRating} / 5` : ''}
+                    </div>
+                    <button onClick={()=>{ if (starHovered) submitRating(starHovered) }} disabled={ratingSaving} style={{
+                      width:'100%', padding:'8px 0', borderRadius:10,
+                      background: userRating ? 'rgba(251,191,36,0.15)' : `linear-gradient(135deg,${ACCENT},#0e7490)`,
+                      color: userRating ? '#FBBF24' : '#fff', fontSize:13, fontWeight:700,
+                      cursor: ratingSaving ? 'wait' : 'pointer', fontFamily:"'Be Vietnam Pro',sans-serif",
+                      boxShadow: userRating ? 'none' : `0 4px 14px ${ACCENT}50`, transition:'all 0.2s',
+                      border: userRating ? '1px solid rgba(251,191,36,0.3)' : 'none',
+                    }}>
+                      {userRating ? (lang==='vi' ? `★ Điểm của bạn: ${userRating}/5` : `★ Your rating: ${userRating}/5`) : (lang==='vi' ? 'Đánh giá' : 'Rate it')}
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={()=>window.dispatchEvent(new CustomEvent('nt:open-auth',{detail:{mode:'login'}}))} style={{
+                    width:'100%', padding:'8px 0', borderRadius:10, border:`1px solid rgba(251,191,36,0.25)`,
+                    background:'rgba(251,191,36,0.08)', color:'#FBBF24', fontSize:13, fontWeight:700,
+                    cursor:'pointer', fontFamily:"'Be Vietnam Pro',sans-serif",
+                    display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    {lang==='vi' ? 'Đánh giá' : 'Rate it'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Info */}
@@ -455,6 +524,22 @@ export function AnimeDetailPage({ animeId }) {
                   <div style={{ fontSize:9, color:'#1e4050', fontWeight:600, letterSpacing:0.8, textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif", marginTop:2 }}>{chip.label}</div>
                 </div>
               ))}
+            </div>
+
+            {/* ── Stats bar ── */}
+            <div style={{ display:'flex', gap:20, marginBottom:18, flexWrap:'wrap' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span style={{ fontSize:13, color:'#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{seriesStats?.views != null ? Number(seriesStats.views).toLocaleString() : '—'}</span>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                <span style={{ fontSize:13, color:'#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{seriesStats?.bookmarks != null ? Number(seriesStats.bookmarks).toLocaleString() : '—'}</span>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span style={{ fontSize:13, color:'#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{seriesStats?.avg_rating ? `${Number(seriesStats.avg_rating).toFixed(1)} (${seriesStats.rating_count})` : '—'}</span>
+              </div>
             </div>
 
             {/* Description */}
