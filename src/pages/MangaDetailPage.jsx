@@ -1,38 +1,22 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { CYAN } from '../constants.js'
+import { ROSE } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
-import { useAnimeById, useAnimeRelated, useSeriesLinks, useSeriesStats, useUserRating, animeUrl, mangaUrl, seriesUrl, slugify } from '../hooks.js'
+import { useMangaById, useMangaRelated, useSeriesLinks, useSeriesStats, useUserRating, mangaUrl } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useUserList } from '../useList.js'
 import { createPortal } from 'react-dom'
 
-const ACCENT = CYAN
-const BG_DARK = '#040810'
+const ACCENT = ROSE
+const BG_DARK = '#0c0408'
 
-const LINK_STYLES = {
-  anilist:  { color: '#02A9FF', label: 'AniList'       },
-  mal:      { color: '#2E51A2', label: 'MyAnimeList'   },
-  watch:    { color: '#06B6D4', label: 'Xem online'    },
-  trailer:  { color: '#EF4444', label: 'Trailer'       },
-  official: { color: '#8B5CF6', label: 'Official'      },
-}
-
-const STATUS_MAP = {
-  FINISHED:         { vi: 'Đã kết thúc', en: 'Finished'  },
-  RELEASING:        { vi: 'Đang chiếu',  en: 'Airing'    },
-  NOT_YET_RELEASED: { vi: 'Sắp ra mắt', en: 'Upcoming'  },
-  CANCELLED:        { vi: 'Đã hủy',      en: 'Cancelled' },
-  HIATUS:           { vi: 'Tạm dừng',    en: 'Hiatus'    },
-}
 const STATUS_COLORS = {
-  FINISHED: 'rgba(100,200,100,0.8)', RELEASING: 'rgba(100,200,255,0.9)',
-  NOT_YET_RELEASED: 'rgba(200,200,100,0.8)', CANCELLED: 'rgba(200,80,80,0.8)',
-  HIATUS: 'rgba(200,150,50,0.8)',
+  ongoing: 'rgba(100,200,255,0.9)', completed: 'rgba(100,200,100,0.8)',
+  hiatus: 'rgba(200,150,50,0.8)',   cancelled: 'rgba(200,80,80,0.8)',
 }
 
-// ── Save button (anime) ───────────────────────────────────────────
-function AnimeSaveButton({ animeId, title, coverUrl }) {
+// ── Save button (manga) ───────────────────────────────────────────
+function MangaSaveButton({ mangaId, title, coverUrl }) {
   const { user } = useAuth()
   const { lists, addToList, removeFromList, getItemEntries, createList } = useUserList()
   const { lang } = useLang()
@@ -50,7 +34,7 @@ function AnimeSaveButton({ animeId, title, coverUrl }) {
         style={{
           display:'flex', alignItems:'center', gap:8, padding:'12px 28px', borderRadius:12,
           cursor:'pointer', fontSize:15, fontWeight:700, fontFamily:"'Be Vietnam Pro',sans-serif",
-          border:'none', background:`linear-gradient(135deg,${ACCENT},#0e7490)`,
+          border:'none', background:`linear-gradient(135deg,${ACCENT},#be185d)`,
           color:'#fff', boxShadow:`0 6px 20px ${ACCENT}50`, transition:'all 0.2s',
         }}
         onMouseEnter={e => e.currentTarget.style.transform='translateY(-2px)'}
@@ -61,13 +45,13 @@ function AnimeSaveButton({ animeId, title, coverUrl }) {
     )
   }
 
-  const entries = getItemEntries(String(animeId), 'anime')
+  const entries = getItemEntries(String(mangaId), 'manga')
   const isSaved = entries.length > 0
-  const relevantLists = lists.filter(l => l.item_type === 'anime' || l.item_type === 'all' || !l.item_type)
+  const relevantLists = lists.filter(l => l.item_type === 'manga' || l.item_type === 'all' || !l.item_type)
 
-  const SC = { watching: '#22d3ee', completed: '#4ade80', 'plan-to-watch': '#a78bfa', dropped: '#f87171', 'on-hold': '#fb923c' }
-  const LV = { watching: 'Đang xem', completed: 'Đã xem', 'plan-to-watch': 'Dự định xem', dropped: 'Bỏ dở', 'on-hold': 'Tạm dừng' }
-  const LE = { watching: 'Watching', completed: 'Completed', 'plan-to-watch': 'Plan to watch', dropped: 'Dropped', 'on-hold': 'On hold' }
+  const SC = { reading: '#22d3ee', completed: '#4ade80', 'plan-to-read': '#a78bfa', dropped: '#f87171', 'on-hold': '#fb923c' }
+  const LV = { reading: 'Đang đọc', completed: 'Đã đọc', 'plan-to-read': 'Dự định đọc', dropped: 'Bỏ dở', 'on-hold': 'Tạm dừng' }
+  const LE = { reading: 'Reading', completed: 'Completed', 'plan-to-read': 'Plan to read', dropped: 'Dropped', 'on-hold': 'On hold' }
 
   const close = () => { setOpen(false); setStep('list'); setPickedList(null); setShowNew(false); setNewName('') }
 
@@ -75,20 +59,19 @@ function AnimeSaveButton({ animeId, title, coverUrl }) {
     <div onClick={close} style={{ position:'fixed', inset:0, zIndex:50000,
       background:'rgba(0,0,0,0.7)', backdropFilter:'blur(6px)',
       display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background:`linear-gradient(145deg,#060d1a,#0a1428)`,
-        border:`1px solid ${ACCENT}40`, borderRadius:18,
-        padding:22, width:'100%', maxWidth:360,
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:`linear-gradient(145deg,#140810,#1e0d18)`,
+        border:`1px solid ${ACCENT}40`, borderRadius:18, padding:22, width:'100%', maxWidth:360,
         boxShadow:`0 24px 60px rgba(0,0,0,0.9), 0 0 40px ${ACCENT}15` }}>
         <div style={{ display:'flex', gap:12, alignItems:'center', marginBottom:18 }}>
           {coverUrl && <img src={coverUrl} style={{ width:40, height:56, objectFit:'cover', borderRadius:7, flexShrink:0 }} onError={e=>e.target.style.display='none'} />}
           <div style={{ flex:1 }}>
             <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:"'Barlow Condensed',sans-serif" }}>{title}</div>
-            <div style={{ fontSize:10, color:'#2a6070', marginTop:3, textTransform:'uppercase', letterSpacing:1, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+            <div style={{ fontSize:10, color:'#5a2030', marginTop:3, textTransform:'uppercase', letterSpacing:1, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
               {step==='list' ? (lang==='vi'?'Chọn danh sách':'Choose a list') : (lang==='vi'?'Trạng thái':'Set status')}
             </div>
           </div>
-          <button onClick={close} style={{ background:'none', border:'none', color:'#2a6070', fontSize:20, cursor:'pointer' }}>×</button>
+          <button onClick={close} style={{ background:'none', border:'none', color:'#5a2030', fontSize:20, cursor:'pointer' }}>×</button>
         </div>
         {step === 'list' && (<>
           <div style={{ display:'flex', flexDirection:'column', gap:7, marginBottom:12 }}>
@@ -96,53 +79,53 @@ function AnimeSaveButton({ animeId, title, coverUrl }) {
               const entry = entries.find(e => e.list_id === list.id)
               const sc = SC[entry?.status] || ACCENT
               return (
-                <div key={list.id} onClick={() => { setPickedList(list); setStep('status') }} style={{
+                <div key={list.id} onClick={()=>{ setPickedList(list); setStep('status') }} style={{
                   display:'flex', alignItems:'center', gap:10,
-                  background: entry ? `${sc}12` : 'rgba(100,200,255,0.04)',
-                  border:`1px solid ${entry ? sc+'40' : 'rgba(100,200,255,0.08)'}`,
+                  background: entry ? `${sc}12` : 'rgba(244,63,94,0.04)',
+                  border:`1px solid ${entry ? sc+'40' : 'rgba(244,63,94,0.08)'}`,
                   borderRadius:10, padding:'9px 12px', cursor:'pointer' }}>
-                  <span style={{ fontSize:14 }}>📺</span>
+                  <span style={{ fontSize:14 }}>📚</span>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight:600, color:'#fff', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{list.name}</div>
                     {entry && <div style={{ fontSize:10, color:sc, marginTop:1 }}>{lang==='vi'?LV[entry.status]:LE[entry.status]}</div>}
                   </div>
                   {entry
-                    ? <button onClick={e => { e.stopPropagation(); setBusy(true); removeFromList(entry.id).finally(()=>setBusy(false)) }}
+                    ? <button onClick={e=>{ e.stopPropagation(); setBusy(true); removeFromList(entry.id).finally(()=>setBusy(false)) }}
                         style={{ background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.3)', color:'#F87171', borderRadius:6, padding:'3px 8px', cursor:'pointer', fontSize:10, fontWeight:700 }}>
                         {lang==='vi'?'Xóa':'Remove'}
                       </button>
-                    : <span style={{ color:'#2a6070', fontSize:16 }}>+</span>}
+                    : <span style={{ color:'#5a2030', fontSize:16 }}>+</span>}
                 </div>
               )
             })}
           </div>
           {showNew ? (
             <div style={{ display:'flex', gap:8 }}>
-              <input autoFocus value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(setBusy(true),createList(newName.trim(),'anime').then(()=>{setNewName('');setShowNew(false)}).finally(()=>setBusy(false)))}
+              <input autoFocus value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(setBusy(true),createList(newName.trim(),'manga').then(()=>{setNewName('');setShowNew(false)}).finally(()=>setBusy(false)))}
                 placeholder={lang==='vi'?'Tên danh sách...':'List name...'}
-                style={{ flex:1, background:'rgba(100,200,255,0.06)', border:'1px solid rgba(100,200,255,0.15)', borderRadius:8, padding:'8px 10px', color:'#fff', fontSize:12, outline:'none', fontFamily:"'Be Vietnam Pro',sans-serif" }} />
-              <button onClick={()=>{setBusy(true);createList(newName.trim(),'anime').then(()=>{setNewName('');setShowNew(false)}).finally(()=>setBusy(false))}} disabled={busy}
+                style={{ flex:1, background:'rgba(244,63,94,0.06)', border:'1px solid rgba(244,63,94,0.15)', borderRadius:8, padding:'8px 10px', color:'#fff', fontSize:12, outline:'none', fontFamily:"'Be Vietnam Pro',sans-serif" }} />
+              <button onClick={()=>{setBusy(true);createList(newName.trim(),'manga').then(()=>{setNewName('');setShowNew(false)}).finally(()=>setBusy(false))}} disabled={busy}
                 style={{ background:ACCENT, border:'none', color:'#fff', borderRadius:8, padding:'8px 14px', cursor:'pointer', fontSize:12, fontWeight:700 }}>{lang==='vi'?'Tạo':'Create'}</button>
-              <button onClick={()=>setShowNew(false)} style={{ background:'none', border:'1px solid rgba(255,255,255,0.1)', color:'#2a6070', borderRadius:8, padding:'8px 10px', cursor:'pointer' }}>×</button>
+              <button onClick={()=>setShowNew(false)} style={{ background:'none', border:'1px solid rgba(255,255,255,0.1)', color:'#5a2030', borderRadius:8, padding:'8px 10px', cursor:'pointer' }}>×</button>
             </div>
           ) : (
-            <button onClick={()=>setShowNew(true)} style={{ width:'100%', background:'none', border:'1px dashed rgba(100,200,255,0.15)', color:'#2a6070', borderRadius:10, padding:'9px 0', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+            <button onClick={()=>setShowNew(true)} style={{ width:'100%', background:'none', border:'1px dashed rgba(244,63,94,0.15)', color:'#5a2030', borderRadius:10, padding:'9px 0', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
               {lang==='vi'?'+ Tạo danh sách mới':'+ Create new list'}
             </button>
           )}
         </>)}
         {step === 'status' && (<>
-          <button onClick={()=>setStep('list')} style={{ background:'none', border:'none', color:'#2a6070', cursor:'pointer', fontSize:12, marginBottom:12, fontFamily:"'Be Vietnam Pro',sans-serif", padding:0 }}>
+          <button onClick={()=>setStep('list')} style={{ background:'none', border:'none', color:'#5a2030', cursor:'pointer', fontSize:12, marginBottom:12, fontFamily:"'Be Vietnam Pro',sans-serif", padding:0 }}>
             ← <span style={{ color:ACCENT }}>{pickedList?.name}</span>
           </button>
           <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
             {Object.entries(LV).map(([key, viLabel]) => {
               const sc = SC[key] || '#94A3B8'
               return (
-                <button key={key} onClick={()=>{ setBusy(true); addToList({ listId:pickedList.id, item_id:String(animeId), item_type:'anime', title, cover_url:coverUrl, status:key }).then(close).finally(()=>setBusy(false)) }}
-                  disabled={busy} style={{ background:'rgba(100,200,255,0.04)', border:'1px solid rgba(100,200,255,0.08)', color:'#c8e8f0', borderRadius:10, padding:'10px 14px', cursor:'pointer', fontSize:13, fontWeight:600, textAlign:'left', fontFamily:"'Be Vietnam Pro',sans-serif", display:'flex', alignItems:'center', gap:10, opacity:busy?0.6:1 }}
+                <button key={key} onClick={()=>{ setBusy(true); addToList({ listId:pickedList.id, item_id:String(mangaId), item_type:'manga', title, cover_url:coverUrl, status:key }).then(close).finally(()=>setBusy(false)) }}
+                  disabled={busy} style={{ background:'rgba(244,63,94,0.04)', border:'1px solid rgba(244,63,94,0.08)', color:'#e8a0b0', borderRadius:10, padding:'10px 14px', cursor:'pointer', fontSize:13, fontWeight:600, textAlign:'left', fontFamily:"'Be Vietnam Pro',sans-serif", display:'flex', alignItems:'center', gap:10, opacity:busy?0.6:1 }}
                   onMouseEnter={e=>{e.currentTarget.style.background=sc+'14';e.currentTarget.style.borderColor=sc+'50';e.currentTarget.style.color=sc}}
-                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(100,200,255,0.04)';e.currentTarget.style.borderColor='rgba(100,200,255,0.08)';e.currentTarget.style.color='#c8e8f0'}}>
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(244,63,94,0.04)';e.currentTarget.style.borderColor='rgba(244,63,94,0.08)';e.currentTarget.style.color='#e8a0b0'}}>
                   <span style={{ width:8, height:8, borderRadius:'50%', background:sc, flexShrink:0 }} />
                   {lang==='vi'?viLabel:LE[key]}
                 </button>
@@ -156,15 +139,11 @@ function AnimeSaveButton({ animeId, title, coverUrl }) {
 
   return (<>
     <button onClick={()=>setOpen(true)} style={{
-      display:'flex', alignItems:'center', gap:8,
-      padding:'12px 28px', borderRadius:12, cursor:'pointer',
-      fontSize:15, fontWeight:700, fontFamily:"'Be Vietnam Pro', sans-serif",
-      border:'none',
-      background: isSaved ? 'linear-gradient(135deg,#0e7490,#0891b2)' : `linear-gradient(135deg,${ACCENT},#0891b2)`,
-      color:'#fff',
-      boxShadow: isSaved ? '0 6px 20px rgba(8,145,178,0.4)' : `0 6px 20px ${ACCENT}50`,
-      transition:'all 0.2s',
-    }}
+      display:'flex', alignItems:'center', gap:8, padding:'12px 28px', borderRadius:12, cursor:'pointer',
+      fontSize:15, fontWeight:700, fontFamily:"'Be Vietnam Pro', sans-serif", border:'none',
+      background: isSaved ? 'linear-gradient(135deg,#9d174d,#be185d)' : `linear-gradient(135deg,${ACCENT},#BE185D)`,
+      color:'#fff', boxShadow: isSaved ? '0 6px 20px rgba(190,24,93,0.4)' : `0 6px 20px ${ACCENT}50`,
+      transition:'all 0.2s' }}
       onMouseEnter={e=>e.currentTarget.style.transform='translateY(-2px)'}
       onMouseLeave={e=>e.currentTarget.style.transform=''}>
       {isSaved ? (lang==='vi'?'✓ Đã lưu':'✓ Saved') : (lang==='vi'?'+ Thêm vào danh sách':'+ Add to list')}
@@ -192,14 +171,14 @@ function RelatedCard({ item, lang }) {
   return (
     <div onClick={() => { window.location.hash = itemUrl }}
       style={{ width:156, flexShrink:0, cursor:'pointer', display:'flex', flexDirection:'column', gap:6 }}>
-      <div style={{ width:156, height:234, borderRadius:12, overflow:'hidden', background:'#050c18',
+      <div style={{ width:156, height:234, borderRadius:12, overflow:'hidden', background:'#100608',
         position:'relative', boxShadow:'0 4px 16px rgba(0,0,0,0.5)',
         transition:'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s' }}
         onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-5px)';e.currentTarget.style.boxShadow=`0 12px 32px ${ACCENT}44`}}
         onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.5)'}}>
         {item.cover_url
           ? <img src={item.cover_url} alt={item.title||''} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
-          : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32 }}>🎌</div>}
+          : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32 }}>📚</div>}
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
         {relLabel && (
           <div style={{ position:'absolute', top:6, left:6, fontSize:9, fontWeight:700, padding:'2px 7px', borderRadius:10,
@@ -222,28 +201,26 @@ function RelatedCard({ item, lang }) {
   )
 }
 
-// ── Mini card (navigates to anime/manga detail) ──────────────────
-function MiniCard({ item, url, emoji = '🎌' }) {
+// ── Mini card ─────────────────────────────────────────────────────
+function MiniCard({ item, url }) {
   return (
-    <div onClick={() => { window.location.hash = url }}
+    <div onClick={()=>{ window.location.hash = url }}
       style={{ width:156, flexShrink:0, cursor:'pointer', display:'flex', flexDirection:'column', gap:6 }}>
-      <div style={{ width:156, height:234, borderRadius:12, overflow:'hidden', background:'#050c18',
+      <div style={{ width:156, height:234, borderRadius:12, overflow:'hidden', background:'#100608',
         position:'relative', boxShadow:'0 4px 16px rgba(0,0,0,0.5)',
         transition:'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s' }}
         onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-5px)';e.currentTarget.style.boxShadow=`0 12px 32px ${ACCENT}44`}}
         onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.5)'}}>
-        {item.cover_url || item.cover_large
-          ? <img src={item.cover_url||item.cover_large} alt={item.title||''} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
-          : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32 }}>{emoji}</div>}
+        {item.cover_url
+          ? <img src={item.cover_url} alt={item.title||''} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
+          : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32 }}>📚</div>}
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)' }} />
-        {item.score && (
-          <div style={{ position:'absolute', bottom:6, left:6, fontSize:10, fontWeight:700, color:'#FBBF24', fontFamily:"'Barlow Condensed',sans-serif" }}>★ {item.score}</div>
+        {item.rating && (
+          <div style={{ position:'absolute', bottom:6, left:6, fontSize:10, fontWeight:700, color:'#FBBF24', fontFamily:"'Barlow Condensed',sans-serif" }}>★ {parseFloat(item.rating).toFixed(2)}</div>
         )}
       </div>
       <div style={{ fontSize:11, fontWeight:600, color:'#e2e8f0', lineHeight:1.35, fontFamily:"'Be Vietnam Pro',sans-serif",
-        display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
-        {item.title || item.title_english || item.title_romaji || item.title_en || ''}
-      </div>
+        display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
     </div>
   )
 }
@@ -252,14 +229,14 @@ function MiniCard({ item, url, emoji = '🎌' }) {
 function Placeholder({ icon, text }) {
   return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-      padding:'60px 20px', gap:12, border:'1px dashed rgba(100,200,255,0.1)', borderRadius:16 }}>
+      padding:'60px 20px', gap:12, border:'1px dashed rgba(244,63,94,0.1)', borderRadius:16 }}>
       <span style={{ fontSize:36, opacity:0.4 }}>{icon}</span>
-      <p style={{ fontSize:13, color:'#2a6070', margin:0, fontFamily:"'Be Vietnam Pro',sans-serif", textAlign:'center' }}>{text}</p>
+      <p style={{ fontSize:13, color:'#5a2030', margin:0, fontFamily:"'Be Vietnam Pro',sans-serif", textAlign:'center' }}>{text}</p>
     </div>
   )
 }
 
-// ── Horizontal scroll carousel ────────────────────────────────────
+// ── Carousel ─────────────────────────────────────────────────────
 function SectionCarousel({ title, children }) {
   const ref = useRef(null)
   const scroll = dir => ref.current?.scrollBy({ left: dir * 700, behavior:'smooth' })
@@ -270,7 +247,7 @@ function SectionCarousel({ title, children }) {
         <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, letterSpacing:1.5, color:'#f1f5f9', margin:0, textTransform:'uppercase' }}>{title}</h2>
         <div style={{ display:'flex', gap:6 }}>
           {['←','→'].map((a,i) => (
-            <button key={a} onClick={()=>scroll(i===0?-1:1)} style={{ width:28, height:28, borderRadius:8, border:'1px solid rgba(100,200,255,0.1)', background:'rgba(0,150,200,0.05)', color:'#2a6070', cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center' }}>{a}</button>
+            <button key={a} onClick={()=>scroll(i===0?-1:1)} style={{ width:28, height:28, borderRadius:8, border:'1px solid rgba(244,63,94,0.1)', background:'rgba(244,63,94,0.04)', color:'#5a2030', cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center' }}>{a}</button>
           ))}
         </div>
       </div>
@@ -282,32 +259,45 @@ function SectionCarousel({ title, children }) {
 }
 
 // ── Tab content ───────────────────────────────────────────────────
-function TabContent({ activeTab, lang, anime, related }) {
+function TabContent({ activeTab, lang, manga, related }) {
   const h = { fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:800, letterSpacing:1.5, color:'#f1f5f9', margin:'0 0 20px', textTransform:'uppercase' }
+  // themes merged into genres in series table
 
   if (activeTab === 'info') {
     const rows = [
-      { label: lang==='vi'?'Tên gốc':'Original title', value: anime.title_native || '—' },
-      { label: lang==='vi'?'Studio':'Studio',           value: anime.studio || '—' },
-      { label: lang==='vi'?'Định dạng':'Format',        value: anime.format || '—' },
-      { label: lang==='vi'?'Trạng thái':'Status',       value: (STATUS_MAP[anime.status]?.[lang==='vi'?'vi':'en']) || anime.status || '—' },
-      { label: lang==='vi'?'Số tập':'Episodes',         value: anime.episodes ? `${anime.episodes} tập` : '—' },
-      { label: lang==='vi'?'Thời lượng':'Duration',     value: anime.duration_min ? `${anime.duration_min} phút/tập` : '—' },
-      { label: lang==='vi'?'Mùa':'Season',              value: [anime.season, anime.season_year].filter(Boolean).join(' ') || '—' },
-      { label: lang==='vi'?'Thể loại':'Genres',         value: (anime.genres||[]).join(', ') || '—' },
-      { label: 'AniList Score',                          value: anime.mean_score ? `★ ${anime.mean_score}/100` : '—' },
+      { label: lang==='vi'?'Tên gốc':'Original title',     value: manga.title_native || '—' },
+      { label: lang==='vi'?'Tác giả':'Author',              value: manga.author || '—' },
+      { label: lang==='vi'?'Đối tượng':'Demographic',       value: manga.demographic ? manga.demographic.charAt(0).toUpperCase()+manga.demographic.slice(1) : '—' },
+      { label: lang==='vi'?'Trạng thái':'Status',           value: manga.status ? manga.status.charAt(0).toUpperCase()+manga.status.slice(1) : '—' },
+      { label: lang==='vi'?'Năm':'Year',                    value: manga.year || '—' },
+      { label: lang==='vi'?'Số chapter':'Chapters',         value: manga.chapters || manga.last_chapter || '—' },
+      { label: lang==='vi'?'Số volume':'Volumes',           value: manga.volumes || manga.last_volume || '—' },
+      { label: lang==='vi'?'Ngôn ngữ gốc':'Original lang', value: (manga.original_language||'ja').toUpperCase() },
+      { label: lang==='vi'?'Thể loại':'Genres',             value: (manga.genres||[]).join(', ') || '—' },
+      { label: 'MangaDex Rating',                            value: manga.score ? `★ ${parseFloat(manga.score).toFixed(2)}` : '—' },
+      { label: lang==='vi'?'Lượt theo dõi':'Follows',       value: manga.follows ? manga.follows.toLocaleString() : '—' },
     ]
     return (
       <div>
         <h3 style={h}>{lang==='vi'?'Thông tin':'Information'}</h3>
         <table style={{ width:'100%', borderCollapse:'collapse' }}>
           {rows.map((row,i) => (
-            <tr key={i} style={{ borderBottom:'1px solid rgba(100,200,255,0.05)' }}>
-              <td style={{ padding:'9px 16px 9px 0', width:'38%', fontSize:12, color:'#2a6070', fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif", textTransform:'uppercase', letterSpacing:0.6, verticalAlign:'top' }}>{row.label}</td>
-              <td style={{ padding:'9px 0', fontSize:13, color:'#8ac8d8', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{row.value}</td>
+            <tr key={i} style={{ borderBottom:'1px solid rgba(244,63,94,0.05)' }}>
+              <td style={{ padding:'9px 16px 9px 0', width:'38%', fontSize:12, color:'#5a2030', fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif", textTransform:'uppercase', letterSpacing:0.6, verticalAlign:'top' }}>{row.label}</td>
+              <td style={{ padding:'9px 0', fontSize:13, color:'#e8a0b0', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{row.value}</td>
             </tr>
           ))}
         </table>
+        {themes.length > 0 && (
+          <div style={{ marginTop:20 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#5a2030', letterSpacing:1, textTransform:'uppercase', marginBottom:10, fontFamily:"'Be Vietnam Pro',sans-serif" }}>THEMES</div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+              {themes.slice(0,12).map(t => (
+                <span key={t} style={{ fontSize:11, padding:'3px 10px', borderRadius:20, background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)', color:'#FDA4AF', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -331,14 +321,13 @@ function TabContent({ activeTab, lang, anime, related }) {
 }
 
 // ── Main page ─────────────────────────────────────────────────────
-export function AnimeDetailPage({ animeId }) {
+export function MangaDetailPage({ mangaId }) {
   const { lang } = useLang()
   const { user, token } = useAuth()
-  const { anime, loading, error } = useAnimeById(animeId)
-  const { related, recs } = useAnimeRelated(anime?.id, anime?.genres)
-  const links = useSeriesLinks(anime?.id || null)
-  const seriesStats = useSeriesStats(anime?.id || null)
-  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(anime?.id || null, token)
+  const { manga, loading, error } = useMangaById(mangaId)
+  const { related, recs } = useMangaRelated(manga?.id, manga?.genres)
+  const seriesStats = useSeriesStats(manga?.id || null)
+  const { rating: userRating, hovered: starHovered, setHovered: setStarHovered, submitRating, saving: ratingSaving } = useUserRating(manga?.id || null, token)
 
   const [descExpanded, setDescExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
@@ -354,26 +343,25 @@ export function AnimeDetailPage({ animeId }) {
 
   if (loading) return (
     <div className="page-enter">
-      <AppHeader activeTab="#/anime" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
-      <div style={{ textAlign:'center', padding:'80px 20px', color:'#2a6070', fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
+      <AppHeader activeTab="#/manga" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
+      <div style={{ textAlign:'center', padding:'80px 20px', color:'#5a2030', fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
     </div>
   )
-  if (error || !anime) return (
+  if (error || !manga) return (
     <div className="page-enter">
-      <AppHeader activeTab="#/anime" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
-      <div style={{ padding:40 }}><ErrorBox msg={error||'Anime not found'} onRetry={()=>window.location.reload()} color={ACCENT} /></div>
+      <AppHeader activeTab="#/manga" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
+      <div style={{ padding:40 }}><ErrorBox msg={error||'Manga not found'} onRetry={()=>window.location.reload()} color={ACCENT} /></div>
     </div>
   )
 
-  const cover   = anime.cover_url
-  const banner  = anime.banner_url
-  const title   = anime.title || '—'
-  const genres  = anime.genres || []
-  const status  = anime.status
+  const cover   = manga.cover_url
+  const title   = manga.title || '—'
+  const genres  = manga.genres || []
+  const status  = manga.status
   const statusColor = STATUS_COLORS[status] || 'rgba(150,150,150,0.8)'
-  // AniList URL from external_id
-  const siteUrl = anime.external_id ? `https://anilist.co/anime/${anime.external_id}` : null
-  const desc    = (anime.description || '').replace(/<[^>]*>/g, '').trim()
+  // MangaDex URL via external_id (UUID)
+  const mdUrl   = manga.external_id ? `https://mangadex.org/title/${manga.external_id}` : null
+  const desc    = (manga.description || '').replace(/\[.*?\]/g,'').trim()
   const LIMIT   = 380
 
   const TABS = [
@@ -384,43 +372,32 @@ export function AnimeDetailPage({ animeId }) {
 
   return (
     <div className="page-enter">
-      <AppHeader activeTab="#/anime" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
+      <AppHeader activeTab="#/manga" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
 
       {/* ── Hero ── */}
-      <div style={{ background:'linear-gradient(160deg,#040810,#060d1a,#040a12)', position:'relative', overflow:'hidden' }}>
-        {/* Blurred bg */}
-        {(banner || cover) && (
-          <div style={{ position:'absolute', inset:0, zIndex:0,
-            backgroundImage:`url(${banner||cover})`, backgroundSize:'cover', backgroundPosition:'center',
-            filter:'blur(40px) saturate(0.4)', opacity:0.15 }} />
+      <div style={{ background:'linear-gradient(160deg,#0f040a,#180810,#0c0408)', position:'relative', overflow:'hidden' }}>
+        {cover && (
+          <div style={{ position:'absolute', inset:0, zIndex:0, backgroundImage:`url(${cover})`, backgroundSize:'cover', backgroundPosition:'center', filter:'blur(40px) saturate(0.4)', opacity:0.15 }} />
         )}
-        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to bottom, rgba(4,8,16,0.5) 0%, rgba(4,8,16,0.95) 100%)' }} />
-
-        {/* Banner strip */}
-        {banner && !isMobile && (
-          <div style={{ position:'relative', zIndex:2, height:140, overflow:'hidden' }}>
-            <img src={banner} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.35 }} />
-            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, transparent 0%, rgba(4,8,16,1) 100%)' }} />
-          </div>
-        )}
+        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to bottom, rgba(12,4,8,0.5) 0%, rgba(12,4,8,0.95) 100%)' }} />
 
         <div style={{ position:'relative', zIndex:2, padding: isMobile ? '20px 16px 28px' : '32px 32px 40px', paddingLeft: isMobile ? 16 : 228,
           display:'flex', gap: isMobile ? 14 : 32, alignItems:'flex-start' }}>
           {/* Back */}
-          <button onClick={()=>window.history.back()} style={{ position:'absolute', top:isMobile?8:16, left: isMobile?16:228,
-            background:'none', border:'none', color:'#1e4050', cursor:'pointer',
+          <button onClick={()=>window.history.back()} style={{ position:'absolute', top: isMobile?8:16, left: isMobile?16:228,
+            background:'none', border:'none', color:'#3a1020', cursor:'pointer',
             fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif", display:'flex', alignItems:'center', gap:4 }}>
             ← {lang==='vi'?'Quay lại':'Back'}
           </button>
 
           {/* Cover */}
-          <div style={{ flexShrink:0, marginTop: isMobile ? 28 : 20 }}>
+          <div style={{ flexShrink:0, marginTop: isMobile?28:20 }}>
             <div style={{ width: isMobile ? 110 : 200, borderRadius:14, overflow:'hidden',
-              boxShadow:`0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(100,200,255,0.08)`,
-              aspectRatio:'2/3', background:'#050c18' }}>
+              boxShadow:`0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(244,63,94,0.08)`,
+              aspectRatio:'2/3', background:'#100608' }}>
               {cover
                 ? <img src={cover} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
-                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:48 }}>🎌</div>}
+                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:48 }}>📚</div>}
             </div>
 
             {/* ── Star rating widget ── */}
@@ -436,7 +413,7 @@ export function AnimeDetailPage({ animeId }) {
                         const StarPath = () => <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                         return (
                           <div key={star} style={{ position:'relative', width:28, height:28, cursor: ratingSaving ? 'wait' : 'pointer' }}>
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1e3a4a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ position:'absolute', top:0, left:0 }}><StarPath/></svg>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3a1020" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ position:'absolute', top:0, left:0 }}><StarPath/></svg>
                             {half && <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ position:'absolute', top:0, left:0, clipPath:'inset(0 50% 0 0)' }}><StarPath/></svg>}
                             {full && <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ position:'absolute', top:0, left:0, transition:'transform 0.12s', transform:'scale(1.15)' }}><StarPath/></svg>}
                             <div style={{ position:'absolute', top:0, left:0, width:'50%', height:'100%' }} onMouseEnter={()=>setStarHovered(star-0.5)} onMouseLeave={()=>setStarHovered(0)} onClick={()=>submitRating(star-0.5)}/>
@@ -450,7 +427,7 @@ export function AnimeDetailPage({ animeId }) {
                     </div>
                     <button onClick={()=>{ if (starHovered) submitRating(starHovered) }} disabled={ratingSaving} style={{
                       width:'100%', padding:'8px 0', borderRadius:10,
-                      background: userRating ? 'rgba(251,191,36,0.15)' : `linear-gradient(135deg,${ACCENT},#0e7490)`,
+                      background: userRating ? 'rgba(251,191,36,0.15)' : `linear-gradient(135deg,${ACCENT},#be185d)`,
                       color: userRating ? '#FBBF24' : '#fff', fontSize:13, fontWeight:700,
                       cursor: ratingSaving ? 'wait' : 'pointer', fontFamily:"'Be Vietnam Pro',sans-serif",
                       boxShadow: userRating ? 'none' : `0 4px 14px ${ACCENT}50`, transition:'all 0.2s',
@@ -475,53 +452,51 @@ export function AnimeDetailPage({ animeId }) {
           </div>
 
           {/* Info */}
-          <div style={{ flex:1, paddingTop: isMobile ? 32 : 16 }}>
-            {/* Genre + status tags */}
+          <div style={{ flex:1, paddingTop: isMobile?32:16 }}>
+            {/* Tags */}
             <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
               {genres.slice(0,5).map(g => (
                 <span key={g} style={{ fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20,
-                  background:`${ACCENT}20`, border:`1px solid ${ACCENT}40`, color:'#67E8F9',
-                  fontFamily:"'Be Vietnam Pro',sans-serif", cursor:'default' }}>{g}</span>
+                  background:`${ACCENT}20`, border:`1px solid ${ACCENT}40`, color:'#FDA4AF',
+                  fontFamily:"'Be Vietnam Pro',sans-serif" }}>{g}</span>
               ))}
               {status && (
                 <span style={{ fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20,
                   background: statusColor.replace(/[\d.]+\)$/,'0.15)'), border:`1px solid ${statusColor.replace(/[\d.]+\)$/,'0.4)')}`,
-                  color:'#fff', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  {STATUS_MAP[status]?.[lang==='vi'?'vi':'en'] || status}
-                </span>
+                  color:'#fff', textTransform:'capitalize', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{status}</span>
               )}
-              {anime.format && (
+              {manga.demographic && (
                 <span style={{ fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20,
                   background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
-                  color:'#94A3B8', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{anime.format}</span>
+                  color:'#94A3B8', textTransform:'capitalize', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{manga.demographic}</span>
               )}
             </div>
 
             <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:'clamp(22px,4vw,40px)',
               fontWeight:900, color:'#f1f5f9', margin:'0 0 4px', lineHeight:1.1, letterSpacing:1 }}>{title}</h1>
 
-            {anime.title_native && anime.title_native !== title && (
-              <div style={{ fontSize:13, color:'#4a8090', marginBottom:4, fontFamily:"'Be Vietnam Pro',sans-serif" }}>{anime.title_native}</div>
+            {manga.title_native && manga.title_native !== title && (
+              <div style={{ fontSize:13, color:'#5a2030', marginBottom:4, fontFamily:"'Be Vietnam Pro',sans-serif" }}>{manga.title_native}</div>
             )}
-            {anime.studio && (
-              <div style={{ fontSize:13, color:'#2a6070', marginBottom:16, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                {lang==='vi'?'Studio: ':'Studio: '}<span style={{ color:'#67E8F9', fontWeight:600 }}>{anime.studio}</span>
+            {manga.author && (
+              <div style={{ fontSize:13, color:'#3a1020', marginBottom:16, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                {lang==='vi'?'Tác giả: ':'Author: '}<span style={{ color:'#FDA4AF', fontWeight:600 }}>{manga.author}</span>
               </div>
             )}
 
             {/* Stats chips */}
             <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap' }}>
               {[
-                { label: 'SCORE',    value: anime.mean_score ? `★ ${anime.mean_score}` : (anime.score ? `★ ${(+anime.score * 10).toFixed(0)}` : 'N/A'), color:'#FBBF24' },
-                { label: lang==='vi'?'TẬP':'EPISODES', value: anime.episodes || '?', color:ACCENT },
-                { label: lang==='vi'?'THỜI LƯỢNG':'DURATION', value: anime.duration_min ? `${anime.duration_min}m` : '?', color:'#94A3B8' },
-                { label: lang==='vi'?'NĂM':'YEAR',  value: anime.season_year || '?', color:'#94A3B8' },
-                { label: lang==='vi'?'YÊU THÍCH':'FAVS', value: anime.favourites ? (anime.favourites/1000).toFixed(0)+'k' : '?', color:'#F472B6' },
+                { label: 'SCORE',    value: manga.score ? `★ ${parseFloat(manga.score).toFixed(2)}` : 'N/A', color:'#FBBF24' },
+                { label: lang==='vi'?'CHAPTER':'CHAPTERS', value: manga.chapters||manga.last_chapter||'?', color:ACCENT },
+                { label: lang==='vi'?'VOLUME':'VOLUMES',   value: manga.volumes||manga.last_volume||'?', color:'#FDA4AF' },
+                { label: lang==='vi'?'NĂM':'YEAR',         value: manga.year || '?', color:'#94A3B8' },
+                { label: lang==='vi'?'THEO DÕI':'FOLLOWS', value: manga.follows ? (manga.follows/1000).toFixed(0)+'k' : '?', color:'#86EFAC' },
               ].map(chip => (
-                <div key={chip.label} style={{ textAlign:'center', background:'rgba(100,200,255,0.04)',
-                  border:'1px solid rgba(100,200,255,0.08)', borderRadius:12, padding:'8px 14px', minWidth:60 }}>
+                <div key={chip.label} style={{ textAlign:'center', background:'rgba(244,63,94,0.04)',
+                  border:'1px solid rgba(244,63,94,0.08)', borderRadius:12, padding:'8px 14px', minWidth:60 }}>
                   <div style={{ fontSize:16, fontWeight:800, color:chip.color, fontFamily:"'Barlow Condensed',sans-serif" }}>{chip.value}</div>
-                  <div style={{ fontSize:9, color:'#1e4050', fontWeight:600, letterSpacing:0.8, textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif", marginTop:2 }}>{chip.label}</div>
+                  <div style={{ fontSize:9, color:'#3a1020', fontWeight:600, letterSpacing:0.8, textTransform:'uppercase', fontFamily:"'Be Vietnam Pro',sans-serif", marginTop:2 }}>{chip.label}</div>
                 </div>
               ))}
             </div>
@@ -548,7 +523,7 @@ export function AnimeDetailPage({ animeId }) {
               const shown = (!isLong || descExpanded) ? desc : desc.slice(0, LIMIT) + '…'
               return (
                 <div style={{ maxWidth:600, marginBottom:20 }}>
-                  <p style={{ fontSize:13, color:'#6a9aaa', lineHeight:1.8, fontFamily:"'Be Vietnam Pro',sans-serif", margin:0 }}>{shown}</p>
+                  <p style={{ fontSize:13, color:'#8a4050', lineHeight:1.8, fontFamily:"'Be Vietnam Pro',sans-serif", margin:0 }}>{shown}</p>
                   {isLong && (
                     <button onClick={()=>setDescExpanded(x=>!x)} style={{ background:'none', border:'none', cursor:'pointer', color:ACCENT, fontSize:12, fontWeight:600, padding:'8px 0 0', display:'block', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                       {descExpanded ? (lang==='vi'?'▲ Thu gọn':'▲ Show less') : (lang==='vi'?'▼ Xem thêm':'▼ Read more')}
@@ -560,22 +535,11 @@ export function AnimeDetailPage({ animeId }) {
 
             {/* Action buttons */}
             <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
-              <AnimeSaveButton animeId={anime.id} title={title} coverUrl={cover} />
-              {siteUrl && !links.some(l => l.link_type === 'anilist') && (
-                <a href={siteUrl} target="_blank" rel="noreferrer" style={{ fontSize:12, fontWeight:600, padding:'8px 14px', borderRadius:10,
-                  background:`${ACCENT}18`, border:`1px solid ${ACCENT}40`, color:'#67E8F9', textDecoration:'none', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                  AniList ↗
-                </a>
-              )}
-              {links.map((lnk,i) => {
-                const cfg = LINK_STYLES[lnk.link_type] || { color:'#2a6070', label: lnk.label||lnk.link_type }
-                return (
-                  <a key={i} href={lnk.url} target="_blank" rel="noreferrer" style={{ fontSize:12, fontWeight:600, padding:'8px 14px', borderRadius:10,
-                    background:`${cfg.color}18`, border:`1px solid ${cfg.color}35`, color:cfg.color, textDecoration:'none', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
-                    {lnk.label||cfg.label} ↗
-                  </a>
-                )
-              })}
+              <MangaSaveButton mangaId={manga.id} title={title} coverUrl={cover} />
+              <a href={mdUrl} target="_blank" rel="noreferrer" style={{ fontSize:12, fontWeight:600, padding:'8px 14px', borderRadius:10,
+                background:`${ACCENT}18`, border:`1px solid ${ACCENT}40`, color:'#FDA4AF', textDecoration:'none', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                MangaDex ↗
+              </a>
             </div>
           </div>
         </div>
@@ -584,7 +548,6 @@ export function AnimeDetailPage({ animeId }) {
       {/* ── Below hero ── */}
       {isMobile ? (
         <div style={{ padding:'0 0 48px' }}>
-          {/* Mobile pills */}
           <div style={{ display:'flex', gap:8, padding:'16px 16px 0', overflowX:'auto' }}>
             {TABS.map(tab => {
               const isActive = activeTab === tab.key
@@ -601,31 +564,29 @@ export function AnimeDetailPage({ animeId }) {
           </div>
           {activeTab && (
             <div style={{ padding:'20px 16px 4px' }}>
-              <TabContent activeTab={activeTab} lang={lang} anime={anime} related={related} />
+              <TabContent activeTab={activeTab} lang={lang} manga={manga} related={related} />
             </div>
           )}
           <div style={{ padding:'24px 0 0' }}>
             {recs.length > 0 && (
               <SectionCarousel title={lang==='vi'?'Có thể bạn thích':'You May Also Like'}>
-                {recs.map(r => <MiniCard key={r.id} item={r} url={animeUrl(r)} />)}
+                {recs.map(r => <MiniCard key={r.id} item={r} url={mangaUrl(r)} />)}
               </SectionCarousel>
             )}
           </div>
         </div>
       ) : (
         <div>
-          {/* Collapsible tab panel */}
           {activeTab && (
             <div style={{ borderBottom:'1px solid rgba(255,248,240,0.08)', background:'rgba(255,248,240,0.02)' }}>
               <div style={{ display:'flex' }}>
                 <div style={{ width:196, flexShrink:0 }} />
                 <div style={{ flex:1, padding:'24px 32px 28px', minWidth:0 }}>
-                  <TabContent activeTab={activeTab} lang={lang} anime={anime} related={related} />
+                  <TabContent activeTab={activeTab} lang={lang} manga={manga} related={related} />
                 </div>
               </div>
             </div>
           )}
-          {/* Sidebar + right */}
           <div style={{ display:'flex', alignItems:'flex-start' }}>
             <aside style={{ width:196, flexShrink:0, position:'sticky', top:56, alignSelf:'flex-start',
               borderRight:'1px solid rgba(255,248,240,0.08)', background:'#0f0b09', zIndex:10, paddingTop:24 }}>
@@ -640,7 +601,7 @@ export function AnimeDetailPage({ animeId }) {
                     onMouseLeave={e=>!isActive&&(e.currentTarget.style.background='none')}>
                     <span style={{ fontSize:14, flexShrink:0 }}>{tab.icon}</span>
                     <span style={{ flex:1, fontSize:13, fontWeight: isActive ? 700 : 500,
-                      color: isActive ? '#67E8F9' : '#a08060', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+                      color: isActive ? '#FDA4AF' : '#a08060', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                       {lang==='vi'?tab.vi:tab.en}
                     </span>
                     {tab.badge > 0 && (
@@ -655,18 +616,18 @@ export function AnimeDetailPage({ animeId }) {
             <div style={{ flex:1, minWidth:0, overflow:'hidden', padding:'32px 16px 48px' }}>
               {recs.length > 0 && (
                 <SectionCarousel title={lang==='vi'?'Có thể bạn thích':'You May Also Like'}>
-                  {recs.map(r => <MiniCard key={r.id} item={r} url={animeUrl(r)} />)}
+                  {recs.map(r => <MiniCard key={r.id} item={r} url={mangaUrl(r)} />)}
                 </SectionCarousel>
               )}
               {recs.length === 0 && (
-                <Placeholder icon="🎌" text={lang==='vi'?'Đang tải gợi ý...':'Loading recommendations…'} />
+                <Placeholder icon="📚" text={lang==='vi'?'Đang tải gợi ý...':'Loading recommendations…'} />
               )}
             </div>
           </div>
         </div>
       )}
 
-      <PageFooter color={ACCENT} src="AniList" />
+      <PageFooter color={ACCENT} src="MangaDex" />
     </div>
   )
 }
