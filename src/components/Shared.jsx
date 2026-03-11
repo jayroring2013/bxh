@@ -117,14 +117,33 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
   const [showAuth,    setShowAuth]    = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
 
+  // Lucide icon components inline (no extra import needed — inline SVG paths)
+  const NavIcon = ({ name, size = 15 }) => {
+    const icons = {
+      novels:   <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></>,
+      anime:    <><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></>,
+      manga:    <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>,
+      vote:     <><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7z"/><path d="M22 19H2"/></>,
+      ranking:  <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
+      schedule: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+      list:     <><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></>,
+    }
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {icons[name]}
+      </svg>
+    )
+  }
+
   const TABS = [
-    { path: '#/novels', icon: '📖', labelKey: 'nav_novels' },
-    { path: '#/anime',  icon: '🎌', labelKey: 'nav_anime'  },
-    { path: '#/manga',  icon: '📚', labelKey: 'nav_manga'  },
-    { path: '#/vote',     icon: '🗳️', labelKey: 'nav_vote'     },
-    { path: '#/ranking',  icon: '🏆', labelKey: 'nav_ranking'  },
-    { path: '#/schedule', icon: '📅', labelKey: 'nav_schedule' },
-    { path: '#/list',     icon: '🔖', labelKey: 'nav_list'     },
+    { path: '#/novels',   icon: 'novels',   labelKey: 'nav_novels'   },
+    { path: '#/anime',    icon: 'anime',    labelKey: 'nav_anime'    },
+    { path: '#/manga',    icon: 'manga',    labelKey: 'nav_manga'    },
+    { path: '#/vote',     icon: 'vote',     labelKey: 'nav_vote'     },
+    { path: '#/ranking',  icon: 'ranking',  labelKey: 'nav_ranking'  },
+    { path: '#/schedule', icon: 'schedule', labelKey: 'nav_schedule' },
+    { path: '#/list',     icon: 'list',     labelKey: 'nav_list'     },
   ]
 
   // Search placeholder per tab
@@ -156,7 +175,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
                 className={`nav-tab${on ? ' nav-tab--active' : ''}`}
                 style={on ? { background: accent } : {}}
                 title={t(tab.labelKey)}>
-                <span>{tab.icon}</span>
+                <NavIcon name={tab.icon} />
                 <span className="nav-tab__label">{t(tab.labelKey)}</span>
               </a>
             )
