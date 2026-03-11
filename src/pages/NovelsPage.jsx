@@ -280,9 +280,11 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
                 overflow: 'hidden', cursor: 'pointer', position: 'relative',
                 background: '#1a1a2e', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                transform: 'translateZ(0)',
+                WebkitMaskImage: '-webkit-radial-gradient(white, black)',
               }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px) scale(1.03)'; e.currentTarget.style.boxShadow = `0 16px 40px ${accent}44` }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateZ(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)' }}
               >
                 <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, width: 24, height: 24,
                   borderRadius: 7, background: i < 3
@@ -405,7 +407,7 @@ export function NovelsPage() {
         onSearch={() => {}} sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
 
       {/* Hero — title + tagline/count only, NO search bar */}
-      <div style={{ position: 'relative', background: 'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)',
+      <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)',
         padding: isMobile ? '20px 16px 18px' : '32px 20px 28px', textAlign: 'center' }}>
         <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)',
           width: 700, height: 280, background: `radial-gradient(ellipse, ${PURPLE}20 0%, transparent 70%)`,
