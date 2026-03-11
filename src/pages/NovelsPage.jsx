@@ -3,7 +3,7 @@ import { PURPLE } from '../constants.js'
 import { useSeriesNovels, useNovelGenres, useNovelPublishers, useDebounce, seriesUrl } from '../hooks.js'
 import { useLang } from '../context/LangContext.jsx'
 import { AppHeader, SkeletonGrid, CardGrid, EmptyState, ErrorBox, LoadMoreBtn, PageFooter } from '../components/Shared.jsx'
-import { NovelCard }  from '../components/NovelCard.jsx'
+import { NovelCard } from '../components/NovelCard.jsx'
 
 // ── Sort dropdown (standalone) ────────────────────────────────────
 function SortDropdown({ value, options, onChange, accent }) {
@@ -59,7 +59,6 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
   statusOptions, publisherOptions, genreOptions, hasActive, onClear, accent, lang, isMobile }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
-
   const activeCount = [status !== 'all', publisher !== 'all', genre !== 'all'].filter(Boolean).length
 
   useEffect(() => {
@@ -79,9 +78,6 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
         fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap',
         transition: 'all 0.15s',
       }}>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-          <path d="M22 3H2l8 9.46V19l4 2V12.46L22 3z"/>
-        </svg>
         {lang === 'vi' ? 'Bộ lọc' : 'Filters'}
         {activeCount > 0 && (
           <span style={{
@@ -92,7 +88,6 @@ function AdvancedFilter({ status, publisher, genre, onStatus, onPublisher, onGen
         )}
         <span style={{ opacity: 0.5, fontSize: 9 }}>{open ? '▴' : '▾'}</span>
       </button>
-
       {open && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 400,
@@ -188,8 +183,8 @@ function FilterSection({ label, value, options, onChange, accent }) {
                 fontFamily: "'Be Vietnam Pro', sans-serif",
                 display: 'flex', alignItems: 'center', gap: 7,
               }}
-                onMouseEnter={e => { if (value !== opt.id) e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
-                onMouseLeave={e => { if (value !== opt.id) e.currentTarget.style.background = 'transparent' }}
+              onMouseEnter={e => { if (value !== opt.id) e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
+              onMouseLeave={e => { if (value !== opt.id) e.currentTarget.style.background = 'transparent' }}
               >
                 {value === opt.id
                   ? <span style={{ width: 14, height: 14, borderRadius: 4, flexShrink: 0,
@@ -210,25 +205,24 @@ function FilterSection({ label, value, options, onChange, accent }) {
 }
 
 // ── Placeholder color fix ─────────────────────────────────────────
-const inputPlaceholderStyle = `
-  .nt-search-input::placeholder { color: #64748B; opacity: 1; }
-  .nt-search-input::-webkit-input-placeholder { color: #64748B; }
-`
+const inputPlaceholderStyle = `.nt-search-input::placeholder { color: #64748B; opacity: 1; } .nt-search-input::-webkit-input-placeholder { color: #64748B; }`
 
 // ── Inline Lucide icons for carousel titles ───────────────────────
 const ArrowLeftIcon = ({ size = 12 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M15 18l-6-6 6-6"/>
+    <polyline points="15 18 9 12 15 6" />
   </svg>
 )
+
 const ArrowRightIcon = ({ size = 12 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 18l6-6-6-6"/>
+    <polyline points="9 18 15 12 9 6" />
   </svg>
 )
+
 const BackIcon = ({ size = 13 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M15 18l-6-6 6-6"/>
+    <polyline points="15 18 9 12 15 6" />
   </svg>
 )
 
@@ -256,8 +250,8 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background 0.15s, color 0.15s, border-color 0.15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.background = `${accent}35`; e.currentTarget.style.borderColor = `${accent}60`; e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#E2E8F0' }}
+            onMouseEnter={e => { e.currentTarget.style.background = `${accent}35`; e.currentTarget.style.borderColor = `${accent}60`; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#E2E8F0' }}
             >
               {i === 0 ? <ArrowLeftIcon /> : <ArrowRightIcon />}
             </button>
@@ -281,8 +275,8 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
                 background: '#1a1a2e', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
               }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px) scale(1.03)'; e.currentTarget.style.boxShadow = `0 16px 40px ${accent}44` }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px) scale(1.03)'; e.currentTarget.style.boxShadow = `0 16px 40px ${accent}44` }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)' }}
               >
                 <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, width: 24, height: 24,
                   borderRadius: 7, background: i < 3
@@ -296,11 +290,7 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
                   ? <img src={s.cover_url} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={e => e.target.style.display='none'} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center',
-                      justifyContent: 'center' }}>
-                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                      </svg>
-                    </div>
+                      justifyContent: 'center' }}>📖</div>
                 }
                 <div style={{ position: 'absolute', inset: 0,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)' }} />
@@ -325,30 +315,28 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
 export function NovelsPage() {
   const { lang } = useLang()
   const [browseMode, setBrowseMode] = useState(false)
-  const [searchInput,setSearchInput]= useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
+
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768)
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
   }, [])
-  const [sort,       setSort]       = useState('title_asc')
-  const [status,     setStatus]     = useState('all')
-  const [genre,      setGenre]      = useState('all')
-  const [publisher,  setPublisher]  = useState('all')
 
-  const search     = useDebounce(searchInput)
-  const genres     = useNovelGenres()
+  const [sort, setSort] = useState('title_asc')
+  const [status, setStatus] = useState('all')
+  const [genre, setGenre] = useState('all')
+  const [publisher, setPublisher] = useState('all')
+  const search = useDebounce(searchInput)
+  const genres = useNovelGenres()
   const publishers = useNovelPublishers()
-
   const { series: popular, loading: loadingPop } =
     useSeriesNovels({ search: '', sort: 'score_desc', status: 'all', genre: 'all', limit: 18 })
   const { series: recent, loading: loadingRec } =
     useSeriesNovels({ search: '', sort: 'newest', status: 'all', genre: 'all', limit: 18 })
-
-  const isBrowsing     = browseMode || !!search || status !== 'all' || genre !== 'all' || publisher !== 'all'
+  const isBrowsing = browseMode || !!search || status !== 'all' || genre !== 'all' || publisher !== 'all'
   const hasActiveFilters = status !== 'all' || genre !== 'all' || publisher !== 'all'
-
   const { series, loading, loadingMore, error, hasMore, totalCount, loadMore, retry } =
     useSeriesNovels({ search, sort, status, genre, publisher })
 
@@ -366,30 +354,33 @@ export function NovelsPage() {
   useEffect(() => {
     const fn = e => {
       const { genre, publisher } = e.detail || {}
-      if (genre)     { setGenre(genre);         setBrowseMode(true) }
-      if (publisher) { setPublisher(publisher);  setBrowseMode(true) }
+      if (genre) { setGenre(genre); setBrowseMode(true) }
+      if (publisher) { setPublisher(publisher); setBrowseMode(true) }
     }
     window.addEventListener('nt:filter', fn)
     return () => window.removeEventListener('nt:filter', fn)
   }, [])
 
   const NOVEL_SORTS = [
-    { id: 'title_asc',  label: lang === 'vi' ? 'Tên A-Z'  : 'Title A-Z'    },
-    { id: 'title_desc', label: lang === 'vi' ? 'Tên Z-A'  : 'Title Z-A'    },
-    { id: 'score_desc', label: lang === 'vi' ? 'Điểm cao' : 'Top Rated'    },
-    { id: 'newest',     label: lang === 'vi' ? 'Mới thêm' : 'Newest Added' },
+    { id: 'title_asc', label: lang === 'vi' ? 'Tên A-Z' : 'Title A-Z' },
+    { id: 'title_desc', label: lang === 'vi' ? 'Tên Z-A' : 'Title Z-A' },
+    { id: 'score_desc', label: lang === 'vi' ? 'Điểm cao' : 'Top Rated' },
+    { id: 'newest', label: lang === 'vi' ? 'Mới thêm' : 'Newest Added' },
   ]
+
   const STATUS_OPTIONS = [
-    { id: 'all',       label: lang === 'vi' ? 'Tất cả'         : 'All'       },
-    { id: 'ongoing',   label: lang === 'vi' ? 'Đang tiến hành' : 'Ongoing'   },
-    { id: 'completed', label: lang === 'vi' ? 'Hoàn thành'     : 'Completed' },
-    { id: 'hiatus',    label: lang === 'vi' ? 'Tạm dừng'       : 'Hiatus'    },
-    { id: 'cancelled', label: lang === 'vi' ? 'Đã hủy'         : 'Cancelled' },
+    { id: 'all', label: lang === 'vi' ? 'Tất cả' : 'All' },
+    { id: 'ongoing', label: lang === 'vi' ? 'Đang tiến hành' : 'Ongoing' },
+    { id: 'completed', label: lang === 'vi' ? 'Hoàn thành' : 'Completed' },
+    { id: 'hiatus', label: lang === 'vi' ? 'Tạm dừng' : 'Hiatus' },
+    { id: 'cancelled', label: lang === 'vi' ? 'Đã hủy' : 'Cancelled' },
   ]
+
   const PUBLISHER_OPTIONS = [
     { id: 'all', label: lang === 'vi' ? 'Tất cả' : 'All' },
     ...publishers.map(p => ({ id: p, label: p })),
   ]
+
   const GENRE_OPTIONS = [
     { id: 'all', label: lang === 'vi' ? 'Tất cả' : 'All' },
     ...genres.map(g => ({ id: g.id, label: g.name })),
@@ -398,15 +389,15 @@ export function NovelsPage() {
   const clearFilters = () => { setStatus('all'); setGenre('all'); setPublisher('all') }
 
   return (
-    <div className="page-enter">
-      <style>{inputPlaceholderStyle}</style>
+    <>
+      {inputPlaceholderStyle}
       {/* No search in AppHeader on novels page — search is in the browse bar */}
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput=""
         onSearch={() => {}} sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
 
       {/* Hero — title + tagline/count only, NO search bar */}
       <div style={{ position: 'relative', background: 'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)',
-        padding: isMobile ? '20px 16px 18px' : '32px 20px 28px', textAlign: 'center' }}>
+        padding: isMobile ? '20px 16px 18px' : '32px 20px 28px', textAlign: 'center', width: '100%' }}>
         <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)',
           width: 700, height: 280, background: `radial-gradient(ellipse, ${PURPLE}20 0%, transparent 70%)`,
           pointerEvents: 'none' }} />
@@ -428,8 +419,8 @@ export function NovelsPage() {
 
       {/* Browse toolbar */}
       {isBrowsing && (
-        <div style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '10px 16px' }}>
-          <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '10px 16px', width: '100%' }}>
+          <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
 
             {/* Back button — its own prominent row on both desktop and mobile */}
             {!searchInput && !hasActiveFilters && (
@@ -446,7 +437,7 @@ export function NovelsPage() {
                   onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.1)' }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6"/>
+                    <polyline points="15 18 9 12 15 6" />
                   </svg>
                   {lang === 'vi' ? 'Quay lại trang chính' : 'Back to discovery'}
                 </button>
@@ -454,13 +445,13 @@ export function NovelsPage() {
             )}
 
             {/* Search + Filters on same row; Sort on right */}
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap', width: '100%' }}>
 
               {/* Search — full width on mobile, capped on desktop */}
               <div style={{ position: 'relative', width: isMobile ? '100%' : 280, flexShrink: 0 }}>
                 <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none' }}
                   width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  <circle cx="11" cy="11" r="8" /> <path d="m21 21-4.35-4.35" />
                 </svg>
                 <input
                   className="nt-search-input"
@@ -509,12 +500,12 @@ export function NovelsPage() {
         {!isBrowsing && (
           <>
             {/* Search bar in discovery mode */}
-            <div style={{ maxWidth: 520, margin: '0 auto 28px', padding: '0 20px' }}>
+            <div style={{ maxWidth: 520, margin: '0 auto 28px', padding: '0 20px', width: '100%' }}>
               <div style={{ position: 'relative' }}>
                 <svg style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
                   opacity: 0.35, pointerEvents: 'none' }}
                   width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  <circle cx="11" cy="11" r="8" /> <path d="m21 21-4.35-4.35" />
                 </svg>
                 <input
                   className="nt-search-input"
@@ -544,7 +535,7 @@ export function NovelsPage() {
               title={lang === 'vi' ? 'Phổ biến nhất' : 'Most Popular'}
               TitleIcon={({ size, color }) => (
                 <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
               )}
               items={popular} loading={loadingPop} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} isMobile={isMobile} />
@@ -552,7 +543,7 @@ export function NovelsPage() {
               title={lang === 'vi' ? 'Mới thêm gần đây' : 'Recently Added'}
               TitleIcon={({ size, color }) => (
                 <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  <circle cx="12" cy="12" r="10" /> <line x1="12" y1="8" x2="12" y2="12" /> <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
               )}
               items={recent} loading={loadingRec} onSelect={s => { window.location.hash = seriesUrl(s) }} accent={PURPLE} isMobile={isMobile} />
@@ -586,7 +577,7 @@ export function NovelsPage() {
             )}
             {!loading && !error && series.length === 0 && (
               <EmptyState
-                icon={<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>}
+                icon={<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"> <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /> <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /> </svg>}
                 msg={lang === 'vi' ? 'Không tìm thấy kết quả' : 'No results found'} />
             )}
           </>
@@ -594,6 +585,6 @@ export function NovelsPage() {
       </main>
 
       <PageFooter color={PURPLE} src="LiDex" />
-    </div>
+    </>
   )
 }
