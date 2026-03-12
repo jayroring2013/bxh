@@ -683,29 +683,34 @@ export function SeriesDetailPage({ seriesId }) {
 
       {/* ── Hero ── */}
       <div style={{
-        background: 'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)',
         position: 'relative', overflow: 'hidden',
+        minHeight: isMobile ? 'auto' : 320,
+        background: '#110d0a',
       }}>
-        {/* Blurred bg from cover */}
+        {/* Layer 1: blurred cover fills entire hero as atmosphere */}
         {cover && (
           <div style={{
-            position: 'absolute', inset: 0, zIndex: 0,
+            position: 'absolute', inset: '-20px', zIndex: 0,
             backgroundImage: `url(${cover})`,
-            backgroundSize: 'cover', backgroundPosition: 'center',
-            filter: 'blur(40px) saturate(0.4)', opacity: 0.18,
+            backgroundSize: 'cover', backgroundPosition: 'center top',
+            filter: 'blur(18px) saturate(1.1) brightness(0.55)',
           }} />
         )}
+        {/* Layer 2: left-to-right gradient for readability */}
         <div style={{ position:'absolute', inset:0, zIndex:1,
-          background:'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, rgba(8,13,26,0.95) 100%)' }} />
+          background:'linear-gradient(to right, rgba(8,13,26,0.92) 0%, rgba(8,13,26,0.45) 50%, rgba(8,13,26,0.75) 100%)' }} />
+        {/* Layer 3: top/bottom fade */}
+        <div style={{ position:'absolute', inset:0, zIndex:1,
+          background:'linear-gradient(to bottom, rgba(8,13,26,0.4) 0%, transparent 30%, transparent 65%, rgba(8,13,26,1) 100%)' }} />
 
         <div style={{ position:'relative', zIndex:2,
-          padding: isMobile ? '20px 16px 28px' : '32px 32px 40px', paddingLeft: isMobile ? 16 : 228,
+          padding: isMobile ? '48px 16px 28px' : '52px 32px 40px', paddingLeft: isMobile ? 16 : 228,
           display:'flex', gap: isMobile ? 14 : 36, alignItems:'flex-start' }}>
 
           {/* Back button */}
           <button onClick={goBack} style={{
-            position:'absolute', top: 0, left: 228,
-            background:'none', border:'none', color:'#5a4a3a', cursor:'pointer',
+            position:'absolute', top: 16, left: 228,
+            background:'none', border:'none', color:'rgba(255,255,255,0.45)', cursor:'pointer',
             fontSize: 12, fontWeight: 600, fontFamily:"'Be Vietnam Pro',sans-serif",
             display:'flex', alignItems:'center', gap: 4, padding: '4px 0',
           }}>← {lang === 'vi' ? 'Quay lại' : 'Back'}</button>
