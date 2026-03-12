@@ -118,6 +118,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
   const [authMode,     setAuthMode]     = useState('login')
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [isMobile,     setIsMobile]     = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
+  const [drawerOpen,   setDrawerOpen]   = useState(false)
 
   useEffect(() => {
     const fn = () => setIsMobile(window.innerWidth < 768)
@@ -259,34 +260,94 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
     <header className="app-header" style={{ borderBottom: `1px solid ${accent}26` }}>
 
       {isMobile ? (
-        /* ── MOBILE: two rows ── */
-        <div style={{ padding: '10px 0 12px' }}>
-          {/* Row 1: Logo left, actions right */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 17 }}>
-            <a href="#/" className="app-header__logo" style={{ textDecoration: 'none' }}>
-              <div className="app-header__logo-icon" style={{ background: accent }}>Li</div>
-              <span className="app-header__logo-text">
-                Li<span style={{ color: accent }}>Dex</span>
-              </span>
-            </a>
+        /* ── MOBILE: hamburger row + right drawer ── */
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' }}>
+            {/* Hamburger */}
+            <button onClick={() => setDrawerOpen(true)} style={{
+              width: 38, height: 38, borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.06)', cursor: 'pointer',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5,
+            }}>
+              <span style={{ display: 'block', width: 18, height: 2, background: '#CBD5E1', borderRadius: 2 }} />
+              <span style={{ display: 'block', width: 18, height: 2, background: '#CBD5E1', borderRadius: 2 }} />
+              <span style={{ display: 'block', width: 18, height: 2, background: '#CBD5E1', borderRadius: 2 }} />
+            </button>
             <Actions />
           </div>
-          {/* Row 2: Nav tabs full width scrollable */}
-          <nav className="app-header__nav" style={{ maxWidth: '100%', width: '100%' }}>
-            {TABS.map(tab => {
-              const on = activeTab === tab.path || activeTab.startsWith(tab.path + '/')
-              return (
-                <a key={tab.path} href={tab.path}
-                  className={`nav-tab${on ? ' nav-tab--active' : ''}`}
-                  style={on ? { background: accent } : {}}
-                  title={t(tab.labelKey)}>
-                  <NavIcon name={tab.icon} />
-                  <span className="nav-tab__label">{t(tab.labelKey)}</span>
-                </a>
-              )
-            })}
-          </nav>
-        </div>
+
+          {/* Backdrop */}
+          {drawerOpen && (
+            <div onClick={() => setDrawerOpen(false)} style={{
+              position: 'fixed', inset: 0, zIndex: 998,
+              background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)',
+            }} />
+          )}
+
+          {/* Right drawer */}
+          <div style={{
+            position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 999,
+            width: 240,
+            background: 'rgba(10,10,15,0.98)', backdropFilter: 'blur(20px)',
+            borderLeft: `1px solid ${accent}30`,
+            boxShadow: '-8px 0 40px rgba(0,0,0,0.7)',
+            transform: drawerOpen ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
+            display: 'flex', flexDirection: 'column',
+            overflowY: 'auto',
+          }}>
+            {/* Drawer header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '18px 18px 14px', borderBottom: `1px solid ${accent}18` }}>
+              <a href="#/" onClick={() => setDrawerOpen(false)}
+                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <div className="app-header__logo-icon" style={{ background: accent, width: 30, height: 30, fontSize: 15 }}>Li</div>
+                <span className="app-header__logo-text" style={{ fontSize: 20 }}>
+                  Li<span style={{ color: accent }}>Dex</span>
+                </span>
+              </a>
+              {/* Close × */}
+              <button onClick={() => setDrawerOpen(false)} style={{
+                width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.05)', color: '#94A3B8', cursor: 'pointer',
+                fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>×</button>
+            </div>
+
+            {/* Nav links */}
+            <nav style={{ flex: 1, padding: '10px 10px' }}>
+              {TABS.map(tab => {
+                const on = activeTab === tab.path || activeTab.startsWith(tab.path + '/')
+                return (
+                  <a key={tab.path} href={tab.path} onClick={() => setDrawerOpen(false)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 13,
+                      padding: '13px 14px', borderRadius: 12, marginBottom: 4,
+                      textDecoration: 'none', transition: 'background 0.15s',
+                      background: on ? `${accent}18` : 'transparent',
+                      borderLeft: `3px solid ${on ? accent : 'transparent'}`,
+                      color: on ? '#f1f5f9' : '#64748B',
+                    }}
+                    onMouseEnter={e => { if (!on) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                    onMouseLeave={e => { if (!on) e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <span style={{ color: on ? accent : '#475569', flexShrink: 0 }}>
+                      <NavIcon name={tab.icon} size={17} />
+                    </span>
+                    <span style={{
+                      fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 14,
+                      fontWeight: on ? 700 : 500, letterSpacing: 0.2,
+                    }}>{t(tab.labelKey)}</span>
+                    {on && <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: accent }} />}
+                  </a>
+                )
+              })}
+            </nav>
+
+            {/* Drawer footer accent line */}
+            <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${accent}60, transparent)` }} />
+          </div>
+        </>
       ) : (
         /* ── DESKTOP: single row ── */
         <div className="app-header__inner">
