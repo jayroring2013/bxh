@@ -136,6 +136,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
   // Lucide icon components inline (no extra import needed — inline SVG paths)
   const NavIcon = ({ name, size = 15 }) => {
     const icons = {
+      home:     <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
       novels:   <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></>,
       anime:    <><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></>,
       manga:    <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>,
@@ -153,6 +154,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
   }
 
   const TABS = [
+    { path: '#/',         icon: 'home',     labelKey: 'nav_home',  fallback: 'Home'  },
     { path: '#/novels',   icon: 'novels',   labelKey: 'nav_novels'   },
     { path: '#/anime',    icon: 'anime',    labelKey: 'nav_anime'    },
     { path: '#/manga',    icon: 'manga',    labelKey: 'nav_manga'    },
@@ -290,12 +292,14 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
           {/* Dropdown nav — expands below the header */}
           <div style={{
             overflow: 'hidden',
-            maxHeight: drawerOpen ? `${TABS.length * 56 + 20}px` : '0px',
+            maxHeight: drawerOpen ? `${TABS.length * 58 + 20}px` : '0px',
             transition: 'max-height 0.3s cubic-bezier(0.4,0,0.2,1)',
           }}>
             <nav style={{ padding: '6px 0 14px' }}>
               {TABS.map(tab => {
-                const on = activeTab === tab.path || activeTab.startsWith(tab.path + '/')
+                const on = tab.path === '#/'
+                  ? (activeTab === '#/' || activeTab === '')
+                  : activeTab === tab.path || activeTab.startsWith(tab.path + '/')
                 return (
                   <a key={tab.path} href={tab.path} onClick={() => setDrawerOpen(false)}
                     style={{
@@ -313,7 +317,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
                     <span style={{
                       fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 14,
                       fontWeight: on ? 700 : 500,
-                    }}>{t(tab.labelKey)}</span>
+                    }}>{t(tab.labelKey) || tab.fallback || t(tab.labelKey)}</span>
                     {on && <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: accent, flexShrink: 0 }} />}
                   </a>
                 )
