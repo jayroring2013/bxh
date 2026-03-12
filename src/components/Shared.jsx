@@ -114,9 +114,16 @@ export const Pills = ({ items, active, onSelect, accent, solid }) => (
 export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, activeSort, onSort, hideSearch, hideSorts }) {
   const { t, lang, toggleLang } = useLang()
   const { user, signOut } = useAuth()
-  const [showAuth,    setShowAuth]    = useState(false)
-  const [authMode,    setAuthMode]    = useState('login')
+  const [showAuth,     setShowAuth]     = useState(false)
+  const [authMode,     setAuthMode]     = useState('login')
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [isMobile,     setIsMobile]     = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
+
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
 
   // Listen for guest auth prompt from QuickAddButton (and other components)
   useEffect(() => {
@@ -161,132 +168,169 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
   : activeTab === '#/manga'  ? t('search_manga')
   : t('search_vote')
 
+  // Shared action buttons (lang toggle + user/sign-in)
+  const Actions = () => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+      {/* Language toggle */}
+      <button onClick={toggleLang} style={{
+        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+        color: '#fff', padding: isMobile ? '5px 10px' : '6px 12px', borderRadius: 9, cursor: 'pointer',
+        fontSize: 12, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
+        display: 'flex', alignItems: 'center', gap: 5,
+      }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        {lang === 'vi' ? 'EN' : 'VI'}
+      </button>
+
+      {/* Notification bell — only when logged in */}
+      {user && <NotificationBell />}
+
+      {/* User button */}
+      {user ? (
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <button onClick={() => setShowUserMenu(p => !p)} style={{
+            width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
+            background: `linear-gradient(135deg, ${accent}, #6366F1)`,
+            border: `2px solid ${accent}60`, color: '#fff',
+            fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontFamily: "'Be Vietnam Pro', sans-serif",
+          }}>
+            {user.email?.[0]?.toUpperCase() || '?'}
+          </button>
+          {showUserMenu && (
+            <div style={{
+              position: 'absolute', top: 42, right: 0, zIndex: 9999,
+              background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 12, padding: 8, minWidth: 180,
+              boxShadow: '0 16px 40px rgba(0,0,0,0.8)',
+            }}>
+              <div style={{ padding: '6px 12px', fontSize: 11, color: '#475569',
+                borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 4 }}>
+                {user.email}
+              </div>
+              <a href="#/list" onClick={() => setShowUserMenu(false)} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 12px', color: '#CBD5E1', textDecoration: 'none',
+                borderRadius: 8, fontSize: 13, fontWeight: 600,
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                {lang === 'vi' ? 'Danh sách của tôi' : 'My List'}
+              </a>
+              <a href="#/admin" onClick={() => setShowUserMenu(false)} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 12px', color: '#A78BFA', textDecoration: 'none',
+                borderRadius: 8, fontSize: 13, fontWeight: 600,
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.41 1.41l-1.42 2.46A7.5 7.5 0 0 0 17.5 8l-2.83-.01a7.5 7.5 0 0 0-.85-2.04l1.42-2.46a10 10 0 0 1 1.83.44zM4.93 4.93a10 10 0 0 0-1.41 1.41l1.42 2.46A7.5 7.5 0 0 1 6.5 8l2.83-.01a7.5 7.5 0 0 1 .85-2.04L8.76 3.49a10 10 0 0 0-1.83.44 10 10 0 0 0-2 1z"/></svg>
+                {lang === 'vi' ? 'Quản trị' : 'Admin Panel'}
+              </a>
+              <button onClick={() => { signOut(); setShowUserMenu(false) }} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                width: '100%', textAlign: 'left', padding: '8px 12px',
+                background: 'none', border: 'none', color: '#F87171', cursor: 'pointer',
+                borderRadius: 8, fontSize: 13, fontWeight: 600,
+                fontFamily: "'Be Vietnam Pro', sans-serif",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                {lang === 'vi' ? 'Đăng xuất' : 'Sign out'}
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button onClick={() => setShowAuth(true)} style={{
+          background: accent, border: 'none', color: '#fff',
+          padding: isMobile ? '6px 11px' : '6px 14px', borderRadius: 9, cursor: 'pointer',
+          fontSize: 12, fontWeight: 700, flexShrink: 0,
+          fontFamily: "'Be Vietnam Pro', sans-serif",
+          boxShadow: `0 4px 14px ${accent}40`,
+        }}>
+          {lang === 'vi' ? 'Đăng nhập' : 'Sign In'}
+        </button>
+      )}
+    </div>
+  )
+
   return (
     <>
     <header className="app-header" style={{ borderBottom: `1px solid ${accent}26` }}>
-      <div className="app-header__inner">
 
-        {/* Logo — links back to landing */}
-        <a href="#/" className="app-header__logo" style={{ textDecoration: 'none' }}>
-          <div className="app-header__logo-icon" style={{ background: accent }}>Li</div>
-          <span className="app-header__logo-text">
-            Li<span style={{ color: accent }}>Dex</span>
-          </span>
-        </a>
-
-        {/* Nav tabs */}
-        <nav className="app-header__nav">
-          {TABS.map(tab => {
-            const on = activeTab === tab.path || activeTab.startsWith(tab.path + '/')
-            return (
-              <a key={tab.path} href={tab.path}
-                className={`nav-tab${on ? ' nav-tab--active' : ''}`}
-                style={on ? { background: accent } : {}}
-                title={t(tab.labelKey)}>
-                <NavIcon name={tab.icon} />
-                <span className="nav-tab__label">{t(tab.labelKey)}</span>
-              </a>
-            )
-          })}
-        </nav>
-
-        {/* Search */}
-        {!hideSearch && (
-          <div className="app-header__search">
-            <svg className="app-header__search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-            <input value={searchInput} onChange={e => onSearch(e.target.value)} placeholder={placeholder} />
-            {searchInput && (
-              <button className="app-header__search-clear" onClick={() => onSearch('')}>×</button>
-            )}
+      {isMobile ? (
+        /* ── MOBILE: two rows ── */
+        <div style={{ padding: '8px 0' }}>
+          {/* Row 1: Logo left, actions right */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <a href="#/" className="app-header__logo" style={{ textDecoration: 'none' }}>
+              <div className="app-header__logo-icon" style={{ background: accent }}>Li</div>
+              <span className="app-header__logo-text">
+                Li<span style={{ color: accent }}>Dex</span>
+              </span>
+            </a>
+            <Actions />
           </div>
-        )}
-
-        {/* Sorts moved to sub-bar below — nothing here */}
-
-        {/* Language toggle — margin-left:auto pushes it and everything after to the right */}
-        <button onClick={toggleLang} style={{
-          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-          color: '#fff', padding: '6px 12px', borderRadius: 9, cursor: 'pointer',
-          fontSize: 12, fontWeight: 700, flexShrink: 0, fontFamily: "'Be Vietnam Pro', sans-serif",
-          display: 'flex', alignItems: 'center', gap: 5, marginLeft: 'auto',
-        }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-          </svg>
-          {lang === 'vi' ? 'EN' : 'VI'}
-        </button>
-
-        {/* Notification bell — only when logged in */}
-        {user && <NotificationBell />}
-
-        {/* User button */}
-        {user ? (
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button onClick={() => setShowUserMenu(p => !p)} style={{
-              width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
-              background: `linear-gradient(135deg, ${accent}, #6366F1)`,
-              border: `2px solid ${accent}60`, color: '#fff',
-              fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', fontFamily: "'Be Vietnam Pro', sans-serif",
-            }}>
-              {user.email?.[0]?.toUpperCase() || '?'}
-            </button>
-            {showUserMenu && (
-              <div style={{
-                position: 'absolute', top: 42, right: 0, zIndex: 9999,
-                background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 12, padding: 8, minWidth: 180,
-                boxShadow: '0 16px 40px rgba(0,0,0,0.8)',
-              }}>
-                <div style={{ padding: '6px 12px', fontSize: 11, color: '#475569',
-                  borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 4 }}>
-                  {user.email}
-                </div>
-                <a href="#/list" onClick={() => setShowUserMenu(false)} style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 12px', color: '#CBD5E1', textDecoration: 'none',
-                  borderRadius: 8, fontSize: 13, fontWeight: 600,
-                }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-                  {lang === 'vi' ? 'Danh sách của tôi' : 'My List'}
+          {/* Row 2: Nav tabs full width scrollable */}
+          <nav className="app-header__nav" style={{ maxWidth: '100%', width: '100%' }}>
+            {TABS.map(tab => {
+              const on = activeTab === tab.path || activeTab.startsWith(tab.path + '/')
+              return (
+                <a key={tab.path} href={tab.path}
+                  className={`nav-tab${on ? ' nav-tab--active' : ''}`}
+                  style={on ? { background: accent } : {}}
+                  title={t(tab.labelKey)}>
+                  <NavIcon name={tab.icon} />
+                  <span className="nav-tab__label">{t(tab.labelKey)}</span>
                 </a>
-                <a href="#/admin" onClick={() => setShowUserMenu(false)} style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 12px', color: '#A78BFA', textDecoration: 'none',
-                  borderRadius: 8, fontSize: 13, fontWeight: 600,
-                }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.41 1.41l-1.42 2.46A7.5 7.5 0 0 0 17.5 8l-2.83-.01a7.5 7.5 0 0 0-.85-2.04l1.42-2.46a10 10 0 0 1 1.83.44zM4.93 4.93a10 10 0 0 0-1.41 1.41l1.42 2.46A7.5 7.5 0 0 1 6.5 8l2.83-.01a7.5 7.5 0 0 1 .85-2.04L8.76 3.49a10 10 0 0 0-1.83.44 10 10 0 0 0-2 1z"/></svg>
-                  {lang === 'vi' ? 'Quản trị' : 'Admin Panel'}
-                </a>
-                <button onClick={() => { signOut(); setShowUserMenu(false) }} style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  width: '100%', textAlign: 'left', padding: '8px 12px',
-                  background: 'none', border: 'none', color: '#F87171', cursor: 'pointer',
-                  borderRadius: 8, fontSize: 13, fontWeight: 600,
-                  fontFamily: "'Be Vietnam Pro', sans-serif",
-                }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                  {lang === 'vi' ? 'Đăng xuất' : 'Sign out'}
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <button onClick={() => setShowAuth(true)} style={{
-            background: accent, border: 'none', color: '#fff',
-            padding: '6px 14px', borderRadius: 9, cursor: 'pointer',
-            fontSize: 12, fontWeight: 700, flexShrink: 0,
-            fontFamily: "'Be Vietnam Pro', sans-serif",
-            boxShadow: `0 4px 14px ${accent}40`,
-          }}>
-            {lang === 'vi' ? 'Đăng nhập' : 'Sign In'}
-          </button>
-        )}
+              )
+            })}
+          </nav>
+        </div>
+      ) : (
+        /* ── DESKTOP: single row ── */
+        <div className="app-header__inner">
+          {/* Logo */}
+          <a href="#/" className="app-header__logo" style={{ textDecoration: 'none' }}>
+            <div className="app-header__logo-icon" style={{ background: accent }}>Li</div>
+            <span className="app-header__logo-text">
+              Li<span style={{ color: accent }}>Dex</span>
+            </span>
+          </a>
 
-      </div>
+          {/* Nav tabs */}
+          <nav className="app-header__nav">
+            {TABS.map(tab => {
+              const on = activeTab === tab.path || activeTab.startsWith(tab.path + '/')
+              return (
+                <a key={tab.path} href={tab.path}
+                  className={`nav-tab${on ? ' nav-tab--active' : ''}`}
+                  style={on ? { background: accent } : {}}
+                  title={t(tab.labelKey)}>
+                  <NavIcon name={tab.icon} />
+                  <span className="nav-tab__label">{t(tab.labelKey)}</span>
+                </a>
+              )
+            })}
+          </nav>
+
+          {/* Search */}
+          {!hideSearch && (
+            <div className="app-header__search">
+              <svg className="app-header__search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input value={searchInput} onChange={e => onSearch(e.target.value)} placeholder={placeholder} />
+              {searchInput && (
+                <button className="app-header__search-clear" onClick={() => onSearch('')}>×</button>
+              )}
+            </div>
+          )}
+
+          {/* Actions pushed to right */}
+          <div style={{ marginLeft: 'auto' }}><Actions /></div>
+        </div>
+      )}
     </header>
 
     {showAuth && <AuthModal onClose={() => setShowAuth(false)} initialMode={authMode} />}
