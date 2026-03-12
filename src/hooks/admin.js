@@ -355,38 +355,18 @@ export async function revokeAdmin(token, userId) {
  */
 export async function checkAdmin(token, userId) {
   try {
-    if (!token || !userId) {
-      console.warn('checkAdmin: Missing token or userId', { token: !!token, userId })
-      return false
-    }
-
-    console.log('checkAdmin: Checking user', userId)
-
-    const url = `${SUPABASE_URL}/rest/v1/admin_users?user_id=eq.${userId}&select=user_id`
-    
-    const res = await fetch(url, {
-      method: 'GET',
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/is_admin`, {
+      method: 'POST',
       headers: {
         apikey: SUPABASE_ANON,
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
-        Prefer: 'return=representation',
       },
+      body: '{}',
     })
-
-    console.log('checkAdmin: Response status', res.status)
-
-    if (res.status === 401 || res.status === 403) {
-      console.error('checkAdmin: Auth failed', res.status)
-      return false
-    }
-
     const data = await res.json()
-    console.log('checkAdmin: Response data', data)
-
-    return Array.isArray(data) && data.length > 0
+    return data === true
   } catch (error) {
-    console.error('checkAdmin: Error', error)
     return false
   }
 }
