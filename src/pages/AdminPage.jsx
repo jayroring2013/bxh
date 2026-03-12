@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { useTheme } from '../context/ThemeContext.jsx'
 import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useLang } from '../context/LangContext.jsx'
@@ -104,8 +103,8 @@ const api = async (token, path, method = 'GET', body = null) => {
 
 // ── Shared input/button styles ─────────────────────────────────
 const inp = {
-  background: T.inputBg, border: `1px solid ${T.inputBorder}`,
-  color: T.inputColor, borderRadius: 8, padding: '9px 12px',
+  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+  color: '#f1f5f9', borderRadius: 8, padding: '9px 12px',
   fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, outline: 'none',
   width: '100%', boxSizing: 'border-box', transition: 'border-color 0.15s',
 }
@@ -145,7 +144,7 @@ const NAV_ITEMS = [
 function Card({ children, style = {} }) {
   return (
     <div style={{
-      background: T.cardBg, borderRadius: 14,
+      background: 'rgba(255,255,255,0.03)', borderRadius: 14,
       border: '1px solid rgba(255,255,255,0.07)',
       ...style,
     }}>{children}</div>
@@ -163,7 +162,7 @@ function SectionHeader({ title, icon: Icon, color = SLATE, action }) {
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: 13, fontWeight: 700, letterSpacing: 1,
-          color: T.textSecondary, textTransform: 'uppercase',
+          color: '#94A3B8', textTransform: 'uppercase',
         }}>{title}</span>
       </div>
       {action}
@@ -197,7 +196,7 @@ function StatChip({ label, value, icon: Icon, color }) {
       </div>
       <div>
         <div style={{ fontSize: 22, fontWeight: 900, color, fontFamily: "'Barlow Condensed', sans-serif" }}>{value}</div>
-        <div style={{ fontSize: 11, color: T.textMuted, fontWeight: 600, letterSpacing: 0.5 }}>{label}</div>
+        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, letterSpacing: 0.5 }}>{label}</div>
       </div>
     </div>
   )
@@ -216,13 +215,13 @@ function TagInput({ value = [], onChange, placeholder }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
         {tags.map(t => (
           <span key={t} style={{
-            background: T.chipBg, borderRadius: 20,
-            padding: '2px 10px', fontSize: 11, color: T.textSecondary,
+            background: 'rgba(255,255,255,0.08)', borderRadius: 20,
+            padding: '2px 10px', fontSize: 11, color: '#94A3B8',
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
             {t}
             <button onClick={() => onChange(tags.filter(x => x !== t))}
-              style={{ background: 'none', border: 'none', color: T.textMuted, cursor: 'pointer', fontSize: 12, padding: 0 }}>×</button>
+              style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 12, padding: 0 }}>×</button>
           </span>
         ))}
       </div>
@@ -240,38 +239,6 @@ function TagInput({ value = [], onChange, placeholder }) {
 // Overview Tab
 // ─────────────────────────────────────────────────────────────
 function OverviewTab({ token }) {
-  const { theme } = useTheme()
-  const dark = theme === 'dark'
-  const T = {
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBg3:         dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    rowBg4:         dark ? 'rgba(255,255,255,0.04)'   : 'rgba(0,0,0,0.04)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowBorder6:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    chipBorder:     dark ? 'rgba(255,255,255,0.12)'   : 'rgba(0,0,0,0.1)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
   const [counts, setCounts] = useState({ anime: 0, manga: 0, novels: 0, votes: 0, featured: 0, announcements: 0 })
   const [loading, setLoading] = useState(true)
 
@@ -298,10 +265,10 @@ function OverviewTab({ token }) {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: T.textBright, margin: '0 0 4px' }}>
+        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 4px' }}>
           Dashboard Overview
         </h2>
-        <p style={{ color: T.textGhost, fontSize: 13, margin: 0 }}>
+        <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
           Summary of your LiDex database content.
         </p>
       </div>
@@ -388,7 +355,7 @@ function SeriesPicker({ token, onPick, defaultType }) {
           placeholder={`Search ${type} by title…`}
           style={{ ...inp, paddingLeft: 32 }} autoFocus />
       </div>
-      {loading && <div style={{ color: T.textGhost, fontSize: 12, padding: '8px 0' }}>Searching…</div>}
+      {loading && <div style={{ color: '#475569', fontSize: 12, padding: '8px 0' }}>Searching…</div>}
       {results.length > 0 && (
         <div style={{ marginTop: 8, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
           {results.map(r => (
@@ -397,12 +364,12 @@ function SeriesPicker({ token, onPick, defaultType }) {
               cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)',
               background: 'rgba(255,255,255,0.02)', transition: 'background 0.1s',
             }}
-              onMouseEnter={e => e.currentTarget.style.background = T.rowHoverBg}
-              onMouseLeave={e => e.currentTarget.style.background = T.rowBg}>
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
               {r.cover && <img src={r.cover} style={{ width: 28, height: 38, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: T.textBright, fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
-                <div style={{ fontSize: 10, color: T.textGhost }}>ID: {r.id}</div>
+                <div style={{ fontSize: 13, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                <div style={{ fontSize: 10, color: '#475569' }}>ID: {r.id}</div>
               </div>
               <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 700, background: `${TYPE_COLOR[r.type]}20`, color: TYPE_COLOR[r.type], textTransform: 'uppercase' }}>{r.type}</span>
             </div>
@@ -428,38 +395,6 @@ const MANGA_DEMOGRAPHICS = ['shounen','shoujo','seinen','josei']
 const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
 
 function SeriesTab({ token, toast, type }) {
-  const { theme } = useTheme()
-  const dark = theme === 'dark'
-  const T = {
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBg3:         dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    rowBg4:         dark ? 'rgba(255,255,255,0.04)'   : 'rgba(0,0,0,0.04)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowBorder6:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    chipBorder:     dark ? 'rgba(255,255,255,0.12)'   : 'rgba(0,0,0,0.1)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
   const [items,      setItems]      = useState([])
   const [loading,    setLoading]    = useState(false)
   const [search,     setSearch]     = useState('')
@@ -604,18 +539,18 @@ function SeriesTab({ token, toast, type }) {
         </div>
 
         {loading ? (
-          <div style={{ color: T.textGhost, textAlign: 'center', padding: 32 }}>
+          <div style={{ color: '#475569', textAlign: 'center', padding: 32 }}>
             <RefreshCw size={16} style={{ display: 'inline', marginRight: 8, animation: 'spin 1s linear infinite' }} />Loading…
           </div>
         ) : items.length === 0 ? (
-          <div style={{ color: T.textFaint, textAlign: 'center', padding: 32 }}>No results.</div>
+          <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No results.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {items.map(row => (
               <div key={row.id} style={{
                 display: 'flex', gap: 10, alignItems: 'center',
-                background: T.rowBg, borderRadius: 10,
-                border: `1px solid ${T.rowBorder6}`, padding: '8px 12px',
+                background: 'rgba(255,255,255,0.02)', borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.06)', padding: '8px 12px',
                 transition: 'border-color 0.15s',
               }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = `${color}30`}
@@ -625,15 +560,15 @@ function SeriesTab({ token, toast, type }) {
                   <img src={row.cover_url} style={{ width: 28, height: 40, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: T.textBright, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 13, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {row.title || '(no title)'}
                   </div>
-                  <div style={{ fontSize: 10, color: T.textFaint, display: 'flex', gap: 8 }}>
+                  <div style={{ fontSize: 10, color: '#374151', display: 'flex', gap: 8 }}>
                     <span>ID: {row.id}</span>
-                    {row.status && <span style={{ color: T.textGhost }}>{row.status}</span>}
-                    {type === 'anime' && meta(row).episodes && <span style={{ color: T.textGhost }}>{meta(row).episodes} eps</span>}
-                    {type === 'manga' && meta(row).chapters  && <span style={{ color: T.textGhost }}>{meta(row).chapters} ch</span>}
-                    {type === 'novel' && row.external_id     && <span style={{ color: T.textGhost }}>Ext: {row.external_id}</span>}
+                    {row.status && <span style={{ color: '#475569' }}>{row.status}</span>}
+                    {type === 'anime' && meta(row).episodes && <span style={{ color: '#475569' }}>{meta(row).episodes} eps</span>}
+                    {type === 'manga' && meta(row).chapters  && <span style={{ color: '#475569' }}>{meta(row).chapters} ch</span>}
+                    {type === 'novel' && row.external_id     && <span style={{ color: '#475569' }}>Ext: {row.external_id}</span>}
                   </div>
                 </div>
                 <button style={{ ...btn(CYAN, true), padding: '6px 10px' }} onClick={() => openEdit(row)}>
@@ -653,8 +588,8 @@ function SeriesTab({ token, toast, type }) {
         <Modal onClose={() => setDelConfirm(null)} maxWidth={380}>
           <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
             <AlertTriangle size={40} color={ROSE} style={{ marginBottom: 12 }} />
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, color: T.textBright, marginBottom: 8 }}>Delete Series?</div>
-            <div style={{ fontSize: 13, color: T.textMuted, marginBottom: 20 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, color: '#f1f5f9', marginBottom: 8 }}>Delete Series?</div>
+            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 20 }}>
               "{delConfirm.title}" will be permanently removed.
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
@@ -671,10 +606,10 @@ function SeriesTab({ token, toast, type }) {
       {editing && (
         <Modal onClose={() => setEditing(null)} maxWidth={640}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: T.textBright }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9' }}>
               {editing === 'new' ? `Add ${type}` : `Edit: ${form.title || '…'}`}
             </div>
-            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', color: T.textGhost, cursor: 'pointer', display: 'flex' }}>
+            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex' }}>
               <X size={18} />
             </button>
           </div>
@@ -688,7 +623,7 @@ function SeriesTab({ token, toast, type }) {
               { k: 'score',        label: 'Score (0–10)'                 },
             ].map(f => (
               <div key={f.k}>
-                <label style={{ fontSize: 10, color: f.req ? GREEN : T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
                 <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)} style={inp} />
               </div>
             ))}
@@ -697,7 +632,7 @@ function SeriesTab({ token, toast, type }) {
           {/* Status */}
           <div style={{ display: 'grid', gridTemplateColumns: type === 'anime' ? '1fr 1fr 1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div>
-              <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Status</label>
+              <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Status</label>
               <select value={form.status || ''} onChange={e => F('status', e.target.value)} style={inp}>
                 {(type === 'anime' ? ANIME_STATUSES : type === 'manga' ? MANGA_STATUSES : NOVEL_STATUSES)
                   .map(s => <option key={s} value={s}>{s}</option>)}
@@ -706,13 +641,13 @@ function SeriesTab({ token, toast, type }) {
             {type === 'anime' && (
               <>
                 <div>
-                  <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Format</label>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Format</label>
                   <select value={form.anime_meta?.format || ''} onChange={e => F('anime_meta', { ...form.anime_meta, format: e.target.value })} style={inp}>
                     {ANIME_FORMATS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Season</label>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Season</label>
                   <select value={form.anime_meta?.season || ''} onChange={e => F('anime_meta', { ...form.anime_meta, season: e.target.value })} style={inp}>
                     <option value="">—</option>
                     {ANIME_SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -722,7 +657,7 @@ function SeriesTab({ token, toast, type }) {
             )}
             {type === 'manga' && (
               <div>
-                <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Demographic</label>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Demographic</label>
                 <select value={form.manga_meta?.demographic || ''} onChange={e => F('manga_meta', { ...form.manga_meta, demographic: e.target.value })} style={inp}>
                   <option value="">—</option>
                   {MANGA_DEMOGRAPHICS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -742,7 +677,7 @@ function SeriesTab({ token, toast, type }) {
                 { k: 'site_url',    label: 'AniList URL'      },
               ].map(f => (
                 <div key={f.k}>
-                  <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
                   <input value={form.anime_meta?.[f.k] || ''} onChange={e => F('anime_meta', { ...form.anime_meta, [f.k]: e.target.value })} style={inp} />
                 </div>
               ))}
@@ -759,7 +694,7 @@ function SeriesTab({ token, toast, type }) {
                 { k: 'last_chapter', label: 'Latest Chapter' },
               ].map(f => (
                 <div key={f.k}>
-                  <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
                   <input value={form.manga_meta?.[f.k] || ''} onChange={e => F('manga_meta', { ...form.manga_meta, [f.k]: e.target.value })} style={inp} />
                 </div>
               ))}
@@ -773,7 +708,7 @@ function SeriesTab({ token, toast, type }) {
                 { k: 'author',    label: 'Author'    },
               ].map(f => (
                 <div key={f.k}>
-                  <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
                   <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)} style={inp} />
                 </div>
               ))}
@@ -782,7 +717,7 @@ function SeriesTab({ token, toast, type }) {
 
           {/* Cover URL */}
           <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Cover URL</label>
+            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Cover URL</label>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <input value={form.cover_url || ''} onChange={e => F('cover_url', e.target.value)} placeholder="https://…" style={{ ...inp, flex: 1 }} />
               {form.cover_url && (
@@ -793,13 +728,13 @@ function SeriesTab({ token, toast, type }) {
 
           {/* Description */}
           <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Description</label>
+            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Description</label>
             <textarea value={form.description || ''} onChange={e => F('description', e.target.value)} rows={3} style={{ ...inp, resize: 'vertical' }} />
           </div>
 
           {/* Genres */}
           <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 6 }}>Genres</label>
+            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 6 }}>Genres</label>
             <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Action" />
           </div>
 
@@ -820,10 +755,10 @@ function SeriesTab({ token, toast, type }) {
 // ─────────────────────────────────────────────────────────────
 function Modal({ children, onClose, maxWidth = 560 }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: T.modalOverlay, zIndex: 9000,
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9000,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: T.modalBg, borderRadius: 16, padding: 24,
+      <div style={{ background: '#0F172A', borderRadius: 16, padding: 24,
         width: '100%', maxWidth, maxHeight: '92vh', overflowY: 'auto',
         border: '1px solid rgba(255,255,255,0.1)',
         boxShadow: '0 25px 60px rgba(0,0,0,0.6)' }}>
@@ -846,38 +781,6 @@ const LINK_FIELDS = [
 ]
 
 function LinksTab({ token, toast }) {
-  const { theme } = useTheme()
-  const dark = theme === 'dark'
-  const T = {
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBg3:         dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    rowBg4:         dark ? 'rgba(255,255,255,0.04)'   : 'rgba(0,0,0,0.04)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowBorder6:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    chipBorder:     dark ? 'rgba(255,255,255,0.12)'   : 'rgba(0,0,0,0.1)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
   const [links,     setLinks]     = useState([])
   const [loading,   setLoading]   = useState(true)
   const [editing,   setEditing]   = useState(null)
@@ -938,19 +841,19 @@ function LinksTab({ token, toast }) {
           <Search size={14} color="#475569" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
           <input value={listSearch} onChange={e => setListSearch(e.target.value)} placeholder="Filter by title or ID…" style={{ ...inp, paddingLeft: 32 }} />
         </div>
-        {loading ? <div style={{ color: T.textGhost, textAlign: 'center', padding: 32 }}>Loading…</div>
-        : filtered.length === 0 ? <div style={{ color: T.textFaint, textAlign: 'center', padding: 32 }}>{listSearch ? 'No matches.' : 'No entries yet.'}</div>
+        {loading ? <div style={{ color: '#475569', textAlign: 'center', padding: 32 }}>Loading…</div>
+        : filtered.length === 0 ? <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>{listSearch ? 'No matches.' : 'No entries yet.'}</div>
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {filtered.map(row => (
-              <div key={row.id} style={{ display: 'flex', gap: 12, alignItems: 'center', background: T.rowBg3, borderRadius: 10, border: `1px solid ${T.rowBorder6}`, padding: '10px 14px' }}>
+              <div key={row.id} style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)', padding: '10px 14px' }}>
                 {row.cover_url && <img src={row.cover_url} style={{ width: 28, height: 38, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
                 <div style={{ flexShrink: 0 }}>
                   <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: `${TYPE_COLOR[row.item_type]||PURPLE}20`, color: TYPE_COLOR[row.item_type]||PURPLE, fontWeight: 700, textTransform: 'uppercase' }}>{row.item_type}</span>
-                  <div style={{ fontSize: 10, color: T.textFaint, marginTop: 2 }}>ID: {row.item_id}</div>
+                  <div style={{ fontSize: 10, color: '#374151', marginTop: 2 }}>ID: {row.item_id}</div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: T.textPrimary, fontWeight: 600, fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.title || '(no title)'}</div>
+                  <div style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 600, fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.title || '(no title)'}</div>
                   <div style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
                     {LINK_FIELDS.filter(f => row[f.key]).map(f => (
                       <span key={f.key} style={{ fontSize: 9, color: f.color, background: `${f.color}15`, border: `1px solid ${f.color}30`, borderRadius: 4, padding: '1px 6px', fontWeight: 700 }}>{f.label}</span>
@@ -967,7 +870,7 @@ function LinksTab({ token, toast }) {
 
       {showPicker && (
         <Modal onClose={() => setShowPicker(false)} maxWidth={500}>
-          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: T.textBright, marginBottom: 16 }}>Search & Select a Series</div>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 16 }}>Search & Select a Series</div>
           <SeriesPicker token={token} onPick={pickSeries} />
           <button style={{ ...btn('#64748B', true), marginTop: 14, width: '100%', justifyContent: 'center' }} onClick={() => setShowPicker(false)}>Cancel</button>
         </Modal>
@@ -976,16 +879,16 @@ function LinksTab({ token, toast }) {
       {editing && (
         <Modal onClose={() => setEditing(null)} maxWidth={560}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: T.textBright }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9' }}>
               {editing === 'new' ? 'Save Links' : 'Edit Links'}
             </div>
-            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', color: T.textGhost, cursor: 'pointer', display: 'flex' }}><X size={18} /></button>
+            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex' }}><X size={18} /></button>
           </div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, background: T.rowBg4, borderRadius: 10, padding: '10px 14px' }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}>
             {form.cover_url && <img src={form.cover_url} style={{ width: 36, height: 50, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
             <div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: T.textBright }}>{form.title}</div>
-              <div style={{ fontSize: 11, color: T.textGhost }}>{form.item_type} · ID: {form.item_id}</div>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: '#f1f5f9' }}>{form.title}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>{form.item_type} · ID: {form.item_id}</div>
             </div>
           </div>
           {LINK_FIELDS.map(f => (
@@ -1010,38 +913,6 @@ function LinksTab({ token, toast }) {
 // Featured Tab
 // ─────────────────────────────────────────────────────────────
 function FeaturedTab({ token, toast }) {
-  const { theme } = useTheme()
-  const dark = theme === 'dark'
-  const T = {
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBg3:         dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    rowBg4:         dark ? 'rgba(255,255,255,0.04)'   : 'rgba(0,0,0,0.04)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowBorder6:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    chipBorder:     dark ? 'rgba(255,255,255,0.12)'   : 'rgba(0,0,0,0.1)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
   const [items,   setItems]   = useState([])
   const [editing, setEditing] = useState(null)
   const [form,    setForm]    = useState({})
@@ -1074,22 +945,22 @@ function FeaturedTab({ token, toast }) {
         action={<button style={{ ...btn(GOLD), padding: '7px 12px' }} onClick={() => setShowPicker(true)}><Plus size={13} /> Add Featured</button>}>
         {showPicker && (
           <Modal onClose={() => setShowPicker(false)} maxWidth={500}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: T.textBright, marginBottom: 16 }}>Search & Select</div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 16 }}>Search & Select</div>
             <SeriesPicker token={token} onPick={pickSeries} />
             <button style={{ ...btn('#64748B', true), marginTop: 14, width: '100%', justifyContent: 'center' }} onClick={() => setShowPicker(false)}>Cancel</button>
           </Modal>
         )}
-        {items.length === 0 ? <div style={{ color: T.textFaint, textAlign: 'center', padding: 32 }}>No featured items.</div>
+        {items.length === 0 ? <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No featured items.</div>
         : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {items.map(row => (
               <div key={row.id} style={{ display: 'flex', gap: 12, alignItems: 'center', background: row.active ? 'rgba(245,158,11,0.05)' : 'rgba(255,255,255,0.02)', borderRadius: 10, border: `1px solid ${row.active ? GOLD+'30' : 'rgba(255,255,255,0.06)'}`, padding: '10px 14px', opacity: row.active ? 1 : 0.5 }}>
                 {row.cover_url && <img src={row.cover_url} style={{ width: 32, height: 44, borderRadius: 5, objectFit: 'cover', flexShrink: 0 }} />}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: T.textPrimary, fontWeight: 600, fontFamily: "'Barlow Condensed', sans-serif" }}>{row.title}</div>
-                  <div style={{ fontSize: 11, color: T.textMuted }}>{row.item_type} · {row.reason}</div>
+                  <div style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 600, fontFamily: "'Barlow Condensed', sans-serif" }}>{row.title}</div>
+                  <div style={{ fontSize: 11, color: '#64748B' }}>{row.item_type} · {row.reason}</div>
                 </div>
-                <span style={{ fontSize: 11, color: T.textFaint }}>#{row.sort_order}</span>
+                <span style={{ fontSize: 11, color: '#374151' }}>#{row.sort_order}</span>
                 <button style={{ ...btn(row.active ? GOLD : GREEN, true), padding: '6px 10px' }} onClick={() => toggle(row)}>
                   {row.active ? <EyeOff size={12} /> : <Eye size={12} />}
                 </button>
@@ -1103,25 +974,25 @@ function FeaturedTab({ token, toast }) {
 
       {editing && (
         <Modal onClose={() => setEditing(null)} maxWidth={480}>
-          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: T.textBright, marginBottom: 20 }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>
             {editing === 'new' ? 'Add Featured Item' : 'Edit Featured Item'}
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, background: T.rowBg4, borderRadius: 10, padding: '10px 14px' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}>
             {form.cover_url && <img src={form.cover_url} style={{ width: 32, height: 44, objectFit: 'cover', borderRadius: 5, flexShrink: 0 }} />}
             <div>
-              <div style={{ fontSize: 14, color: T.textBright, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>{form.title}</div>
-              <div style={{ fontSize: 11, color: T.textGhost }}>{form.item_type} · ID: {form.item_id}</div>
+              <div style={{ fontSize: 14, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>{form.title}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>{form.item_type} · ID: {form.item_id}</div>
             </div>
           </div>
           {[{ key: 'reason', label: 'REASON', ph: "Editor's Pick, Trending…" }, { key: 'sort_order', label: 'SORT ORDER', ph: '0 = first' }].map(f => (
             <div key={f.key} style={{ marginBottom: 10 }}>
-              <label style={{ fontSize: 11, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 4 }}>{f.label}</label>
+              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>{f.label}</label>
               <input value={form[f.key] || ''} onChange={e => setForm(p => ({...p, [f.key]: e.target.value}))} placeholder={f.ph} style={inp} />
             </div>
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <input type="checkbox" checked={form.active !== false} onChange={e => setForm(p => ({...p, active: e.target.checked}))} id="active_chk" />
-            <label htmlFor="active_chk" style={{ fontSize: 13, color: T.textSecondary }}>Active (visible to users)</label>
+            <label htmlFor="active_chk" style={{ fontSize: 13, color: '#94A3B8' }}>Active (visible to users)</label>
           </div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
@@ -1137,38 +1008,6 @@ function FeaturedTab({ token, toast }) {
 // Announcements Tab
 // ─────────────────────────────────────────────────────────────
 function AnnouncementsTab({ token, toast }) {
-  const { theme } = useTheme()
-  const dark = theme === 'dark'
-  const T = {
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBg3:         dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    rowBg4:         dark ? 'rgba(255,255,255,0.04)'   : 'rgba(0,0,0,0.04)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowBorder6:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    chipBorder:     dark ? 'rgba(255,255,255,0.12)'   : 'rgba(0,0,0,0.1)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
   const [items,   setItems]   = useState([])
   const [editing, setEditing] = useState(null)
   const [form,    setForm]    = useState({})
@@ -1198,7 +1037,7 @@ function AnnouncementsTab({ token, toast }) {
             <Plus size={13} /> New
           </button>
         }>
-        {items.length === 0 ? <div style={{ color: T.textFaint, textAlign: 'center', padding: 32 }}>No announcements.</div>
+        {items.length === 0 ? <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No announcements.</div>
         : items.map(row => {
           const c = TYPE_COLOR[row.type] || CYAN
           return (
@@ -1209,8 +1048,8 @@ function AnnouncementsTab({ token, toast }) {
                     <span style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>{row.type}</span>
                     <span style={{ fontSize: 10, opacity: 0.7 }}>{row.active ? '● LIVE' : '○ Hidden'}</span>
                   </div>
-                  <div style={{ fontSize: 13, color: T.textPrimary }}>{row.message_en}</div>
-                  <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>{row.message_vi}</div>
+                  <div style={{ fontSize: 13, color: '#e2e8f0' }}>{row.message_en}</div>
+                  <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{row.message_vi}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button style={{ ...btn(row.active ? GOLD : GREEN, true), padding: '6px 10px' }} onClick={() => toggle(row)}>
@@ -1227,11 +1066,11 @@ function AnnouncementsTab({ token, toast }) {
 
       {editing && (
         <Modal onClose={() => setEditing(null)} maxWidth={500}>
-          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: T.textBright, marginBottom: 20 }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>
             {editing === 'new' ? 'New Announcement' : 'Edit Announcement'}
           </div>
           <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 11, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 4 }}>TYPE</label>
+            <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>TYPE</label>
             <select value={form.type || 'info'} onChange={e => setForm(p => ({...p, type: e.target.value}))} style={inp}>
               <option value="info">ℹ Info</option>
               <option value="warning">⚠ Warning</option>
@@ -1243,13 +1082,13 @@ function AnnouncementsTab({ token, toast }) {
             { k: 'message_vi', label: 'MESSAGE (Vietnamese)', ph: 'Nhập nội dung bằng tiếng Việt…' },
           ].map(f => (
             <div key={f.k} style={{ marginBottom: 10 }}>
-              <label style={{ fontSize: 11, color: T.textMuted, fontWeight: 700, display: 'block', marginBottom: 4 }}>{f.label}</label>
+              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>{f.label}</label>
               <textarea value={form[f.k] || ''} onChange={e => setForm(p => ({...p, [f.k]: e.target.value}))} placeholder={f.ph} rows={3} style={{ ...inp, resize: 'vertical' }} />
             </div>
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <input type="checkbox" checked={form.active !== false} onChange={e => setForm(p => ({...p, active: e.target.checked}))} id="ann_active" />
-            <label htmlFor="ann_active" style={{ fontSize: 13, color: T.textSecondary }}>Show immediately (active)</label>
+            <label htmlFor="ann_active" style={{ fontSize: 13, color: '#94A3B8' }}>Show immediately (active)</label>
           </div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
@@ -1265,38 +1104,6 @@ function AnnouncementsTab({ token, toast }) {
 // Votes Tab
 // ─────────────────────────────────────────────────────────────
 function VotesTab({ token, toast }) {
-  const { theme } = useTheme()
-  const dark = theme === 'dark'
-  const T = {
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBg3:         dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    rowBg4:         dark ? 'rgba(255,255,255,0.04)'   : 'rgba(0,0,0,0.04)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowBorder6:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    chipBorder:     dark ? 'rgba(255,255,255,0.12)'   : 'rgba(0,0,0,0.1)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
   const [votes, setVotes] = useState([])
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year,  setYear]  = useState(new Date().getFullYear())
@@ -1328,20 +1135,20 @@ function VotesTab({ token, toast }) {
         <select value={year} onChange={e => setYear(+e.target.value)} style={{ ...inp, width: 'auto' }}>
           {[2024,2025,2026,2027].map(y => <option key={y} value={y}>{y}</option>)}
         </select>
-        <div style={{ fontSize: 12, color: T.textMuted }}>
+        <div style={{ fontSize: 12, color: '#64748B' }}>
           {votes.length} entries · <span style={{ color: PURPLE, fontWeight: 700 }}>{votes.reduce((s,v) => s + v.vote_count, 0)}</span> total votes
         </div>
       </div>
       {votes.length === 0 ? (
-        <div style={{ color: T.textFaint, textAlign: 'center', padding: 32 }}>No votes this period.</div>
+        <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No votes this period.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {votes.map((row, i) => (
-            <div key={row.id} style={{ display: 'flex', gap: 10, alignItems: 'center', background: T.rowBg, borderRadius: 8, border: `1px solid ${T.rowBorder}`, padding: '8px 12px' }}>
-              <span style={{ width: 24, color: T.textFaint, fontSize: 12, fontWeight: 700 }}>#{i+1}</span>
+            <div key={row.id} style={{ display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)', padding: '8px 12px' }}>
+              <span style={{ width: 24, color: '#374151', fontSize: 12, fontWeight: 700 }}>#{i+1}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: T.textPrimary, fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.novel_title}</div>
-                <div style={{ fontSize: 10, color: T.textFaint }}>ID: {row.novel_id}</div>
+                <div style={{ fontSize: 13, color: '#e2e8f0', fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.novel_title}</div>
+                <div style={{ fontSize: 10, color: '#374151' }}>ID: {row.novel_id}</div>
               </div>
               <div style={{ fontSize: 18, fontWeight: 900, color: PURPLE, fontFamily: "'Barlow Condensed', sans-serif", minWidth: 32, textAlign: 'right' }}>{row.vote_count}</div>
               <button style={{ ...btn(GOLD, true), padding: '6px 10px' }} onClick={() => resetVotes(row.id)}><RefreshCw size={12} /></button>
@@ -1358,38 +1165,6 @@ function VotesTab({ token, toast }) {
 // Users Tab
 // ─────────────────────────────────────────────────────────────
 function UsersTab({ token, toast, currentUserId }) {
-  const { theme } = useTheme()
-  const dark = theme === 'dark'
-  const T = {
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBg3:         dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    rowBg4:         dark ? 'rgba(255,255,255,0.04)'   : 'rgba(0,0,0,0.04)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowBorder6:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    chipBorder:     dark ? 'rgba(255,255,255,0.12)'   : 'rgba(0,0,0,0.1)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
   const [admins, setAdmins] = useState([])
   const [newUid, setNewUid] = useState('')
 
@@ -1419,14 +1194,14 @@ function UsersTab({ token, toast, currentUserId }) {
         <input value={newUid} onChange={e => setNewUid(e.target.value)} placeholder="User UUID to grant admin…" style={{ ...inp, flex: 1 }} />
         <button style={{ ...btn(GREEN), padding: '8px 14px' }} onClick={grantAdmin}><Shield size={13} /> Grant Admin</button>
       </div>
-      <div style={{ fontSize: 11, color: T.textFaint, marginBottom: 14 }}>
+      <div style={{ fontSize: 11, color: '#374151', marginBottom: 14 }}>
         Find user UUIDs in Supabase Dashboard → Authentication → Users
       </div>
       {admins.map(row => (
-        <div key={row.user_id} style={{ display: 'flex', gap: 12, alignItems: 'center', background: T.rowBg, borderRadius: 8, border: `1px solid ${T.rowBorder6}`, padding: '10px 14px', marginBottom: 6 }}>
+        <div key={row.user_id} style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', padding: '10px 14px', marginBottom: 6 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, color: T.textSecondary, fontFamily: 'monospace' }}>{row.user_id}</div>
-            <div style={{ fontSize: 10, color: T.textFaint }}>Granted: {new Date(row.granted_at).toLocaleDateString()}</div>
+            <div style={{ fontSize: 12, color: '#94A3B8', fontFamily: 'monospace' }}>{row.user_id}</div>
+            <div style={{ fontSize: 10, color: '#374151' }}>Granted: {new Date(row.granted_at).toLocaleDateString()}</div>
           </div>
           {row.user_id === currentUserId && <span style={{ fontSize: 10, color: GREEN, fontWeight: 700 }}>YOU</span>}
           <button style={{ ...btn(ROSE, true), padding: '6px 10px' }} onClick={() => revokeAdmin(row.user_id)}><X size={12} /></button>
@@ -1481,7 +1256,7 @@ function DiffViewer({ diff }) {
           <div key={k} style={{
             display: 'grid', gridTemplateColumns: '120px 1fr 1fr',
             gap: 6, fontSize: 11, padding: '4px 8px',
-            background: T.diffRowBg, borderRadius: 6,
+            background: 'rgba(255,255,255,0.03)', borderRadius: 6,
             alignItems: 'start',
           }}>
             <span style={{ color: SLATE, fontWeight: 700, fontFamily: 'monospace', fontSize: 10 }}>{k}</span>
@@ -1509,8 +1284,8 @@ function AuditRow({ entry, expanded, onToggle }) {
 
   return (
     <div style={{
-      background: T.rowBg, borderRadius: 10,
-      border: `1px solid ${T.rowBorder6}`, marginBottom: 6,
+      background: 'rgba(255,255,255,0.02)', borderRadius: 10,
+      border: '1px solid rgba(255,255,255,0.06)', marginBottom: 6,
       transition: 'border-color 0.15s',
     }}>
       {/* Row header */}
@@ -1531,13 +1306,13 @@ function AuditRow({ entry, expanded, onToggle }) {
 
         {/* Title */}
         <span style={{
-          flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: T.textPrimary,
+          flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: '#e2e8f0',
           fontFamily: "'Barlow Condensed', sans-serif",
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{entry.record_title || entry.record_id || '—'}</span>
 
         {/* Timestamp */}
-        <span style={{ fontSize: 11, color: T.textFaint, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span style={{ fontSize: 11, color: '#374151', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5 }}>
           <Clock size={11} color="#374151" />
           {timeStr}
         </span>
@@ -1545,7 +1320,7 @@ function AuditRow({ entry, expanded, onToggle }) {
         {/* Expand button — only when there's something to show */}
         {(hasDiff || hasData || hasOld) && (
           <button onClick={onToggle} style={{
-            background: 'none', border: `1px solid ${T.expandBtn}`,
+            background: 'none', border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 6, padding: '3px 8px', cursor: 'pointer', color: SLATE,
             display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
           }}>
@@ -1563,7 +1338,7 @@ function AuditRow({ entry, expanded, onToggle }) {
           {/* Diff header labels */}
           {hasDiff && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, padding: '8px 8px 4px', fontSize: 9, fontWeight: 800, color: T.textFaint, letterSpacing: 0.8, textTransform: 'uppercase' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, padding: '8px 8px 4px', fontSize: 9, fontWeight: 800, color: '#374151', letterSpacing: 0.8, textTransform: 'uppercase' }}>
                 <span>Field</span>
                 <span style={{ color: ROSE }}>Before</span>
                 <span style={{ color: GREEN }}>After</span>
@@ -1578,7 +1353,7 @@ function AuditRow({ entry, expanded, onToggle }) {
             return interesting.length > 0 ? (
               <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {interesting.map(k => (
-                  <div key={k} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 6, fontSize: 11, padding: '4px 8px', background: T.diffRowBg, borderRadius: 6 }}>
+                  <div key={k} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 6, fontSize: 11, padding: '4px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 6 }}>
                     <span style={{ color: SLATE, fontWeight: 700, fontFamily: 'monospace', fontSize: 10 }}>{k}</span>
                     <span style={{ color: GREEN, fontFamily: 'monospace', wordBreak: 'break-all' }}>{typeof d[k] === 'object' ? JSON.stringify(d[k]) : String(d[k])}</span>
                   </div>
@@ -1593,7 +1368,7 @@ function AuditRow({ entry, expanded, onToggle }) {
             return interesting.length > 0 ? (
               <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {interesting.map(k => (
-                  <div key={k} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 6, fontSize: 11, padding: '4px 8px', background: T.diffRowBg, borderRadius: 6 }}>
+                  <div key={k} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 6, fontSize: 11, padding: '4px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 6 }}>
                     <span style={{ color: SLATE, fontWeight: 700, fontFamily: 'monospace', fontSize: 10 }}>{k}</span>
                     <span style={{ color: ROSE, fontFamily: 'monospace', wordBreak: 'break-all' }}>{typeof d[k] === 'object' ? JSON.stringify(d[k]) : String(d[k])}</span>
                   </div>
@@ -1610,38 +1385,6 @@ function AuditRow({ entry, expanded, onToggle }) {
 const PAGE_SIZE = 30
 
 function HistoryTab({ token }) {
-  const { theme } = useTheme()
-  const dark = theme === 'dark'
-  const T = {
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBg3:         dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    rowBg4:         dark ? 'rgba(255,255,255,0.04)'   : 'rgba(0,0,0,0.04)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowBorder6:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    chipBorder:     dark ? 'rgba(255,255,255,0.12)'   : 'rgba(0,0,0,0.1)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
   const [entries,    setEntries]    = useState([])
   const [loading,    setLoading]    = useState(true)
   const [total,      setTotal]      = useState(0)
@@ -1699,10 +1442,10 @@ function HistoryTab({ token }) {
     <div>
       {/* Header */}
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: T.textBright, margin: '0 0 4px' }}>
+        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 4px' }}>
           Change History
         </h2>
-        <p style={{ color: T.textGhost, fontSize: 13, margin: 0 }}>
+        <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
           Every add, edit, and delete made across the database — automatically recorded.
         </p>
       </div>
@@ -1744,7 +1487,7 @@ function HistoryTab({ token }) {
             </button>
           )}
 
-          <span style={{ marginLeft: 'auto', fontSize: 12, color: T.textFaint, whiteSpace: 'nowrap' }}>
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: '#374151', whiteSpace: 'nowrap' }}>
             {loading ? '…' : `${total.toLocaleString()} entries`}
           </span>
         </div>
@@ -1765,11 +1508,11 @@ function HistoryTab({ token }) {
 
       {/* Entries */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 48, color: T.textGhost, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <div style={{ textAlign: 'center', padding: 48, color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading audit log…
         </div>
       ) : entries.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 48, color: T.textFaint, fontSize: 13 }}>
+        <div style={{ textAlign: 'center', padding: 48, color: '#374151', fontSize: 13 }}>
           {filterOp || filterTable || filterSearch ? 'No entries match your filters.' : 'No history yet. Changes will appear here once admins start editing data.'}
         </div>
       ) : (
@@ -1808,7 +1551,7 @@ function HistoryTab({ token }) {
 function SettingsTab() {
   return (
     <Section title="Settings" icon={Settings} color={SLATE}>
-      <div style={{ color: T.textFaint, textAlign: 'center', padding: 32, fontSize: 13 }}>
+      <div style={{ color: '#374151', textAlign: 'center', padding: 32, fontSize: 13 }}>
         Site settings coming soon.
       </div>
     </Section>
@@ -1827,45 +1570,6 @@ export function AdminPage() {
   const [sidebarOpen,setSidebarOpen]= useState(true)
   const [expanded,   setExpanded]   = useState({ series: true })
   const [isMobile,   setIsMobile]   = useState(() => window.innerWidth < 900)
-  const { theme }   = useTheme()
-  const dark        = theme === 'dark'
-
-  // ── Theme tokens — all inline styles read from T.* ────────────
-  const T = {
-    pageBg:         dark ? '#080D1A'                  : '#F1F5F9',
-    topbarBg:       dark ? 'rgba(15,23,42,0.98)'      : 'rgba(241,245,249,0.98)',
-    topbarBorder:   dark ? 'rgba(139,92,246,0.15)'    : 'rgba(139,92,246,0.2)',
-    sidebarBg:      dark ? 'rgba(15,23,42,0.95)'      : '#ffffff',
-    sidebarBorder:  dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    cardBg:         dark ? 'rgba(255,255,255,0.03)'   : '#ffffff',
-    cardBorder:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    rowBg:          dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    rowBorder:      dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.07)',
-    rowHoverBg:     dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.05)',
-    inputBg:        dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    inputBorder:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    inputColor:     dark ? '#f1f5f9'                  : '#0F172A',
-    btnGhost:       dark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,0,0,0.05)',
-    btnGhostBorder: dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.12)',
-    divider:        dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.08)',
-    textBright:     dark ? '#f1f5f9'                  : '#0F172A',
-    textPrimary:    dark ? '#e2e8f0'                  : '#1E293B',
-    textSecondary:  dark ? '#94A3B8'                  : '#475569',
-    textMuted:      dark ? '#64748B'                  : '#64748B',
-    textGhost:      dark ? '#475569'                  : '#64748B',
-    textFaint:      dark ? '#374151'                  : '#94A3B8',
-    logoText:       dark ? '#f1f5f9'                  : '#0F172A',
-    hamburgerBar:   dark ? '#94A3B8'                  : '#475569',
-    scrollThumb:    dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.15)',
-    scrollHover:    dark ? 'rgba(255,255,255,0.2)'    : 'rgba(0,0,0,0.25)',
-    modalOverlay:   dark ? 'rgba(0,0,0,0.85)'         : 'rgba(15,23,42,0.5)',
-    modalBg:        dark ? '#0F172A'                  : '#ffffff',
-    chipBg:         dark ? 'rgba(255,255,255,0.08)'   : 'rgba(0,0,0,0.07)',
-    diffRowBg:      dark ? 'rgba(255,255,255,0.03)'   : 'rgba(0,0,0,0.03)',
-    auditRowBg:     dark ? 'rgba(255,255,255,0.02)'   : 'rgba(0,0,0,0.02)',
-    auditRowBorder: dark ? 'rgba(255,255,255,0.06)'   : 'rgba(0,0,0,0.07)',
-    expandBtn:      dark ? 'rgba(255,255,255,0.1)'    : 'rgba(0,0,0,0.1)',
-  }
 
   useEffect(() => {
     const fn = () => { const m = window.innerWidth < 900; setIsMobile(m); if (m) setSidebarOpen(false) }
@@ -1884,22 +1588,22 @@ export function AdminPage() {
 
   // ── Auth / permission gates ──
   if (isAdmin === null) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textGhost, fontFamily: "'Be Vietnam Pro', sans-serif", background: T.pageBg }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontFamily: "'Be Vietnam Pro', sans-serif", background: '#080D1A' }}>
       <RefreshCw size={18} style={{ marginRight: 8, animation: 'spin 1s linear infinite' }} />Checking permissions…
     </div>
   )
   if (!user) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: T.pageBg }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: '#080D1A' }}>
       <div style={{ width: 60, height: 60, borderRadius: 16, background: `${PURPLE}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={28} color={PURPLE} /></div>
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: T.textBright }}>Login Required</div>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: '#f1f5f9' }}>Login Required</div>
       <a href="#/" style={{ color: PURPLE, textDecoration: 'none', fontSize: 14 }}>← Go home</a>
     </div>
   )
   if (!isAdmin) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: T.pageBg }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: '#080D1A' }}>
       <div style={{ width: 60, height: 60, borderRadius: 16, background: `${ROSE}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={28} color={ROSE} /></div>
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: '#F87171' }}>Access Denied</div>
-      <div style={{ color: T.textGhost, fontSize: 14 }}>This account does not have admin privileges.</div>
+      <div style={{ color: '#475569', fontSize: 14 }}>This account does not have admin privileges.</div>
       <a href="#/" style={{ color: PURPLE, textDecoration: 'none', fontSize: 14 }}>← Go home</a>
     </div>
   )
@@ -1920,38 +1624,38 @@ export function AdminPage() {
   const displayId = activeTab
 
   return (
-    <div style={{ minHeight: '100vh', background: T.pageBg, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: '#080D1A', display: 'flex', flexDirection: 'column' }}>
       {/* ── Top bar ── */}
       <div style={{
         height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px', background: T.topbarBg,
-        borderBottom: `1px solid ${T.topbarBorder}`,
+        padding: '0 20px', background: 'rgba(15,23,42,0.98)',
+        borderBottom: '1px solid rgba(139,92,246,0.15)',
         position: 'sticky', top: 0, zIndex: 100,
         backdropFilter: 'blur(12px)',
       }}>
         {/* Left: hamburger + logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => setSidebarOpen(o => !o)} style={{
-            width: 34, height: 34, borderRadius: 8, border: `1px solid ${T.btnGhostBorder}`,
-            background: T.btnGhost, cursor: 'pointer',
+            width: 34, height: 34, borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.05)', cursor: 'pointer',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
           }}>
-            <span style={{ width: 14, height: 1.5, background: T.hamburgerBar, borderRadius: 2, display: 'block' }} />
-            <span style={{ width: 14, height: 1.5, background: T.hamburgerBar, borderRadius: 2, display: 'block' }} />
-            <span style={{ width: 14, height: 1.5, background: T.hamburgerBar, borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
           </button>
           <a href="#/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: 7, background: `linear-gradient(135deg, ${PURPLE}, #6366F1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: '#fff', fontFamily: "'Barlow Condensed', sans-serif" }}>Li</div>
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: T.logoText, letterSpacing: 0.5 }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: '#f1f5f9', letterSpacing: 0.5 }}>
               Li<span style={{ color: PURPLE }}>Dex</span>
-              <span style={{ fontSize: 11, color: T.textGhost, fontWeight: 600, marginLeft: 8 }}>ADMIN</span>
+              <span style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginLeft: 8 }}>ADMIN</span>
             </span>
           </a>
         </div>
 
         {/* Right: user info */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ fontSize: 12, color: T.textGhost, display: isMobile ? 'none' : 'block' }}>{user.email}</div>
+          <div style={{ fontSize: 12, color: '#475569', display: isMobile ? 'none' : 'block' }}>{user.email}</div>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: `${PURPLE}25`, border: `1px solid ${PURPLE}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Shield size={15} color={PURPLE} />
           </div>
@@ -1964,8 +1668,8 @@ export function AdminPage() {
         {/* Sidebar */}
         <div style={{
           width: SIDEBAR_W, flexShrink: 0,
-          background: T.sidebarBg,
-          borderRight: `1px solid ${T.sidebarBorder}`,
+          background: 'rgba(15,23,42,0.95)',
+          borderRight: '1px solid rgba(255,255,255,0.06)',
           overflowY: 'auto', overflowX: 'hidden',
           transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
           position: isMobile ? 'fixed' : 'relative',
@@ -1989,10 +1693,10 @@ export function AdminPage() {
                       padding: '9px 12px', borderRadius: 9, marginBottom: 2,
                       background: isActive || subActive ? `${item.color}15` : 'transparent',
                       border: `1px solid ${isActive || subActive ? item.color + '30' : 'transparent'}`,
-                      color: isActive || subActive ? T.textBright : T.textGhost,
+                      color: isActive || subActive ? '#f1f5f9' : '#475569',
                       cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
                     }}
-                      onMouseEnter={e => { if (!isActive && !subActive) e.currentTarget.style.background = T.rowHoverBg }}
+                      onMouseEnter={e => { if (!isActive && !subActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
                       onMouseLeave={e => { if (!isActive && !subActive) e.currentTarget.style.background = 'transparent' }}
                     >
                       <Icon size={15} color={isActive || subActive ? item.color : '#475569'} style={{ flexShrink: 0 }} />
@@ -2013,13 +1717,13 @@ export function AdminPage() {
                               padding: '7px 12px', borderRadius: 8, marginBottom: 2,
                               background: subIsActive ? `${sub.color}15` : 'transparent',
                               border: `1px solid ${subIsActive ? sub.color + '30' : 'transparent'}`,
-                              color: subIsActive ? T.textBright : T.textGhost,
+                              color: subIsActive ? '#f1f5f9' : '#374151',
                               cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
                             }}
-                              onMouseEnter={e => { if (!subIsActive) e.currentTarget.style.background = T.rowHoverBg }}
+                              onMouseEnter={e => { if (!subIsActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
                               onMouseLeave={e => { if (!subIsActive) e.currentTarget.style.background = 'transparent' }}
                             >
-                              <SubIcon size={13} color={subIsActive ? sub.color : T.textGhost} style={{ flexShrink: 0 }} />
+                              <SubIcon size={13} color={subIsActive ? sub.color : '#374151'} style={{ flexShrink: 0 }} />
                               <span style={{ fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 12, fontWeight: subIsActive ? 700 : 500 }}>{sub.label}</span>
                               {subIsActive && <span style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: sub.color }} />}
                             </button>
@@ -2032,10 +1736,10 @@ export function AdminPage() {
               })}
 
               {/* Divider + back to site */}
-              <div style={{ borderTop: `1px solid ${T.divider}`, marginTop: 12, paddingTop: 12 }}>
-                <a href="#/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9, color: T.textGhost, textDecoration: 'none', fontSize: 13, fontFamily: "'Be Vietnam Pro', sans-serif", transition: 'color 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = T.textMuted}
-                  onMouseLeave={e => e.currentTarget.style.color = T.textGhost}
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 12, paddingTop: 12 }}>
+                <a href="#/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9, color: '#374151', textDecoration: 'none', fontSize: 13, fontFamily: "'Be Vietnam Pro', sans-serif", transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#64748B'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#374151'}
                 >
                   <ExternalLink size={14} />
                   Back to site
@@ -2070,8 +1774,8 @@ export function AdminPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: ${T.scrollThumb}; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: ${T.scrollHover}; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
       `}</style>
     </div>
   )
