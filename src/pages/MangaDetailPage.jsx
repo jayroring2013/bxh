@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { ROSE } from '../constants.js'
+import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
 import { useMangaById, useMangaRelated, useSeriesLinks, useSeriesStats, useUserRating, mangaUrl } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
@@ -251,7 +252,7 @@ function SectionCarousel({ title, children }) {
           ))}
         </div>
       </div>
-      <div ref={ref} style={{ display:'flex', gap:16, overflowX:'auto', overflowY:'visible', padding:'8px 8px 20px', scrollbarWidth:'none', msOverflowStyle:'none' }}>
+      <div ref={ref} style={{ display:'flex', gap:16, overflowX:'auto', overflowY:'visible', padding:'10px 8px 20px', scrollbarWidth:'none', msOverflowStyle:'none' }}>
         {children}
       </div>
     </section>
@@ -320,6 +321,76 @@ function TabContent({ activeTab, lang, manga, related }) {
   return null
 }
 
+// ── Error report button ───────────────────────────────────────────
+function ErrorReportButton({ seriesId, title, lang }) {
+  const [open, setOpen] = useState(false)
+  const [category, setCategory] = useState('')
+  const [details, setDetails] = useState('')
+  const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+
+  const CATEGORIES_VI = ['Thông tin sai', 'Ảnh bìa lỗi', 'Link đọc hỏng', 'Thiếu chapter', 'Nội dung vi phạm', 'Khác']
+  const CATEGORIES_EN = ['Wrong info', 'Bad cover image', 'Broken read link', 'Missing chapter', 'Inappropriate content', 'Other']
+  const cats = lang === 'vi' ? CATEGORIES_VI : CATEGORIES_EN
+
+  const close = () => { setOpen(false); setCategory(''); setDetails(''); setSent(false) }
+
+  const submit = async () => {
+    if (!category) return
+    setSending(true)
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/series_error_reports`, {
+        method: 'POST',
+        headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ series_id: seriesId, category, details: details.trim() || null }),
+      })
+    } catch (e) {}
+    setSent(true); setSending(false)
+  }
+
+  const popup = open ? createPortal(
+    <div onClick={close} style={{ position:'fixed', inset:0, zIndex:50000, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:'linear-gradient(145deg,#140810,#1e0d18)', border:`1px solid rgba(239,68,68,0.3)`, borderRadius:18, padding:24, width:'100%', maxWidth:380, boxShadow:'0 24px 60px rgba(0,0,0,0.9)' }}>
+        {sent ? (
+          <div style={{ textAlign:'center', padding:'20px 0' }}>
+            <div style={{ fontSize:36, marginBottom:12 }}>✅</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'#f1f5f9', fontFamily:"'Barlow Condensed',sans-serif", marginBottom:8 }}>{lang==='vi'?'Đã nhận báo lỗi!':'Report received!'}</div>
+            <div style={{ fontSize:12, color:'#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif", marginBottom:20 }}>{lang==='vi'?'Cảm ơn bạn đã góp phần cải thiện NovelTrend.':'Thank you for helping improve NovelTrend.'}</div>
+            <button onClick={close} style={{ padding:'9px 24px', borderRadius:10, border:'none', background:'rgba(239,68,68,0.15)', color:'#FCA5A5', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Be Vietnam Pro',sans-serif" }}>{lang==='vi'?'Đóng':'Close'}</button>
+          </div>
+        ) : (<>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
+            <div>
+              <div style={{ fontSize:15, fontWeight:800, color:'#f1f5f9', fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:0.5 }}>{lang==='vi'?'⚠️ Báo lỗi':'⚠️ Report an error'}</div>
+              <div style={{ fontSize:11, color:'#6b7280', fontFamily:"'Be Vietnam Pro',sans-serif", marginTop:2 }}>{title}</div>
+            </div>
+            <button onClick={close} style={{ background:'none', border:'none', color:'#3a1020', fontSize:20, cursor:'pointer', lineHeight:1 }}>×</button>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
+            {cats.map(c => (
+              <button key={c} onClick={()=>setCategory(c)} style={{ textAlign:'left', padding:'9px 14px', borderRadius:10, cursor:'pointer', fontSize:13, fontFamily:"'Be Vietnam Pro',sans-serif", fontWeight:600, background:category===c?'rgba(239,68,68,0.18)':'rgba(255,255,255,0.04)', border:`1px solid ${category===c?'rgba(239,68,68,0.5)':'rgba(255,255,255,0.07)'}`, color:category===c?'#FCA5A5':'#94A3B8', transition:'all 0.15s' }}>{c}</button>
+            ))}
+          </div>
+          <textarea value={details} onChange={e=>setDetails(e.target.value)} placeholder={lang==='vi'?'Thông tin bổ sung (tuỳ chọn)…':'Additional details (optional)…'} maxLength={500} rows={3} style={{ width:'100%', boxSizing:'border-box', padding:'10px 12px', borderRadius:10, resize:'vertical', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'#94A3B8', fontSize:12, fontFamily:"'Be Vietnam Pro',sans-serif", outline:'none', marginBottom:14 }} />
+          <button onClick={submit} disabled={!category||sending} style={{ width:'100%', padding:'11px 0', borderRadius:10, border:'none', background:category?'linear-gradient(135deg,#dc2626,#b91c1c)':'rgba(255,255,255,0.06)', color:category?'#fff':'#3a1020', fontSize:14, fontWeight:700, cursor:category?'pointer':'not-allowed', fontFamily:"'Be Vietnam Pro',sans-serif", boxShadow:category?'0 4px 16px rgba(220,38,38,0.4)':'none', transition:'all 0.2s' }}>
+            {sending?'…':(lang==='vi'?'Gửi báo lỗi':'Submit report')}
+          </button>
+        </>)}
+      </div>
+    </div>, document.body
+  ) : null
+
+  return (<>
+    {popup}
+    <button onClick={()=>setOpen(true)} style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 28px', borderRadius:12, cursor:'pointer', fontSize:15, fontWeight:700, fontFamily:"'Be Vietnam Pro',sans-serif", background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', color:'#FCA5A5', transition:'all 0.15s' }}
+      onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.2)';e.currentTarget.style.borderColor='rgba(239,68,68,0.45)'}}
+      onMouseLeave={e=>{e.currentTarget.style.background='rgba(239,68,68,0.1)';e.currentTarget.style.borderColor='rgba(239,68,68,0.25)'}}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      {lang==='vi'?'Báo lỗi':'Report'}
+    </button>
+  </>)
+}
+
 // ── Main page ─────────────────────────────────────────────────────
 export function MangaDetailPage({ mangaId }) {
   const { lang } = useLang()
@@ -375,29 +446,40 @@ export function MangaDetailPage({ mangaId }) {
       <AppHeader activeTab="#/manga" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
 
       {/* ── Hero ── */}
-      <div style={{ background:'linear-gradient(160deg,#0f040a,#180810,#0c0408)', position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'relative', overflow:'hidden', minHeight: isMobile ? 'auto' : 320, background:'#0f040a' }}>
+        {/* Layer 1: blurred cover fills entire hero as atmosphere */}
         {cover && (
-          <div style={{ position:'absolute', inset:0, zIndex:0, backgroundImage:`url(${cover})`, backgroundSize:'cover', backgroundPosition:'center', filter:'blur(40px) saturate(0.4)', opacity:0.15 }} />
+          <div style={{
+            position:'absolute', inset:'-20px', zIndex:0,
+            backgroundImage:`url(${cover})`,
+            backgroundSize:'cover', backgroundPosition:'center top',
+            filter:'blur(18px) saturate(1.1) brightness(0.5)',
+          }} />
         )}
-        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to bottom, rgba(12,4,8,0.5) 0%, rgba(12,4,8,0.95) 100%)' }} />
+        {/* Layer 2: left-to-right gradient for readability */}
+        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to right, rgba(12,4,8,0.92) 0%, rgba(12,4,8,0.45) 50%, rgba(12,4,8,0.75) 100%)' }} />
+        {/* Layer 3: top/bottom fade */}
+        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to bottom, rgba(12,4,8,0.4) 0%, transparent 30%, transparent 65%, rgba(12,4,8,1) 100%)' }} />
 
-        <div style={{ position:'relative', zIndex:2, padding: isMobile ? '20px 16px 28px' : '32px 32px 40px', paddingLeft: isMobile ? 16 : 228,
+        <div style={{ position:'relative', zIndex:2, padding: isMobile ? '48px 16px 28px' : '52px 32px 40px', paddingLeft: isMobile ? 16 : 228,
           display:'flex', gap: isMobile ? 14 : 32, alignItems:'flex-start' }}>
           {/* Back */}
-          <button onClick={()=>window.history.back()} style={{ position:'absolute', top: isMobile?8:16, left: isMobile?16:228,
-            background:'none', border:'none', color:'#3a1020', cursor:'pointer',
+          <button onClick={()=>window.history.back()} style={{ position:'absolute', top: isMobile?12:16, left: isMobile?16:228,
+            background:'none', border:'none', color:'rgba(255,255,255,0.45)', cursor:'pointer',
             fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif", display:'flex', alignItems:'center', gap:4 }}>
             ← {lang==='vi'?'Quay lại':'Back'}
           </button>
 
           {/* Cover */}
-          <div style={{ flexShrink:0, marginTop: isMobile?28:20 }}>
+          <div style={{ flexShrink:0, marginTop: isMobile ? 0 : 20 }}>
             <div style={{ width: isMobile ? 110 : 200, borderRadius:14, overflow:'hidden',
               boxShadow:`0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(244,63,94,0.08)`,
               aspectRatio:'2/3', background:'#100608' }}>
               {cover
                 ? <img src={cover} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
-                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:48 }}>📚</div>}
+                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3a1020" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                  </div>}
             </div>
 
             {/* ── Star rating widget ── */}
@@ -426,9 +508,9 @@ export function MangaDetailPage({ mangaId }) {
                       {(starHovered || userRating) ? `${starHovered || userRating} / 5` : ''}
                     </div>
                     <button onClick={()=>{ if (starHovered) submitRating(starHovered) }} disabled={ratingSaving} style={{
-                      width:'100%', padding:'8px 0', borderRadius:10,
+                      width:'100%', padding:'12px 0', borderRadius:12,
                       background: userRating ? 'rgba(251,191,36,0.15)' : `linear-gradient(135deg,${ACCENT},#be185d)`,
-                      color: userRating ? '#FBBF24' : '#fff', fontSize:13, fontWeight:700,
+                      color: userRating ? '#FBBF24' : '#fff', fontSize:15, fontWeight:700,
                       cursor: ratingSaving ? 'wait' : 'pointer', fontFamily:"'Be Vietnam Pro',sans-serif",
                       boxShadow: userRating ? 'none' : `0 4px 14px ${ACCENT}50`, transition:'all 0.2s',
                       border: userRating ? '1px solid rgba(251,191,36,0.3)' : 'none',
@@ -438,12 +520,12 @@ export function MangaDetailPage({ mangaId }) {
                   </div>
                 ) : (
                   <button onClick={()=>window.dispatchEvent(new CustomEvent('nt:open-auth',{detail:{mode:'login'}}))} style={{
-                    width:'100%', padding:'8px 0', borderRadius:10, border:`1px solid rgba(251,191,36,0.25)`,
-                    background:'rgba(251,191,36,0.08)', color:'#FBBF24', fontSize:13, fontWeight:700,
+                    width:'100%', padding:'12px 0', borderRadius:12, border:`1px solid rgba(251,191,36,0.25)`,
+                    background:'rgba(251,191,36,0.08)', color:'#FBBF24', fontSize:15, fontWeight:700,
                     cursor:'pointer', fontFamily:"'Be Vietnam Pro',sans-serif",
-                    display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                    display:'flex', alignItems:'center', justifyContent:'center', gap:8,
                   }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" strokeWidth="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     {lang==='vi' ? 'Đánh giá' : 'Rate it'}
                   </button>
                 )}
@@ -536,6 +618,7 @@ export function MangaDetailPage({ mangaId }) {
             {/* Action buttons */}
             <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
               <MangaSaveButton mangaId={manga.id} title={title} coverUrl={cover} />
+              <ErrorReportButton seriesId={manga.id} title={title} lang={lang} />
               <a href={mdUrl} target="_blank" rel="noreferrer" style={{ fontSize:12, fontWeight:600, padding:'8px 14px', borderRadius:10,
                 background:`${ACCENT}18`, border:`1px solid ${ACCENT}40`, color:'#FDA4AF', textDecoration:'none', fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                 MangaDex ↗
