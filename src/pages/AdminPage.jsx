@@ -30,6 +30,10 @@ const ICONS = {
   Shield:      <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
   Layers:      <><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></>,
   Link2:       <><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></>,
+  History:     <><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></>,
+  Clock:       <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+  Filter:      <><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></>,
+  ChevronDown: <><polyline points="6 9 12 15 18 9"/></>,
 }
 
 function Icon({ name, size = 16, color = 'currentColor', style = {} }) {
@@ -67,6 +71,10 @@ const AlertTriangle   = (p) => <Icon name="AlertTriangle"   {...p} />
 const Shield          = (p) => <Icon name="Shield"          {...p} />
 const Layers          = (p) => <Icon name="Layers"          {...p} />
 const Link2           = (p) => <Icon name="Link2"           {...p} />
+const History         = (p) => <Icon name="History"         {...p} />
+const Clock           = (p) => <Icon name="Clock"           {...p} />
+const Filter          = (p) => <Icon name="Filter"          {...p} />
+const ChevronDown     = (p) => <Icon name="ChevronDown"     {...p} />
 
 // ── Colors ────────────────────────────────────────────────────
 const PURPLE = '#8B5CF6'
@@ -126,6 +134,7 @@ const NAV_ITEMS = [
   { id: 'announcements', icon: Megaphone,       label: 'Announcements',color: CYAN   },
   { id: 'votes',         icon: Vote,            label: 'Voting',       color: PURPLE },
   { id: 'users',         icon: Users,           label: 'Users',        color: GREEN  },
+  { id: 'history',       icon: History,         label: 'History',      color: SLATE  },
   { id: 'settings',      icon: Settings,        label: 'Settings',     color: SLATE  },
 ]
 
@@ -1205,6 +1214,340 @@ function UsersTab({ token, toast, currentUserId }) {
 // ─────────────────────────────────────────────────────────────
 // Settings Tab (placeholder)
 // ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
+// History Tab — audit log viewer
+// ─────────────────────────────────────────────────────────────
+
+const TABLE_LABELS = {
+  series:             'Series',
+  anime_meta:         'Anime Meta',
+  manga_meta:         'Manga Meta',
+  item_links:         'Links',
+  featured_items:     'Featured',
+  site_announcements: 'Announcements',
+  novel_votes:        'Votes',
+}
+
+const OP_STYLE = {
+  INSERT: { color: GREEN,  bg: `rgba(74,222,128,0.12)`,  label: 'Added'   },
+  UPDATE: { color: CYAN,   bg: `rgba(6,182,212,0.12)`,   label: 'Updated' },
+  DELETE: { color: ROSE,   bg: `rgba(244,63,94,0.12)`,   label: 'Deleted' },
+}
+
+function DiffViewer({ diff }) {
+  if (!diff || Object.keys(diff).length === 0) return null
+  const keys = Object.keys(diff).filter(k =>
+    !['updated_at','created_at'].includes(k)
+  )
+  if (keys.length === 0) return null
+
+  return (
+    <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {keys.map(k => {
+        const { from, to } = diff[k] || {}
+        const fromStr = from === null || from === undefined ? '—'
+          : typeof from === 'object' ? JSON.stringify(from) : String(from)
+        const toStr = to === null || to === undefined ? '—'
+          : typeof to === 'object' ? JSON.stringify(to) : String(to)
+        // Truncate long values
+        const trunc = (s) => s.length > 80 ? s.slice(0, 80) + '…' : s
+        return (
+          <div key={k} style={{
+            display: 'grid', gridTemplateColumns: '120px 1fr 1fr',
+            gap: 6, fontSize: 11, padding: '4px 8px',
+            background: 'rgba(255,255,255,0.03)', borderRadius: 6,
+            alignItems: 'start',
+          }}>
+            <span style={{ color: SLATE, fontWeight: 700, fontFamily: 'monospace', fontSize: 10 }}>{k}</span>
+            <span style={{ color: ROSE, background: 'rgba(244,63,94,0.08)', borderRadius: 4, padding: '2px 6px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+              {trunc(fromStr)}
+            </span>
+            <span style={{ color: GREEN, background: 'rgba(74,222,128,0.08)', borderRadius: 4, padding: '2px 6px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+              {trunc(toStr)}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function AuditRow({ entry, expanded, onToggle }) {
+  const op   = OP_STYLE[entry.operation] || OP_STYLE.UPDATE
+  const time = new Date(entry.created_at)
+  const timeStr = time.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    + ' ' + time.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  const hasDiff = entry.diff && Object.keys(entry.diff).filter(k => !['updated_at','created_at'].includes(k)).length > 0
+  const hasData = entry.operation === 'INSERT' && entry.new_data
+  const hasOld  = entry.operation === 'DELETE' && entry.old_data
+
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.02)', borderRadius: 10,
+      border: '1px solid rgba(255,255,255,0.06)', marginBottom: 6,
+      transition: 'border-color 0.15s',
+    }}>
+      {/* Row header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', flexWrap: 'wrap' }}>
+        {/* Op badge */}
+        <span style={{
+          fontSize: 9, fontWeight: 800, padding: '3px 9px', borderRadius: 20,
+          background: op.bg, color: op.color, letterSpacing: 0.8,
+          textTransform: 'uppercase', flexShrink: 0,
+        }}>{op.label}</span>
+
+        {/* Table badge */}
+        <span style={{
+          fontSize: 9, fontWeight: 700, padding: '3px 9px', borderRadius: 20,
+          background: 'rgba(255,255,255,0.06)', color: SLATE,
+          letterSpacing: 0.5, textTransform: 'uppercase', flexShrink: 0,
+        }}>{TABLE_LABELS[entry.table_name] || entry.table_name}</span>
+
+        {/* Title */}
+        <span style={{
+          flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: '#e2e8f0',
+          fontFamily: "'Barlow Condensed', sans-serif",
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>{entry.record_title || entry.record_id || '—'}</span>
+
+        {/* Timestamp */}
+        <span style={{ fontSize: 11, color: '#374151', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Clock size={11} color="#374151" />
+          {timeStr}
+        </span>
+
+        {/* Expand button — only when there's something to show */}
+        {(hasDiff || hasData || hasOld) && (
+          <button onClick={onToggle} style={{
+            background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 6, padding: '3px 8px', cursor: 'pointer', color: SLATE,
+            display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+          }}>
+            <ChevronDown size={12} style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            <span style={{ fontSize: 10, fontWeight: 700 }}>
+              {hasDiff ? `${Object.keys(entry.diff).filter(k => !['updated_at','created_at'].includes(k)).length} changes` : 'details'}
+            </span>
+          </button>
+        )}
+      </div>
+
+      {/* Expanded diff / details */}
+      {expanded && (
+        <div style={{ padding: '0 14px 12px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          {/* Diff header labels */}
+          {hasDiff && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, padding: '8px 8px 4px', fontSize: 9, fontWeight: 800, color: '#374151', letterSpacing: 0.8, textTransform: 'uppercase' }}>
+                <span>Field</span>
+                <span style={{ color: ROSE }}>Before</span>
+                <span style={{ color: GREEN }}>After</span>
+              </div>
+              <DiffViewer diff={entry.diff} />
+            </>
+          )}
+          {/* INSERT — show key new fields */}
+          {hasData && (() => {
+            const d = entry.new_data
+            const interesting = ['title','status','item_type','description','publisher','author','genres'].filter(k => d[k] != null)
+            return interesting.length > 0 ? (
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {interesting.map(k => (
+                  <div key={k} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 6, fontSize: 11, padding: '4px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 6 }}>
+                    <span style={{ color: SLATE, fontWeight: 700, fontFamily: 'monospace', fontSize: 10 }}>{k}</span>
+                    <span style={{ color: GREEN, fontFamily: 'monospace', wordBreak: 'break-all' }}>{typeof d[k] === 'object' ? JSON.stringify(d[k]) : String(d[k])}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null
+          })()}
+          {/* DELETE — show what was lost */}
+          {hasOld && (() => {
+            const d = entry.old_data
+            const interesting = ['title','status','item_type','description','publisher','author'].filter(k => d[k] != null)
+            return interesting.length > 0 ? (
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {interesting.map(k => (
+                  <div key={k} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 6, fontSize: 11, padding: '4px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 6 }}>
+                    <span style={{ color: SLATE, fontWeight: 700, fontFamily: 'monospace', fontSize: 10 }}>{k}</span>
+                    <span style={{ color: ROSE, fontFamily: 'monospace', wordBreak: 'break-all' }}>{typeof d[k] === 'object' ? JSON.stringify(d[k]) : String(d[k])}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null
+          })()}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const PAGE_SIZE = 30
+
+function HistoryTab({ token }) {
+  const [entries,    setEntries]    = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [total,      setTotal]      = useState(0)
+  const [page,       setPage]       = useState(0)
+  const [expanded,   setExpanded]   = useState({})
+
+  // Filters
+  const [filterOp,    setFilterOp]    = useState('')   // INSERT|UPDATE|DELETE
+  const [filterTable, setFilterTable] = useState('')
+  const [filterSearch,setFilterSearch]= useState('')
+
+  const load = useCallback(async (pg = 0) => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      params.set('order',  'created_at.desc')
+      params.set('limit',  PAGE_SIZE)
+      params.set('offset', pg * PAGE_SIZE)
+      params.set('select', 'id,created_at,table_name,operation,record_id,record_title,changed_by,diff,old_data,new_data')
+
+      if (filterOp)    params.set('operation',   `eq.${filterOp}`)
+      if (filterTable) params.set('table_name',  `eq.${filterTable}`)
+      if (filterSearch.trim()) params.set('record_title', `ilike.%${filterSearch.trim()}%`)
+
+      // Count
+      const countParams = new URLSearchParams(params)
+      countParams.set('limit', 1); countParams.set('offset', 0)
+
+      const [data, countRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/audit_log?${params}`, {
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` },
+        }).then(r => r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/audit_log?${countParams}`, {
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`, Prefer: 'count=exact' },
+        }),
+      ])
+
+      const t = parseInt(countRes.headers?.get?.('content-range')?.split('/')?.[1] || 0)
+      setEntries(Array.isArray(data) ? data : [])
+      setTotal(t)
+      setPage(pg)
+      setExpanded({})
+    } catch(e) {
+      console.error('Audit log load failed:', e)
+    } finally {
+      setLoading(false)
+    }
+  }, [token, filterOp, filterTable, filterSearch])
+
+  useEffect(() => { load(0) }, [filterOp, filterTable, filterSearch])
+
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 4px' }}>
+          Change History
+        </h2>
+        <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
+          Every add, edit, and delete made across the database — automatically recorded.
+        </p>
+      </div>
+
+      {/* Filters */}
+      <Card style={{ marginBottom: 18, padding: '14px 18px' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Filter size={14} color={SLATE} style={{ flexShrink: 0 }} />
+
+          {/* Search by title */}
+          <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 140 }}>
+            <Search size={13} color="#475569" style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)' }} />
+            <input value={filterSearch} onChange={e => setFilterSearch(e.target.value)}
+              placeholder="Search by title…"
+              style={{ ...inp, paddingLeft: 28, padding: '7px 10px 7px 28px' }} />
+          </div>
+
+          {/* Operation filter */}
+          <select value={filterOp} onChange={e => setFilterOp(e.target.value)}
+            style={{ ...inp, width: 'auto', padding: '7px 10px', flex: '0 0 auto' }}>
+            <option value="">All operations</option>
+            <option value="INSERT">Added</option>
+            <option value="UPDATE">Updated</option>
+            <option value="DELETE">Deleted</option>
+          </select>
+
+          {/* Table filter */}
+          <select value={filterTable} onChange={e => setFilterTable(e.target.value)}
+            style={{ ...inp, width: 'auto', padding: '7px 10px', flex: '0 0 auto' }}>
+            <option value="">All tables</option>
+            {Object.entries(TABLE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+
+          {/* Clear filters */}
+          {(filterOp || filterTable || filterSearch) && (
+            <button onClick={() => { setFilterOp(''); setFilterTable(''); setFilterSearch('') }}
+              style={{ ...btn(SLATE, true), padding: '6px 12px', fontSize: 11 }}>
+              <X size={11} /> Clear
+            </button>
+          )}
+
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: '#374151', whiteSpace: 'nowrap' }}>
+            {loading ? '…' : `${total.toLocaleString()} entries`}
+          </span>
+        </div>
+      </Card>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+        {Object.entries(OP_STYLE).map(([op, s]) => (
+          <div key={op} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+            <span style={{ color: SLATE }}>{s.label}</span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11 }}>
+          <span style={{ color: SLATE }}>· Click a row with a diff button to see what changed</span>
+        </div>
+      </div>
+
+      {/* Entries */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 48, color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading audit log…
+        </div>
+      ) : entries.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 48, color: '#374151', fontSize: 13 }}>
+          {filterOp || filterTable || filterSearch ? 'No entries match your filters.' : 'No history yet. Changes will appear here once admins start editing data.'}
+        </div>
+      ) : (
+        <>
+          {entries.map(entry => (
+            <AuditRow
+              key={entry.id}
+              entry={entry}
+              expanded={!!expanded[entry.id]}
+              onToggle={() => setExpanded(p => ({ ...p, [entry.id]: !p[entry.id] }))}
+            />
+          ))}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20 }}>
+              <button onClick={() => load(page - 1)} disabled={page === 0}
+                style={{ ...btn(SLATE, true), padding: '6px 14px', opacity: page === 0 ? 0.3 : 1 }}>
+                ← Prev
+              </button>
+              <span style={{ fontSize: 12, color: SLATE }}>
+                Page {page + 1} of {totalPages}
+              </span>
+              <button onClick={() => load(page + 1)} disabled={page >= totalPages - 1}
+                style={{ ...btn(SLATE, true), padding: '6px 14px', opacity: page >= totalPages - 1 ? 0.3 : 1 }}>
+                Next →
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 function SettingsTab() {
   return (
     <Section title="Settings" icon={Settings} color={SLATE}>
@@ -1422,6 +1765,7 @@ export function AdminPage() {
           {activeTab === 'announcements' && <AnnouncementsTab token={token} toast={toast} />}
           {activeTab === 'votes'         && <VotesTab token={token} toast={toast} />}
           {activeTab === 'users'         && <UsersTab token={token} toast={toast} currentUserId={user?.id} />}
+          {activeTab === 'history'       && <HistoryTab token={token} />}
           {activeTab === 'settings'      && <SettingsTab />}
         </main>
       </div>
