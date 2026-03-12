@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { RANOBE } from './constants.js'
 import { useHash } from './hooks.js'
 import { LangProvider }    from './context/LangContext.jsx'
+import { ThemeProvider }   from './context/ThemeContext.jsx'
+import { ThemeToggle }     from './components/Shared.jsx'
 import { AuthProvider }    from './context/AuthContext.jsx'
 import { ToastProvider }   from './context/ToastContext.jsx'
 import { NotificationProvider } from './context/NotificationContext.jsx'
@@ -74,15 +76,18 @@ function Router() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <LangProvider>
-        <AuthProvider>
-          <NotificationProvider>
-          <ToastProvider>
-            <Router />
-          </ToastProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </LangProvider>
+      <ThemeProvider>
+        <LangProvider>
+          <AuthProvider>
+            <NotificationProvider>
+            <ToastProvider>
+              <Router />
+              <ThemeToggle />
+            </ToastProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </LangProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   )
 }
