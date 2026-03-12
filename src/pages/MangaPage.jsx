@@ -361,46 +361,54 @@ export function MangaPage() {
       {/* Browse toolbar */}
       {isBrowsing && (
         <div style={{ background: 'rgba(244,63,94,0.02)', borderBottom: '1px solid rgba(244,63,94,0.06)', padding: '10px 20px' }}>
-          <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8,
-            flexDirection: isMobile ? 'column' : 'row' }}>
-            {/* Search */}
-            <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 180,
-              maxWidth: isMobile ? '100%' : 340, width: isMobile ? '100%' : undefined }}>
-              <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
-                opacity: 0.2, pointerEvents: 'none' }}
-                width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
-                placeholder={lang === 'vi' ? 'Tìm tên manga...' : 'Search manga...'}
-                style={{ width: '100%', boxSizing: 'border-box',
-                  background: 'rgba(244,63,94,0.05)', border: '1px solid rgba(244,63,94,0.12)',
-                  borderRadius: 10, padding: '8px 32px', color: '#fff', fontSize: 12, outline: 'none',
-                  fontFamily: "'Be Vietnam Pro', sans-serif" }}
-                onFocus={e => { e.target.style.borderColor = ROSE + '70'; e.target.style.boxShadow = `0 0 0 3px ${ROSE}18` }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(244,63,94,0.12)'; e.target.style.boxShadow = 'none' }}
-              />
-              {searchInput && (
-                <button onClick={() => setSearchInput('')} style={{ position: 'absolute', right: 9, top: '50%',
-                  transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#4a1020', cursor: 'pointer', fontSize: 16 }}>×</button>
-              )}
-            </div>
-            <AdvancedFilter status={status} demographic={demographic} genre={genre}
-              onStatus={setStatus} onDemographic={setDemographic} onGenre={setGenre}
-              statusOptions={STATUS_OPTS} demographicOptions={DEMO_OPTS} genreOptions={GENRE_OPTS}
-              hasActive={hasActive} onClear={clearFilters} accent={ROSE} lang={lang} isMobile={isMobile} />
-            {!isMobile && <div style={{ flex: 1 }} />}
-            <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto',
-              justifyContent: isMobile ? 'space-between' : 'flex-end', alignItems: 'center' }}>
+          <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+            {/* Back button row — only when no active search/filter */}
+            {!searchInput && !hasActive && (
+              <div>
+                <button onClick={() => setBrowseMode(false)} style={{
+                  background: 'none', border: '1px solid rgba(244,63,94,0.15)',
+                  borderRadius: 20, color: '#64748B', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                  fontFamily: "'Be Vietnam Pro', sans-serif", display: 'flex', alignItems: 'center', gap: 4,
+                  padding: '5px 14px',
+                }}>← {lang === 'vi' ? 'Quay lại trang chính' : 'Back to discovery'}</button>
+              </div>
+            )}
+
+            {/* Search + Filter + Sort on one row, wraps on mobile */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+              {/* Search */}
+              <div style={{ position: 'relative', width: isMobile ? '100%' : 280, flexShrink: 0 }}>
+                <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
+                  opacity: 0.2, pointerEvents: 'none' }}
+                  width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
+                  placeholder={lang === 'vi' ? 'Tìm tên manga...' : 'Search manga...'}
+                  style={{ width: '100%', boxSizing: 'border-box',
+                    background: 'rgba(244,63,94,0.05)', border: '1px solid rgba(244,63,94,0.12)',
+                    borderRadius: 10, padding: '8px 32px', color: '#fff', fontSize: 12, outline: 'none',
+                    fontFamily: "'Be Vietnam Pro', sans-serif" }}
+                  onFocus={e => { e.target.style.borderColor = ROSE + '70'; e.target.style.boxShadow = `0 0 0 3px ${ROSE}18` }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(244,63,94,0.12)'; e.target.style.boxShadow = 'none' }}
+                />
+                {searchInput && (
+                  <button onClick={() => setSearchInput('')} style={{ position: 'absolute', right: 9, top: '50%',
+                    transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#4a1020', cursor: 'pointer', fontSize: 16 }}>×</button>
+                )}
+              </div>
+              {/* Filters */}
+              <AdvancedFilter status={status} demographic={demographic} genre={genre}
+                onStatus={setStatus} onDemographic={setDemographic} onGenre={setGenre}
+                statusOptions={STATUS_OPTS} demographicOptions={DEMO_OPTS} genreOptions={GENRE_OPTS}
+                hasActive={hasActive} onClear={clearFilters} accent={ROSE} lang={lang} isMobile={isMobile} />
+              {/* Spacer pushes sort right */}
+              <div style={{ flex: 1 }} />
+              {/* Sort */}
               <SortDropdown value={sort} options={SORTS} onChange={setSort} accent={ROSE} />
-              {!searchInput && !hasActive && (
-                <button onClick={() => setBrowseMode(false)} style={{ background: 'none', border: 'none',
-                  color: '#4a1020', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                  fontFamily: "'Be Vietnam Pro', sans-serif", display: 'flex', alignItems: 'center', gap: 4 }}>
-                  ← {lang === 'vi' ? 'Quay lại' : 'Back'}
-                </button>
-              )}
             </div>
+
           </div>
         </div>
       )}
