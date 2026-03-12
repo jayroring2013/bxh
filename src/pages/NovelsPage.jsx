@@ -265,7 +265,7 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
         </div>
       </div>
       <div ref={ref} style={{
-        display: 'flex', gap: 14, overflowX: 'auto', padding: '4px 20px 12px',
+        display: 'flex', gap: 14, overflowX: 'auto', padding: '10px 20px 16px',
         scrollbarWidth: 'none', msOverflowStyle: 'none',
       }}>
         {loading
