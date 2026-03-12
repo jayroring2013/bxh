@@ -275,7 +275,7 @@ function SectionCarousel({ title, children }) {
           ))}
         </div>
       </div>
-      <div ref={ref} style={{ display:'flex', gap:16, overflowX:'auto', overflowY:'visible', padding:'8px 8px 20px', scrollbarWidth:'none', msOverflowStyle:'none' }}>
+      <div ref={ref} style={{ display:'flex', gap:16, overflowX:'auto', overflowY:'visible', padding:'10px 8px 20px', scrollbarWidth:'none', msOverflowStyle:'none' }}>
         {children}
       </div>
     </section>
@@ -458,40 +458,40 @@ export function AnimeDetailPage({ animeId }) {
       <AppHeader activeTab="#/anime" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
 
       {/* ── Hero ── */}
-      <div style={{ background:'linear-gradient(160deg,#040810,#060d1a,#040a12)', position:'relative', overflow:'hidden' }}>
-        {/* Blurred bg */}
+      <div style={{ position:'relative', overflow:'hidden', minHeight: isMobile ? 'auto' : 320, background:'#040810' }}>
+        {/* Layer 1: blurred banner/cover fills entire hero as atmosphere */}
         {(banner || cover) && (
-          <div style={{ position:'absolute', inset:0, zIndex:0,
-            backgroundImage:`url(${banner||cover})`, backgroundSize:'cover', backgroundPosition:'center',
-            filter:'blur(40px) saturate(0.4)', opacity:0.15 }} />
+          <div style={{
+            position:'absolute', inset:'-20px', zIndex:0,
+            backgroundImage:`url(${banner || cover})`,
+            backgroundSize:'cover', backgroundPosition:'center top',
+            filter:'blur(18px) saturate(1.1) brightness(0.55)',
+          }} />
         )}
-        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to bottom, rgba(4,8,16,0.5) 0%, rgba(4,8,16,0.95) 100%)' }} />
+        {/* Layer 2: left-to-right gradient for readability */}
+        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to right, rgba(4,8,16,0.92) 0%, rgba(4,8,16,0.45) 50%, rgba(4,8,16,0.75) 100%)' }} />
+        {/* Layer 3: top/bottom fade */}
+        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to bottom, rgba(4,8,16,0.4) 0%, transparent 30%, transparent 65%, rgba(4,8,16,1) 100%)' }} />
 
-        {/* Banner strip */}
-        {banner && !isMobile && (
-          <div style={{ position:'relative', zIndex:2, height:140, overflow:'hidden' }}>
-            <img src={banner} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.35 }} />
-            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, transparent 0%, rgba(4,8,16,1) 100%)' }} />
-          </div>
-        )}
-
-        <div style={{ position:'relative', zIndex:2, padding: isMobile ? '20px 16px 28px' : '32px 32px 40px', paddingLeft: isMobile ? 16 : 228,
+        <div style={{ position:'relative', zIndex:2, padding: isMobile ? '48px 16px 28px' : '52px 32px 40px', paddingLeft: isMobile ? 16 : 228,
           display:'flex', gap: isMobile ? 14 : 32, alignItems:'flex-start' }}>
           {/* Back */}
-          <button onClick={()=>window.history.back()} style={{ position:'absolute', top:isMobile?8:16, left: isMobile?16:228,
-            background:'none', border:'none', color:'#1e4050', cursor:'pointer',
+          <button onClick={()=>window.history.back()} style={{ position:'absolute', top: isMobile?12:16, left: isMobile?16:228,
+            background:'none', border:'none', color:'rgba(255,255,255,0.45)', cursor:'pointer',
             fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif", display:'flex', alignItems:'center', gap:4 }}>
             ← {lang==='vi'?'Quay lại':'Back'}
           </button>
 
           {/* Cover */}
-          <div style={{ flexShrink:0, marginTop: isMobile ? 28 : 20 }}>
+          <div style={{ flexShrink:0, marginTop: isMobile ? 0 : 20 }}>
             <div style={{ width: isMobile ? 110 : 200, borderRadius:14, overflow:'hidden',
               boxShadow:`0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(100,200,255,0.08)`,
               aspectRatio:'2/3', background:'#050c18' }}>
               {cover
                 ? <img src={cover} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
-                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:48 }}>🎌</div>}
+                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1e3a4a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+                  </div>}
             </div>
 
             {/* ── Star rating widget ── */}
