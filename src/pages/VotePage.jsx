@@ -61,10 +61,10 @@ function TrendArrow({ current, prev, t }) {
 function SkeletonGrid({ isMobile }) {
   return (
     <div style={{ display:'grid',
-      gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(190px,1fr))',
-      gap: isMobile ? 10 : 16 }}>
-      {Array.from({ length: isMobile ? 6 : 12 }).map((_, i) => (
-        <div key={i} style={{ height: isMobile ? 220 : 300, borderRadius:14,
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(190px,1fr))',
+      gap: isMobile ? 8 : 16 }}>
+      {Array.from({ length: isMobile ? 8 : 12 }).map((_, i) => (
+        <div key={i} style={{ height: isMobile ? 70 : 300, borderRadius: isMobile ? 14 : 14,
           background:'linear-gradient(90deg,#1e1410 25%,#2a1f14 50%,#1e1410 75%)',
           backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
       ))}
@@ -77,12 +77,73 @@ function VoteCard({ item, rank, voteCount, prevRank, hasVoted, onVote, voting, a
   const [hov, setHov] = useState(false)
   const isTop3 = rank <= 3
 
+  // ── Mobile: horizontal row layout ─────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        background: isTop3 ? `${accent}09` : 'rgba(255,248,240,0.03)',
+        border: `1px solid ${isTop3 ? (rank===1?'#FFD70035':rank===2?'#C0C0C035':'#CD7F3235') : 'rgba(255,248,240,0.07)'}`,
+        borderRadius: 14, overflow: 'hidden', padding: '10px 12px 10px 0',
+      }}>
+        {/* Cover thumbnail */}
+        <div style={{ width: 56, flexShrink: 0, alignSelf: 'stretch', position: 'relative', background: '#130d08', overflow: 'hidden' }}>
+          {item.cover_url
+            ? <img src={item.cover_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} onError={e => e.target.style.display='none'} />
+            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{item.emoji}</div>}
+          {/* Rank badge overlay */}
+          <div style={{
+            position: 'absolute', top: 5, left: 0, right: 0, textAlign: 'center',
+            fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 900,
+            color: rank <= 3 ? '#000' : '#fff',
+            background: rankBg(rank), padding: '1px 0',
+          }}>#{rank}</div>
+        </div>
+
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: "'Barlow Condensed',sans-serif", fontSize: 13, lineHeight: 1.3,
+            color: '#f1f5f9', display: '-webkit-box', WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 4,
+          }}>{item.title}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{
+              fontFamily: "'Barlow Condensed',sans-serif", fontSize: 16, fontWeight: 800, lineHeight: 1,
+              color: isTop3 ? rankColor(rank) : accent,
+            }}>{(voteCount||0).toLocaleString()}</span>
+            <span style={{ color: '#475569', fontSize: 9, letterSpacing: 1, textTransform: 'uppercase' }}>{t('vote_votes')}</span>
+            <TrendArrow current={rank} prev={prevRank} t={t} />
+          </div>
+        </div>
+
+        {/* Vote button */}
+        <button
+          onClick={() => onVote(item)}
+          disabled={hasVoted || voting}
+          style={{
+            flexShrink: 0, padding: '8px 12px', borderRadius: 10, border: 'none',
+            background: hasVoted ? 'rgba(74,222,128,0.14)' : accent,
+            color: hasVoted ? '#4ADE80' : '#fff',
+            fontSize: 11, fontWeight: 700, cursor: hasVoted ? 'default' : voting ? 'wait' : 'pointer',
+            opacity: voting && !hasVoted ? 0.55 : 1,
+            transition: 'all .18s', fontFamily: "'Be Vietnam Pro',sans-serif",
+            border: `1px solid ${hasVoted ? 'rgba(74,222,128,0.4)' : accent}`,
+            whiteSpace: 'nowrap',
+          }}>
+          {hasVoted ? '✓ ' + t('vote_voted') : t('vote_cast')}
+        </button>
+      </div>
+    )
+  }
+
+  // ── Desktop: original card layout ─────────────────────────────────────────
   return (
     <div
-      onMouseEnter={() => !isMobile && setHov(true)}
-      onMouseLeave={() => !isMobile && setHov(false)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
       style={{
-        position: 'relative', borderRadius: isMobile ? 12 : 16, overflow: 'hidden',
+        position: 'relative', borderRadius: 16, overflow: 'hidden',
         display: 'flex', flexDirection: 'column',
         background: isTop3 ? `${accent}09` : hov ? `${accent}06` : 'rgba(255,248,240,0.02)',
         border: `1px solid ${isTop3 ? (rank===1?'#FFD70045':rank===2?'#C0C0C045':'#CD7F3245') : hov ? `${accent}50` : 'rgba(255,248,240,0.06)'}`,
@@ -93,28 +154,28 @@ function VoteCard({ item, rank, voteCount, prevRank, hasVoted, onVote, voting, a
     >
       {/* Rank badge */}
       <div style={{
-        position:'absolute', top: isMobile ? 7 : 10, left: isMobile ? 7 : 10, zIndex:2,
-        width: isMobile ? 26 : 34, height: isMobile ? 26 : 34, borderRadius:'50%',
+        position:'absolute', top: 10, left: 10, zIndex:2,
+        width: 34, height: 34, borderRadius:'50%',
         background: rankBg(rank), display:'flex', alignItems:'center', justifyContent:'center',
-        fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile ? 11 : 14,
+        fontFamily:"'Barlow Condensed',sans-serif", fontSize: 14,
         color: rank<=3?'#000':'#fff', boxShadow:'0 2px 8px rgba(0,0,0,0.6)',
         fontWeight: 800,
       }}>#{rank}</div>
 
       {/* Trend */}
-      <div style={{ position:'absolute', top: isMobile ? 8 : 12, right: isMobile ? 8 : 12, zIndex:2 }}>
+      <div style={{ position:'absolute', top: 12, right: 12, zIndex:2 }}>
         <TrendArrow current={rank} prev={prevRank} t={t} />
       </div>
 
       {/* Cover */}
-      <div style={{ position:'relative', height: isMobile ? 115 : 155, flexShrink:0, background:'#130d08', overflow:'hidden' }}>
+      <div style={{ position:'relative', height: 155, flexShrink:0, background:'#130d08', overflow:'hidden' }}>
         {item.cover_url
           ? <img src={item.cover_url} alt={item.title}
               style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'top',
                 transition:'transform .3s', transform: hov?'scale(1.05)':'scale(1)' }}
               onError={e => { e.target.style.display='none' }} />
           : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center',
-              justifyContent:'center', fontSize: isMobile ? 32 : 48, background:`${accent}12` }}>
+              justifyContent:'center', fontSize: 48, background:`${accent}12` }}>
               {item.emoji}
             </div>
         }
@@ -123,20 +184,20 @@ function VoteCard({ item, rank, voteCount, prevRank, hasVoted, onVote, voting, a
       </div>
 
       {/* Body */}
-      <div style={{ padding: isMobile ? '7px 9px 10px' : '10px 14px 14px', flex:1, display:'flex', flexDirection:'column', gap: isMobile ? 5 : 7 }}>
+      <div style={{ padding: '10px 14px 14px', flex:1, display:'flex', flexDirection:'column', gap: 7 }}>
         <div>
           <div style={{
-            fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile ? 12 : 15,
+            fontFamily:"'Barlow Condensed',sans-serif", fontSize: 15,
             lineHeight:1.25, color:'#f1f5f9',
             display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden',
           }}>{item.title}</div>
-          {!isMobile && item.sub && (
+          {item.sub && (
             <div style={{ fontSize:10, color:'#475569', marginTop:2,
               overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.sub}</div>
           )}
         </div>
 
-        {!isMobile && item.tags?.length > 0 && (
+        {item.tags?.length > 0 && (
           <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
             {item.tags.map(tag => (
               <span key={tag} style={{ fontSize:10, padding:'2px 7px', borderRadius:20, fontWeight:600,
@@ -150,62 +211,33 @@ function VoteCard({ item, rank, voteCount, prevRank, hasVoted, onVote, voting, a
         <div style={{ flex:1 }} />
 
         {/* Vote count + button */}
-        {isMobile ? (
-          <div style={{ display:'flex', flexDirection:'column', gap:6, marginTop:2 }}>
-            <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
-              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, lineHeight:1,
-                color: isTop3 ? rankColor(rank) : accent, fontWeight:800 }}>
-                {(voteCount||0).toLocaleString()}
-              </span>
-              <span style={{ color:'#475569', fontSize:9, letterSpacing:1, textTransform:'uppercase' }}>
-                {t('vote_votes')}
-              </span>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:2 }}>
+          <div>
+            <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, lineHeight:1,
+              color: isTop3 ? rankColor(rank) : accent }}>
+              {(voteCount||0).toLocaleString()}
             </div>
-            <button
-              onClick={() => onVote(item)}
-              disabled={hasVoted || voting}
-              style={{
-                width:'100%', background: hasVoted ? 'rgba(74,222,128,0.14)' : accent,
-                border: `1px solid ${hasVoted ? 'rgba(74,222,128,0.4)' : accent}`,
-                color: hasVoted ? '#4ADE80' : '#fff',
-                padding:'7px 0', borderRadius:8,
-                cursor: hasVoted ? 'default' : voting ? 'wait' : 'pointer',
-                fontSize:11, fontWeight:700,
-                opacity: voting && !hasVoted ? 0.55 : 1,
-                transition:'all .18s', fontFamily:"'Be Vietnam Pro',sans-serif",
-              }}>
-              {hasVoted ? '✓ ' + t('vote_voted') : t('vote_cast')}
-            </button>
-          </div>
-        ) : (
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:2 }}>
-            <div>
-              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, lineHeight:1,
-                color: isTop3 ? rankColor(rank) : accent }}>
-                {(voteCount||0).toLocaleString()}
-              </div>
-              <div style={{ color:'#475569', fontSize:9, letterSpacing:1.5, textTransform:'uppercase' }}>
-                {t('vote_votes')}
-              </div>
+            <div style={{ color:'#475569', fontSize:9, letterSpacing:1.5, textTransform:'uppercase' }}>
+              {t('vote_votes')}
             </div>
-            <button
-              onClick={() => onVote(item)}
-              disabled={hasVoted || voting}
-              style={{
-                background: hasVoted ? 'rgba(74,222,128,0.14)' : accent,
-                border: `1px solid ${hasVoted ? 'rgba(74,222,128,0.4)' : accent}`,
-                color: hasVoted ? '#4ADE80' : '#fff',
-                padding: '8px 16px', borderRadius:10,
-                cursor: hasVoted ? 'default' : voting ? 'wait' : 'pointer',
-                fontSize:12, fontWeight:700,
-                opacity: voting && !hasVoted ? 0.55 : 1,
-                transition:'all .18s', fontFamily:"'Be Vietnam Pro',sans-serif",
-                boxShadow: hasVoted ? 'none' : `0 4px 14px ${accent}45`,
-              }}>
-              {hasVoted ? t('vote_voted') : t('vote_cast')}
-            </button>
           </div>
-        )}
+          <button
+            onClick={() => onVote(item)}
+            disabled={hasVoted || voting}
+            style={{
+              background: hasVoted ? 'rgba(74,222,128,0.14)' : accent,
+              border: `1px solid ${hasVoted ? 'rgba(74,222,128,0.4)' : accent}`,
+              color: hasVoted ? '#4ADE80' : '#fff',
+              padding: '8px 16px', borderRadius:10,
+              cursor: hasVoted ? 'default' : voting ? 'wait' : 'pointer',
+              fontSize:12, fontWeight:700,
+              opacity: voting && !hasVoted ? 0.55 : 1,
+              transition:'all .18s', fontFamily:"'Be Vietnam Pro',sans-serif",
+              boxShadow: hasVoted ? 'none' : `0 4px 14px ${accent}45`,
+            }}>
+            {hasVoted ? t('vote_voted') : t('vote_cast')}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -389,8 +421,8 @@ function CategoryPanel({ cat, month, year, lang, token, t, isMobile }) {
       {!loading && !error && filtered.length > 0 && (
         <div style={{
           display:'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(190px,1fr))',
-          gap: isMobile ? 10 : 16,
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(190px,1fr))',
+          gap: isMobile ? 8 : 16,
         }}>
           {filtered.map((item, i) => (
             <VoteCard
