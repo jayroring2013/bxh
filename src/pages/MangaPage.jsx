@@ -166,7 +166,7 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
         </div>
       </div>
       <div ref={ref} style={{
-        display: 'flex', gap: 14, overflowX: 'auto', padding: '4px 20px 12px',
+        display: 'flex', gap: 14, overflowX: 'auto', padding: '10px 20px 12px',
         scrollbarWidth: 'none', msOverflowStyle: 'none',
       }}>
         {loading
@@ -452,7 +452,7 @@ export function MangaPage() {
                 border: 'none', borderRadius: 14, cursor: 'pointer', color: '#fff',
                 fontSize: 14, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
                 boxShadow: `0 8px 24px ${ROSE}44` }}>
-                {lang === 'vi' ? 'Xem thêm' : 'Browse all manga'}
+                {lang === 'vi' ? 'Xem tất cả manga' : 'Browse all manga'}
               </button>
             </div>
           </>
