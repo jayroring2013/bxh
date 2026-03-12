@@ -145,7 +145,14 @@ function AdvancedFilter({ status, demographic, genre, onStatus, onDemographic, o
 }
 
 // ── Carousel ──────────────────────────────────────────────────────
-function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
+// ── Inline Lucide icons ───────────────────────────────────────────
+const ChevronLeft   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+const ChevronRight  = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+const BookOpenIcon  = ({ size = 16, color = 'currentColor' }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+const RefreshCwIcon = ({ size = 16, color = 'currentColor' }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+
+// ── Carousel ──────────────────────────────────────────────────────
+function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile }) {
   const ref = useRef(null)
   const cardW = isMobile ? 150 : 220
   const scroll = dir => ref.current?.scrollBy({ left: dir * (cardW * 4 + 14 * 3), behavior: 'smooth' })
@@ -154,19 +161,30 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 14, padding: '0 20px' }}>
         <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20,
-          fontWeight: 700, letterSpacing: 1, color: '#f1f5f9', margin: 0 }}>{title}</h2>
+          fontWeight: 700, letterSpacing: 1, color: '#f1f5f9', margin: 0,
+          display: 'flex', alignItems: 'center', gap: 8 }}>
+          {TitleIcon && <TitleIcon size={18} color={accent} />}
+          {title}
+        </h2>
         <div style={{ display: 'flex', gap: 6 }}>
-          {['←','→'].map((arrow, i) => (
-            <button key={arrow} onClick={() => scroll(i === 0 ? -1 : 1)} style={{
-              width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(244,63,94,0.1)',
-              background: 'rgba(244,63,94,0.05)', color: '#6a2035', cursor: 'pointer',
-              fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>{arrow}</button>
+          {[0, 1].map(i => (
+            <button key={i} onClick={() => scroll(i === 0 ? -1 : 1)} style={{
+              width: 30, height: 30, borderRadius: 8,
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.1)', color: '#E2E8F0', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = `${accent}35`; e.currentTarget.style.borderColor = `${accent}60`; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#E2E8F0' }}
+            >
+              {i === 0 ? <ChevronLeft /> : <ChevronRight />}
+            </button>
           ))}
         </div>
       </div>
       <div ref={ref} style={{
-        display: 'flex', gap: 14, overflowX: 'auto', padding: '10px 20px 12px',
+        display: 'flex', gap: 14, overflowX: 'auto', padding: '10px 20px 16px',
         scrollbarWidth: 'none', msOverflowStyle: 'none',
       }}>
         {loading
@@ -196,7 +214,10 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
                 {item.cover_url
                   ? <img src={item.cover_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={e => e.target.style.display='none'} />
-                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>📚</div>
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', background: `${accent}12` }}>
+                      <BookOpenIcon size={40} color={`${accent}60`} />
+                    </div>
                 }
                 <div style={{ position: 'absolute', inset: 0,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)' }} />
@@ -245,10 +266,8 @@ export function MangaPage() {
     useManga({ search, sort, status, demographic, tag: genre })
 
   // Discovery carousels
-  const { items: popular,   loading: lp } = useMangaCarousel({ sort: 'follows' })
-  const { items: ongoing,   loading: lo } = useMangaCarousel({ status: 'ongoing', sort: 'follows' })
-  const { items: completed, loading: lc } = useMangaCarousel({ status: 'completed', sort: 'rating' })
-  const { items: action,    loading: la } = useMangaCarousel({ genre: 'Action', sort: 'follows' })
+  const { items: popular,  loading: lp } = useMangaCarousel({ sort: 'follows' })
+  const { items: recent,   loading: lr } = useMangaCarousel({ status: 'ongoing', sort: 'latestUploadedChapter' })
 
   useEffect(() => {
     const fn = e => {
@@ -438,20 +457,16 @@ export function MangaPage() {
               </div>
             </div>
 
-            <Carousel title={lang === 'vi' ? '📚 Phổ biến nhất' : '📚 Most Followed'}
+            <Carousel
+              title={lang === 'vi' ? 'Phổ biến nhất' : 'Most Popular'}
+              TitleIcon={BookOpenIcon}
               items={popular} loading={lp}
               onSelect={item => { window.location.hash = mangaUrl(item) }} accent={ROSE} isMobile={isMobile} />
 
-            <Carousel title={lang === 'vi' ? '🔥 Đang cập nhật' : '🔥 Ongoing'}
-              items={ongoing} loading={lo}
-              onSelect={item => { window.location.hash = mangaUrl(item) }} accent={ROSE} isMobile={isMobile} />
-
-            <Carousel title={lang === 'vi' ? '✅ Đã hoàn thành' : '✅ Completed'}
-              items={completed} loading={lc}
-              onSelect={item => { window.location.hash = mangaUrl(item) }} accent={ROSE} isMobile={isMobile} />
-
-            <Carousel title={lang === 'vi' ? '💥 Hành động' : '💥 Action'}
-              items={action} loading={la}
+            <Carousel
+              title={lang === 'vi' ? 'Mới cập nhật' : 'Most Recent'}
+              TitleIcon={RefreshCwIcon}
+              items={recent} loading={lr}
               onSelect={item => { window.location.hash = mangaUrl(item) }} accent={ROSE} isMobile={isMobile} />
 
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
@@ -460,7 +475,7 @@ export function MangaPage() {
                 border: 'none', borderRadius: 14, cursor: 'pointer', color: '#fff',
                 fontSize: 14, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
                 boxShadow: `0 8px 24px ${ROSE}44` }}>
-                {lang === 'vi' ? 'Xem tất cả manga' : 'Browse all manga'}
+                {lang === 'vi' ? 'Xem thêm' : 'More'}
               </button>
             </div>
           </>
