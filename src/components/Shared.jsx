@@ -262,7 +262,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
         /* ── MOBILE: two rows ── */
         <div style={{ padding: '10px 0 12px' }}>
           {/* Row 1: Logo left, actions right */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 17 }}>
             <a href="#/" className="app-header__logo" style={{ textDecoration: 'none' }}>
               <div className="app-header__logo-icon" style={{ background: accent }}>Li</div>
               <span className="app-header__logo-text">
