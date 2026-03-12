@@ -145,8 +145,14 @@ function AdvancedFilter({ status, format, genre, onStatus, onFormat, onGenre,
   )
 }
 
+// ── Inline Lucide icons ───────────────────────────────────────────
+const ChevronLeft  = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+const ChevronRight = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+const TvIcon    = ({ size = 16, color = 'currentColor' }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+const ClockIcon = ({ size = 16, color = 'currentColor' }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+
 // ── Carousel ──────────────────────────────────────────────────────
-function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
+function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile }) {
   const ref = useRef(null)
   const cardW = isMobile ? 150 : 220
   const scroll = dir => ref.current?.scrollBy({ left: dir * (cardW * 4 + 14 * 3), behavior: 'smooth' })
@@ -155,19 +161,30 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 14, padding: '0 20px' }}>
         <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20,
-          fontWeight: 700, letterSpacing: 1, color: '#f1f5f9', margin: 0 }}>{title}</h2>
+          fontWeight: 700, letterSpacing: 1, color: '#f1f5f9', margin: 0,
+          display: 'flex', alignItems: 'center', gap: 8 }}>
+          {TitleIcon && <TitleIcon size={18} color={accent} />}
+          {title}
+        </h2>
         <div style={{ display: 'flex', gap: 6 }}>
-          {['←','→'].map((arrow, i) => (
-            <button key={arrow} onClick={() => scroll(i === 0 ? -1 : 1)} style={{
-              width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(100,200,255,0.1)',
-              background: 'rgba(0,150,200,0.06)', color: '#2a6070', cursor: 'pointer',
-              fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>{arrow}</button>
+          {[0, 1].map(i => (
+            <button key={i} onClick={() => scroll(i === 0 ? -1 : 1)} style={{
+              width: 30, height: 30, borderRadius: 8,
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.1)', color: '#E2E8F0', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = `${accent}35`; e.currentTarget.style.borderColor = `${accent}60`; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#E2E8F0' }}
+            >
+              {i === 0 ? <ChevronLeft /> : <ChevronRight />}
+            </button>
           ))}
         </div>
       </div>
       <div ref={ref} style={{
-        display: 'flex', gap: 14, overflowX: 'auto', padding: '10px 20px 12px',
+        display: 'flex', gap: 14, overflowX: 'auto', padding: '10px 20px 16px',
         scrollbarWidth: 'none', msOverflowStyle: 'none',
       }}>
         {loading
@@ -197,7 +214,10 @@ function Carousel({ title, items, loading, onSelect, accent, isMobile }) {
                 {item.cover_url
                   ? <img src={item.cover_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={e => e.target.style.display='none'} />
-                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>🎌</div>
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', background: `${accent}12` }}>
+                      <TvIcon size={40} color={`${accent}60`} />
+                    </div>
                 }
                 <div style={{ position: 'absolute', inset: 0,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)' }} />
@@ -260,10 +280,8 @@ export function AnimePage() {
   const { anime, loading, loadingMore, error, hasNext, totalCount, loadMore, retry } =
     useAnime({ search, sort, status, format, genre })
 
-  const { items: airingRaw,  loading: l1 } = useAnimeCarousel({ status: 'RELEASING', sort: 'POPULARITY_DESC' })
-  const { items: topRaw,     loading: l2 } = useAnimeCarousel({ sort: 'SCORE_DESC' })
-  const { items: moviesRaw,  loading: l3 } = useAnimeCarousel({ format: 'MOVIE', sort: 'SCORE_DESC' })
-  const { items: actionRaw,  loading: l4 } = useAnimeCarousel({ genre: 'Action', sort: 'POPULARITY_DESC' })
+  const { items: popularRaw, loading: l1 } = useAnimeCarousel({ sort: 'POPULARITY_DESC' })
+  const { items: recentRaw,  loading: l2 } = useAnimeCarousel({ status: 'RELEASING', sort: 'START_DATE_DESC' })
 
   useEffect(() => {
     const fn = e => {
@@ -413,20 +431,16 @@ export function AnimePage() {
               </div>
             </div>
 
-            <Carousel title={lang === 'vi' ? '📺 Đang chiếu' : '📺 Currently Airing'}
-              items={airingRaw.map(na)} loading={l1}
+            <Carousel
+              title={lang === 'vi' ? 'Phổ biến nhất' : 'Most Popular'}
+              TitleIcon={TvIcon}
+              items={popularRaw.map(na)} loading={l1}
               onSelect={a => { window.location.hash = animeUrl(a) }} accent={CYAN} isMobile={isMobile} />
 
-            <Carousel title={lang === 'vi' ? '🏆 Điểm cao nhất' : '🏆 Highest Rated'}
-              items={topRaw.map(na)} loading={l2}
-              onSelect={a => { window.location.hash = animeUrl(a) }} accent={CYAN} isMobile={isMobile} />
-
-            <Carousel title={lang === 'vi' ? '🎬 Phim & OVA' : '🎬 Movies & OVAs'}
-              items={moviesRaw.map(na)} loading={l3}
-              onSelect={a => { window.location.hash = animeUrl(a) }} accent={CYAN} isMobile={isMobile} />
-
-            <Carousel title={lang === 'vi' ? '⚡ Hành động' : '⚡ Action'}
-              items={actionRaw.map(na)} loading={l4}
+            <Carousel
+              title={lang === 'vi' ? 'Mới nhất' : 'Most Recent'}
+              TitleIcon={ClockIcon}
+              items={recentRaw.map(na)} loading={l2}
               onSelect={a => { window.location.hash = animeUrl(a) }} accent={CYAN} isMobile={isMobile} />
 
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
@@ -435,7 +449,7 @@ export function AnimePage() {
                 border: 'none', borderRadius: 14, cursor: 'pointer', color: '#fff',
                 fontSize: 14, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
                 boxShadow: `0 8px 24px ${CYAN}44` }}>
-                {lang === 'vi' ? 'Xem tất cả anime' : 'Browse all anime'}
+                {lang === 'vi' ? 'Xem thêm' : 'More'}
               </button>
             </div>
           </>
@@ -456,7 +470,7 @@ export function AnimePage() {
               </>
             )}
             {!loading && !error && anime.length === 0 && (
-              <EmptyState icon="🎌" msg={lang === 'vi' ? 'Không tìm thấy kết quả' : 'No results found'} />
+              <EmptyState icon="📺" msg={lang === 'vi' ? 'Không tìm thấy kết quả' : 'No results found'} />
             )}
           </>
         )}
