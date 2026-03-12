@@ -3,15 +3,15 @@ import { useAuth } from '../context/AuthContext'
 import { useLang } from '../context/LangContext'
 import { Carousel } from '../components/Carousel'
 import { NOVEL_CATEGORIES, ANIME_CATEGORIES, MANGA_CATEGORIES } from '../constants'
-import { fetchTrendingNovels, fetchTrendingAnime, fetchTrendingManga } from '../hooks'
+// REMOVED: fetchTrendingNovels, fetchTrendingAnime, fetchTrendingManga don't exist
 
 export function LandingPage() {
   const { user } = useAuth()
   const { t, lang } = useLang()
-  const [trendingNovels, setTrendingNovels] = useState([])
-  const [trendingAnime, setTrendingAnime] = useState([])
-  const [trendingManga, setTrendingManga] = useState([])
-  const [loading, setLoading] = useState(true)
+  
+  // REMOVED: trending state since we can't fetch without proper functions
+  // Instead, we'll show static featured content or use carousel only
+  const [loading, setLoading] = useState(false)
 
   // Carousel slides for social media
   const socialSlides = [
@@ -59,26 +59,6 @@ export function LandingPage() {
       ]
     }
   ]
-
-  useEffect(() => {
-    async function loadTrending() {
-      try {
-        const [novels, anime, manga] = await Promise.all([
-          fetchTrendingNovels(6),
-          fetchTrendingAnime(6),
-          fetchTrendingManga(6)
-        ])
-        setTrendingNovels(novels)
-        setTrendingAnime(anime)
-        setTrendingManga(manga)
-      } catch (error) {
-        console.error('Failed to load trending:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadTrending()
-  }, [])
 
   return (
     <div className="landing-page">
@@ -151,85 +131,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Trending Novels Section */}
-      <section className="trending-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">🔥 {lang === 'vi' ? 'Novel Thịnh Hành' : 'Trending Novels'}</h2>
-            <a href="#/novels" className="view-all">{lang === 'vi' ? 'Xem tất cả' : 'View All'} →</a>
-          </div>
-          {loading ? (
-            <div className="loading-spinner">{lang === 'vi' ? 'Đang tải...' : 'Loading...'}</div>
-          ) : (
-            <div className="card-grid">
-              {trendingNovels.map((novel) => (
-                <a key={novel.id} href={`#/novel/${novel.id}`} className="novel-card">
-                  <img src={novel.cover || '/placeholder.jpg'} alt={novel.title} className="card-image" />
-                  <div className="card-content">
-                    <h4 className="card-title">{novel.title}</h4>
-                    <p className="card-meta">{novel.num_books || 0} volumes</p>
-                    <div className="card-rating">⭐ {novel.score?.toFixed(1) || 'N/A'}</div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Trending Anime Section */}
-      <section className="trending-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">🎬 {lang === 'vi' ? 'Anime Thịnh Hành' : 'Trending Anime'}</h2>
-            <a href="#/anime" className="view-all">{lang === 'vi' ? 'Xem tất cả' : 'View All'} →</a>
-          </div>
-          {loading ? (
-            <div className="loading-spinner">{lang === 'vi' ? 'Đang tải...' : 'Loading...'}</div>
-          ) : (
-            <div className="card-grid">
-              {trendingAnime.map((anime) => (
-                <a key={anime.id} href={`#/anime/${anime.id}`} className="anime-card">
-                  <img src={anime.cover || '/placeholder.jpg'} alt={anime.title} className="card-image" />
-                  <div className="card-content">
-                    <h4 className="card-title">{anime.title}</h4>
-                    <p className="card-meta">{anime.episodes || '?'} episodes</p>
-                    <div className="card-rating">⭐ {anime.score?.toFixed(1) || 'N/A'}</div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Trending Manga Section */}
-      <section className="trending-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">📕 {lang === 'vi' ? 'Manga Thịnh Hành' : 'Trending Manga'}</h2>
-            <a href="#/manga" className="view-all">{lang === 'vi' ? 'Xem tất cả' : 'View All'} →</a>
-          </div>
-          {loading ? (
-            <div className="loading-spinner">{lang === 'vi' ? 'Đang tải...' : 'Loading...'}</div>
-          ) : (
-            <div className="card-grid">
-              {trendingManga.map((manga) => (
-                <a key={manga.id} href={`#/manga/${manga.id}`} className="manga-card">
-                  <img src={manga.cover || '/placeholder.jpg'} alt={manga.title} className="card-image" />
-                  <div className="card-content">
-                    <h4 className="card-title">{manga.title}</h4>
-                    <p className="card-meta">{manga.chapters || '?'} chapters</p>
-                    <div className="card-rating">⭐ {manga.score?.toFixed(1) || 'N/A'}</div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Features Section */}
+      {/* Features Section (kept simple - no trending data) */}
       <section className="features-section">
         <div className="container">
           <h2 className="section-title">
