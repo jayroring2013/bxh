@@ -452,15 +452,16 @@ function SeriesTab({ token, toast, type }) {
 
   const save = async () => {
     try {
-      const clean = { ...form }
-      // Remove joined meta tables from the series row itself
-      delete clean.anime_meta
-      delete clean.manga_meta
-      // Ensure item_type is set
+      // Only send columns that actually exist in the series table
+      const SERIES_COLS = ['title', 'title_vi', 'title_native', 'cover_url', 'banner_url',
+        'description', 'description_vi', 'status', 'genres', 'tags', 'score',
+        'publisher', 'author', 'studio', 'source', 'is_featured', 'external_id', 'item_type']
+      const clean = {}
+      SERIES_COLS.forEach(k => { if (form[k] !== undefined) clean[k] = form[k] })
       clean.item_type = type
 
       // Cast numeric fields
-      const numFields = ['score', 'score_count', 'external_id']
+      const numFields = ['score', 'external_id']
       numFields.forEach(k => {
         if (clean[k] === '' || clean[k] == null) clean[k] = null
         else if (!isNaN(+clean[k])) clean[k] = +clean[k]
