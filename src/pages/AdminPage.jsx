@@ -4,13 +4,23 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useLang } from '../context/LangContext.jsx'
 import { AppHeader } from '../components/Shared.jsx'
 import { useToast } from '../context/ToastContext.jsx'
+import {
+  LayoutDashboard, BookOpen, Tv2, BookMarked, Vote,
+  Users, Star, Megaphone, BarChart3, Settings, ChevronRight,
+  Plus, Pencil, Trash2, X, Check, RefreshCw, Search,
+  ExternalLink, Eye, EyeOff, AlertTriangle, Shield,
+  BookType, Film, Layers, Link2, TrendingUp,
+} from 'lucide-react'
 
+// ── Colors ────────────────────────────────────────────────────
 const PURPLE = '#8B5CF6'
 const CYAN   = '#06B6D4'
 const ROSE   = '#F43F5E'
 const GOLD   = '#F59E0B'
 const GREEN  = '#4ADE80'
+const SLATE  = '#94A3B8'
 
+// ── API helper ────────────────────────────────────────────────
 const api = async (token, path, method = 'GET', body = null) => {
   const headers = {
     apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
@@ -27,61 +37,107 @@ const api = async (token, path, method = 'GET', body = null) => {
   return text ? JSON.parse(text) : null
 }
 
-// ── Tabs ─────────────────────────────────────────────────────────
-const TABS = [
-  { id: 'series',        icon: '📚', label: 'Series Manager' },
-  { id: 'links',         icon: '🔗', label: 'Series Links'   },
-  { id: 'featured',      icon: '⭐', label: 'Featured'       },
-  { id: 'announcements', icon: '📢', label: 'Announcements'  },
-  { id: 'votes',         icon: '🗳️', label: 'Vote Manager'   },
-  { id: 'users',         icon: '👥', label: 'Users'          },
-]
-
-// ── Shared input styles ───────────────────────────────────────────
+// ── Shared input/button styles ─────────────────────────────────
 const inp = {
-  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-  color: '#f1f5f9', borderRadius: 8, padding: '8px 12px',
+  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+  color: '#f1f5f9', borderRadius: 8, padding: '9px 12px',
   fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, outline: 'none',
-  width: '100%', boxSizing: 'border-box',
+  width: '100%', boxSizing: 'border-box', transition: 'border-color 0.15s',
 }
 const btn = (color = PURPLE, outline = false) => ({
   background: outline ? 'transparent' : `${color}20`,
   border: `1px solid ${color}${outline ? '60' : '40'}`,
-  color, borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
+  color, borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
   fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 12, fontWeight: 700,
   transition: 'all 0.15s', whiteSpace: 'nowrap',
+  display: 'flex', alignItems: 'center', gap: 6,
 })
 
-// ── Section wrapper ───────────────────────────────────────────────
-function Section({ title, children, action }) {
+// ─────────────────────────────────────────────────────────────
+// Sidebar nav config
+// ─────────────────────────────────────────────────────────────
+const NAV_ITEMS = [
+  { id: 'overview',      icon: LayoutDashboard, label: 'Overview',     color: PURPLE },
+  { id: 'series',        icon: Layers,          label: 'Content',      color: CYAN,
+    sub: [
+      { id: 'series_anime', icon: Tv2,       label: 'Anime',   color: CYAN   },
+      { id: 'series_manga', icon: BookMarked,label: 'Manga',   color: ROSE   },
+      { id: 'series_novel', icon: BookOpen,  label: 'Novels',  color: PURPLE },
+    ]
+  },
+  { id: 'links',         icon: Link2,           label: 'Links',        color: GOLD   },
+  { id: 'featured',      icon: Star,            label: 'Featured',     color: GOLD   },
+  { id: 'announcements', icon: Megaphone,       label: 'Announcements',color: CYAN   },
+  { id: 'votes',         icon: Vote,            label: 'Voting',       color: PURPLE },
+  { id: 'users',         icon: Users,           label: 'Users',        color: GREEN  },
+  { id: 'settings',      icon: Settings,        label: 'Settings',     color: SLATE  },
+]
+
+// ─────────────────────────────────────────────────────────────
+// Card + Section primitives
+// ─────────────────────────────────────────────────────────────
+function Card({ children, style = {} }) {
   return (
-    <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 14,
-      border: '1px solid rgba(255,255,255,0.07)', marginBottom: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif",
-          fontSize: 14, fontWeight: 700, letterSpacing: 1, color: '#94A3B8',
-          textTransform: 'uppercase' }}>{title}</span>
-        {action}
+    <div style={{
+      background: 'rgba(255,255,255,0.03)', borderRadius: 14,
+      border: '1px solid rgba(255,255,255,0.07)',
+      ...style,
+    }}>{children}</div>
+  )
+}
+
+function SectionHeader({ title, icon: Icon, color = SLATE, action }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {Icon && <Icon size={15} color={color} />}
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 13, fontWeight: 700, letterSpacing: 1,
+          color: '#94A3B8', textTransform: 'uppercase',
+        }}>{title}</span>
       </div>
-      <div style={{ padding: 18 }}>{children}</div>
+      {action}
     </div>
   )
 }
 
-// ═══════════════════════════════════════════════════════════
-// Tab: Series Manager — add/edit/delete anime, manga, novels
-// ═══════════════════════════════════════════════════════════
+function Section({ title, icon, color, children, action, style = {} }) {
+  return (
+    <Card style={{ marginBottom: 18, ...style }}>
+      <SectionHeader title={title} icon={icon} color={color} action={action} />
+      <div style={{ padding: 18 }}>{children}</div>
+    </Card>
+  )
+}
 
-const ANIME_STATUSES  = ['FINISHED','RELEASING','NOT_YET_RELEASED','CANCELLED','HIATUS']
-const ANIME_FORMATS   = ['TV','TV_SHORT','MOVIE','SPECIAL','OVA','ONA','MUSIC','MANGA','NOVEL','ONE_SHOT']
-const ANIME_SEASONS   = ['WINTER','SPRING','SUMMER','FALL']
-const MANGA_STATUSES  = ['ongoing','completed','hiatus','cancelled']
-const NOVEL_STATUSES  = ['publishing','finished','hiatus','cancelled']
+// Stat chip for overview
+function StatChip({ label, value, icon: Icon, color }) {
+  return (
+    <div style={{
+      background: `${color}0d`, border: `1px solid ${color}25`,
+      borderRadius: 12, padding: '14px 18px',
+      display: 'flex', alignItems: 'center', gap: 12,
+    }}>
+      <div style={{
+        width: 38, height: 38, borderRadius: 10,
+        background: `${color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <Icon size={18} color={color} />
+      </div>
+      <div>
+        <div style={{ fontSize: 22, fontWeight: 900, color, fontFamily: "'Barlow Condensed', sans-serif" }}>{value}</div>
+        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, letterSpacing: 0.5 }}>{label}</div>
+      </div>
+    </div>
+  )
+}
 
-const TAG_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
-
-// Shared tag input for genres/themes arrays
+// Tag input
 function TagInput({ value = [], onChange, placeholder }) {
   const [input, setInput] = useState('')
   const tags = Array.isArray(value) ? value : []
@@ -93,13 +149,14 @@ function TagInput({ value = [], onChange, placeholder }) {
     <div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
         {tags.map(t => (
-          <span key={t} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 20,
-            padding: '2px 10px', fontSize: 11, color: '#94A3B8', display: 'flex',
-            alignItems: 'center', gap: 4 }}>
+          <span key={t} style={{
+            background: 'rgba(255,255,255,0.08)', borderRadius: 20,
+            padding: '2px 10px', fontSize: 11, color: '#94A3B8',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
             {t}
             <button onClick={() => onChange(tags.filter(x => x !== t))}
-              style={{ background: 'none', border: 'none', color: '#64748B',
-                cursor: 'pointer', fontSize: 12, padding: 0, lineHeight: 1 }}>×</button>
+              style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 12, padding: 0 }}>×</button>
           </span>
         ))}
       </div>
@@ -107,419 +164,87 @@ function TagInput({ value = [], onChange, placeholder }) {
         <input value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add())}
           placeholder={placeholder || 'Add tag…'} style={{ ...inp, flex: 1 }} />
-        <button style={btn(PURPLE)} onClick={add}>Add</button>
+        <button style={{ ...btn(PURPLE), padding: '8px 12px' }} onClick={add}><Plus size={13} /></button>
       </div>
     </div>
   )
 }
 
-function SeriesTab({ token, toast }) {
-  const [seriesType, setSeriesType] = useState('anime')
-  const [items,      setItems]      = useState([])
-  const [loading,    setLoading]    = useState(false)
-  const [search,     setSearch]     = useState('')
-  const [editing,    setEditing]    = useState(null)   // null | 'new' | row
-  const [form,       setForm]       = useState({})
-  const [delConfirm, setDelConfirm] = useState(null)
-
-  const F = (k, v) => setForm(p => ({...p, [k]: v}))
-
-  const load = useCallback(async (q = '') => {
-    setLoading(true)
-    try {
-      let url = ''
-      const enc = encodeURIComponent(q)
-      if (seriesType === 'anime') {
-        url = q
-          ? `anime?or=(title_english.ilike.%25${enc}%25,title_romaji.ilike.%25${enc}%25)&order=popularity.desc&limit=30`
-          : `anime?order=popularity.desc&limit=30`
-      } else if (seriesType === 'manga') {
-        url = q
-          ? `manga?or=(title_en.ilike.%25${enc}%25,title_ja_ro.ilike.%25${enc}%25)&order=follows.desc&limit=30`
-          : `manga?order=follows.desc&limit=30`
-      } else {
-        url = q
-          ? `novels?title=ilike.%25${enc}%25&order=num_books.desc.nullslast,id.desc&limit=30`
-          : `novels?order=num_books.desc.nullslast,id.desc&limit=30`
-      }
-      const data = await api(token, url)
-      setItems(Array.isArray(data) ? data : [])
-    } catch(e) { toast(`Load failed: ${e.message}`, false) }
-    finally { setLoading(false) }
-  }, [token, seriesType])
+// ─────────────────────────────────────────────────────────────
+// Overview Tab
+// ─────────────────────────────────────────────────────────────
+function OverviewTab({ token }) {
+  const [counts, setCounts] = useState({ anime: 0, manga: 0, novels: 0, votes: 0, featured: 0, announcements: 0 })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const t = setTimeout(() => load(search), 400)
-    return () => clearTimeout(t)
-  }, [search, seriesType, load])
-
-  const openNew = () => {
-    if (seriesType === 'anime') {
-      setForm({ id: '', title_english: '', title_romaji: '', title_native: '',
-        cover_large: '', banner_image: '', description: '', genres: [],
-        status: 'FINISHED', format: 'TV', episodes: '', duration: '',
-        season: '', season_year: '', start_date: '', end_date: '',
-        average_score: '', studio: '', site_url: '' })
-    } else if (seriesType === 'manga') {
-      setForm({ id: '', title_en: '', title_ja_ro: '', title_ja: '',
-        cover_url: '', description_en: '', status: 'ongoing',
-        author: '', year: '', chapters: '', volumes: '',
-        last_chapter: '', genres: [], themes: [],
-        demographic: '', rating: '' })
-    } else {
-      setForm({ id: '', title: '', romaji: '', title_orig: '',
-        cover_url: '', description: '', publication_status: 'publishing',
-        num_books: '', start_date: '', end_date: '',
-        genres: [], score: '' })
+    const countTable = async (table, extra = '') => {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${extra}&limit=1`, {
+        headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`, Prefer: 'count=exact' },
+      })
+      return parseInt(res.headers.get('content-range')?.split('/')?.[1] || 0)
     }
-    setEditing('new')
-  }
-
-  const openEdit = (row) => {
-    setForm({ ...row,
-      genres: row.genres || [],
-      themes: row.themes || [],
-    })
-    setEditing(row)
-  }
-
-  const getTable = () => seriesType === 'anime' ? 'anime' : seriesType === 'manga' ? 'manga' : 'novels'
-  const getId    = () => seriesType === 'anime' ? form.id : seriesType === 'manga' ? form.id : form.id
-
-  const save = async () => {
-    try {
-      const table = getTable()
-      // Cast numeric fields
-      const clean = { ...form }
-      const numFields = ['id','episodes','duration','season_year','average_score','mean_score',
-        'popularity','favourites','year','chapters','volumes','num_books',
-        'start_date','end_date','score','score_count','follows']
-      numFields.forEach(k => { if (clean[k] === '' || clean[k] === null) clean[k] = null
-        else if (clean[k] !== undefined) clean[k] = isNaN(+clean[k]) ? clean[k] : +clean[k] })
-
-      if (editing === 'new') {
-        await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-          method: 'POST',
-          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Prefer: 'resolution=merge-duplicates,return=representation' },
-          body: JSON.stringify(clean),
-        }).then(async r => { if (!r.ok) throw new Error(await r.text()) })
-        toast(`${seriesType} added ✓`)
-      } else {
-        await api(token, `${table}?id=eq.${editing.id}`, 'PATCH', clean)
-        toast('Updated ✓')
-      }
-      setEditing(null); load(search)
-    } catch(e) { toast(`Save failed: ${e.message}`, false) }
-  }
-
-  const del = async (row) => {
-    try {
-      await api(token, `${getTable()}?id=eq.${row.id}`, 'DELETE')
-      toast('Deleted'); setDelConfirm(null); load(search)
-    } catch(e) { toast(e.message, false) }
-  }
-
-  const getTitle = (row) => row.title_english || row.title_romaji ||
-    row.title_en || row.title_ja_ro || row.title || row.romaji || '(no title)'
-  const getCover = (row) => row.cover_large || row.cover_url || ''
+    Promise.all([
+      countTable('series', 'item_type=eq.anime'),
+      countTable('series', 'item_type=eq.manga'),
+      countTable('series', 'item_type=eq.novel'),
+      countTable('novel_votes'),
+      countTable('featured_items', 'active=eq.true'),
+      countTable('site_announcements', 'active=eq.true'),
+    ]).then(([anime, manga, novels, votes, featured, announcements]) => {
+      setCounts({ anime, manga, novels, votes, featured, announcements })
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [token])
 
   return (
     <div>
-      <Section title="Series Manager"
-        action={<button style={btn(GREEN)} onClick={openNew}>+ Add {seriesType}</button>}>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 4px' }}>
+          Dashboard Overview
+        </h2>
+        <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
+          Summary of your LiDex database content.
+        </p>
+      </div>
 
-        {/* Type selector */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          {['anime','manga','novel'].map(t => (
-            <button key={t} onClick={() => { setSeriesType(t); setSearch('') }} style={{
-              ...btn(TAG_COLOR[t], seriesType !== t),
-              padding: '6px 16px', textTransform: 'capitalize',
-            }}>{t}</button>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <StatChip label="Anime"         value={loading ? '…' : counts.anime}         icon={Tv2}           color={CYAN}   />
+        <StatChip label="Manga"         value={loading ? '…' : counts.manga}         icon={BookMarked}    color={ROSE}   />
+        <StatChip label="Novels"        value={loading ? '…' : counts.novels}        icon={BookOpen}      color={PURPLE} />
+        <StatChip label="Vote Entries"  value={loading ? '…' : counts.votes}         icon={Vote}          color={GOLD}   />
+        <StatChip label="Live Features" value={loading ? '…' : counts.featured}      icon={Star}          color={GOLD}   />
+        <StatChip label="Announcements" value={loading ? '…' : counts.announcements} icon={Megaphone}     color={GREEN}  />
+      </div>
+
+      <Card>
+        <SectionHeader title="Quick Navigation" icon={ChevronRight} />
+        <div style={{ padding: '12px 18px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {[
+            { label: 'Manage Anime',         hash: 'series_anime', color: CYAN   },
+            { label: 'Manage Manga',         hash: 'series_manga', color: ROSE   },
+            { label: 'Manage Novels',        hash: 'series_novel', color: PURPLE },
+            { label: 'Edit Links',           hash: 'links',        color: GOLD   },
+            { label: 'Featured Items',       hash: 'featured',     color: GOLD   },
+            { label: 'Announcements',        hash: 'announcements',color: CYAN   },
+            { label: 'Vote Manager',         hash: 'votes',        color: PURPLE },
+            { label: 'User Management',      hash: 'users',        color: GREEN  },
+          ].map(item => (
+            <a key={item.hash} href={`#admin-${item.hash}`} style={{
+              ...btn(item.color, true),
+              textDecoration: 'none', fontSize: 12,
+            }}>{item.label}</a>
           ))}
         </div>
-
-        {/* Search */}
-        <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder={`Search ${seriesType} by title…`}
-          style={{ ...inp, marginBottom: 12 }} />
-
-        {loading ? (
-          <div style={{ color: '#475569', textAlign: 'center', padding: 24 }}>Loading…</div>
-        ) : items.length === 0 ? (
-          <div style={{ color: '#374151', textAlign: 'center', padding: 24 }}>No results.</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {items.map(row => (
-              <div key={row.id} style={{
-                display: 'flex', gap: 10, alignItems: 'center',
-                background: 'rgba(255,255,255,0.02)', borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.06)', padding: '8px 12px',
-              }}>
-                {getCover(row) && (
-                  <img src={getCover(row)} style={{ width: 28, height: 40, objectFit: 'cover',
-                    borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: '#f1f5f9',
-                    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {getTitle(row)}
-                  </div>
-                  <div style={{ fontSize: 10, color: '#374151' }}>
-                    ID: {row.id}
-                    {row.status && <span style={{ marginLeft: 8, color: '#475569' }}>{row.status}</span>}
-                    {(row.episodes || row.chapters || row.num_books) &&
-                      <span style={{ marginLeft: 8, color: '#475569' }}>
-                        {row.episodes ? `${row.episodes} eps` :
-                         row.chapters ? `${row.chapters} ch` :
-                         `${row.num_books} vols`}
-                      </span>}
-                  </div>
-                </div>
-                <button style={btn(CYAN, true)} onClick={() => openEdit(row)}>Edit</button>
-                <button style={btn(ROSE, true)} onClick={() => setDelConfirm(row)}>×</button>
-              </div>
-            ))}
-          </div>
-        )}
-      </Section>
-
-      {/* Delete confirm */}
-      {delConfirm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ background: '#111827', borderRadius: 16, padding: 28,
-            maxWidth: 380, width: '100%', border: '1px solid rgba(248,113,113,0.3)', textAlign: 'center' }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 18, color: '#f1f5f9', marginBottom: 8 }}>Delete Series?</div>
-            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 20 }}>
-              "{getTitle(delConfirm)}" will be permanently removed.
-              It will reappear on the next sync if it's still in the source database.
-            </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button style={btn('#64748B', true)} onClick={() => setDelConfirm(null)}>Cancel</button>
-              <button style={btn(ROSE)} onClick={() => del(delConfirm)}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit / New modal */}
-      {editing && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-          zIndex: 9001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => e.target === e.currentTarget && setEditing(null)}>
-          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
-            width: '100%', maxWidth: 620, maxHeight: '92vh', overflowY: 'auto',
-            border: '1px solid rgba(255,255,255,0.1)' }}>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between',
-              alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: 18, fontWeight: 700, color: '#f1f5f9' }}>
-                {editing === 'new' ? `Add ${seriesType}` : `Edit: ${getTitle(form)}`}
-              </div>
-              <button onClick={() => setEditing(null)} style={{ background: 'none',
-                border: 'none', color: '#475569', fontSize: 20, cursor: 'pointer' }}>×</button>
-            </div>
-
-            {/* ── ANIME FIELDS ── */}
-            {seriesType === 'anime' && (<>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {[
-                  { k: 'id',            label: 'AniList ID *',    req: true  },
-                  { k: 'title_english', label: 'English Title'               },
-                  { k: 'title_romaji',  label: 'Romaji Title'                },
-                  { k: 'title_native',  label: 'Native Title'                },
-                  { k: 'studio',        label: 'Studio'                      },
-                  { k: 'episodes',      label: 'Episodes'                    },
-                  { k: 'duration',      label: 'Ep Duration (min)'           },
-                  { k: 'average_score', label: 'Score (0–100)'               },
-                  { k: 'season_year',   label: 'Year'                        },
-                  { k: 'start_date',    label: 'Start Date (YYYY-MM-DD)'     },
-                  { k: 'end_date',      label: 'End Date (YYYY-MM-DD)'       },
-                  { k: 'site_url',      label: 'AniList URL'                 },
-                ].map(f => (
-                  <div key={f.k}>
-                    <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700 }}>{f.label}</label>
-                    <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)}
-                      style={{ ...inp, marginTop: 3 }} />
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
-                <div>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Status</label>
-                  <select value={form.status || ''} onChange={e => F('status', e.target.value)}
-                    style={{ ...inp, marginTop: 3 }}>
-                    {ANIME_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Format</label>
-                  <select value={form.format || ''} onChange={e => F('format', e.target.value)}
-                    style={{ ...inp, marginTop: 3 }}>
-                    {ANIME_FORMATS.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Season</label>
-                  <select value={form.season || ''} onChange={e => F('season', e.target.value)}
-                    style={{ ...inp, marginTop: 3 }}>
-                    <option value="">—</option>
-                    {ANIME_SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Cover URL</label>
-                <input value={form.cover_large || ''} onChange={e => F('cover_large', e.target.value)}
-                  style={{ ...inp, marginTop: 3 }} placeholder="https://…" />
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Description</label>
-                <textarea value={form.description || ''} onChange={e => F('description', e.target.value)}
-                  rows={3} style={{ ...inp, marginTop: 3, resize: 'vertical' }} />
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>Genres</label>
-                <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Action" />
-              </div>
-            </>)}
-
-            {/* ── MANGA FIELDS ── */}
-            {seriesType === 'manga' && (<>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {[
-                  { k: 'id',          label: 'MangaDex UUID *', req: true },
-                  { k: 'title_en',    label: 'English Title'              },
-                  { k: 'title_ja_ro', label: 'Romaji Title'               },
-                  { k: 'title_ja',    label: 'Japanese Title'             },
-                  { k: 'author',      label: 'Author'                     },
-                  { k: 'year',        label: 'Year'                       },
-                  { k: 'chapters',    label: 'Chapters'                   },
-                  { k: 'volumes',     label: 'Volumes'                    },
-                  { k: 'last_chapter',label: 'Latest Chapter'             },
-                  { k: 'rating',      label: 'Rating (0–10)'              },
-                  { k: 'follows',     label: 'Follows'                    },
-                ].map(f => (
-                  <div key={f.k}>
-                    <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700 }}>{f.label}</label>
-                    <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)}
-                      style={{ ...inp, marginTop: 3 }} />
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
-                <div>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Status</label>
-                  <select value={form.status || ''} onChange={e => F('status', e.target.value)}
-                    style={{ ...inp, marginTop: 3 }}>
-                    {MANGA_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Demographic</label>
-                  <select value={form.demographic || ''} onChange={e => F('demographic', e.target.value)}
-                    style={{ ...inp, marginTop: 3 }}>
-                    {['','shounen','shoujo','seinen','josei'].map(s => <option key={s} value={s}>{s || '—'}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Cover URL</label>
-                <input value={form.cover_url || ''} onChange={e => F('cover_url', e.target.value)}
-                  style={{ ...inp, marginTop: 3 }} placeholder="https://…" />
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Description</label>
-                <textarea value={form.description_en || ''} onChange={e => F('description_en', e.target.value)}
-                  rows={3} style={{ ...inp, marginTop: 3, resize: 'vertical' }} />
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>Genres</label>
-                <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Action" />
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>Themes</label>
-                <TagInput value={form.themes} onChange={v => F('themes', v)} placeholder="e.g. Isekai" />
-              </div>
-            </>)}
-
-            {/* ── NOVEL FIELDS ── */}
-            {seriesType === 'novel' && (<>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {[
-                  { k: 'id',         label: 'RanobeDB ID *', req: true },
-                  { k: 'title',      label: 'Title'                    },
-                  { k: 'romaji',     label: 'Romaji Title'             },
-                  { k: 'title_orig', label: 'Original Title'           },
-                  { k: 'num_books',  label: 'Volumes'                  },
-                  { k: 'start_date', label: 'Start Year'               },
-                  { k: 'end_date',   label: 'End Year'                 },
-                  { k: 'score',      label: 'Score (0–10)'             },
-                ].map(f => (
-                  <div key={f.k}>
-                    <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700 }}>{f.label}</label>
-                    <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)}
-                      style={{ ...inp, marginTop: 3 }} />
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Publication Status</label>
-                <select value={form.publication_status || ''} onChange={e => F('publication_status', e.target.value)}
-                  style={{ ...inp, marginTop: 3 }}>
-                  {NOVEL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Cover URL</label>
-                <input value={form.cover_url || ''} onChange={e => F('cover_url', e.target.value)}
-                  style={{ ...inp, marginTop: 3 }} placeholder="https://…" />
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Description</label>
-                <textarea value={form.description || ''} onChange={e => F('description', e.target.value)}
-                  rows={3} style={{ ...inp, marginTop: 3, resize: 'vertical' }} />
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>Genres</label>
-                <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Fantasy" />
-              </div>
-            </>)}
-
-            {/* Cover preview */}
-            {(form.cover_large || form.cover_url) && (
-              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <img src={form.cover_large || form.cover_url}
-                  style={{ width: 50, height: 70, objectFit: 'cover', borderRadius: 6 }}
-                  onError={e => e.target.style.display='none'} />
-                <span style={{ fontSize: 11, color: '#475569' }}>Cover preview</span>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
-              <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
-              <button style={btn(GREEN)} onClick={save}>
-                {editing === 'new' ? `Add ${seriesType}` : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Card>
     </div>
   )
 }
 
-// ═══════════════════════════════════════════════════════════
-// Series search picker — searches novels/anime/manga live
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// Series search picker (unified series table)
+// ─────────────────────────────────────────────────────────────
 async function searchSeries(token, type, q) {
-  // Direct fetch — bypasses api() error throwing
   const get = async (url) => {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${url}`, {
       headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
@@ -528,38 +253,16 @@ async function searchSeries(token, type, q) {
     try { return JSON.parse(text) } catch { return [] }
   }
   const enc = encodeURIComponent(q)
-  if (type === 'novel') {
-    const [r1, r2] = await Promise.all([
-      get(`novels?title=ilike.%25${enc}%25&select=id,title,romaji,cover_url&limit=6`),
-      get(`novels?romaji=ilike.%25${enc}%25&select=id,title,romaji,cover_url&limit=6`),
-    ])
-    const seen = new Set()
-    return [...(r1||[]),...(r2||[])].filter(r => { if(seen.has(r.id)) return false; seen.add(r.id); return true })
-      .slice(0,8).map(r => ({ id: String(r.id), title: r.title || r.romaji, cover: r.cover_url, type: 'novel' }))
-  } else if (type === 'anime') {
-    const [r1, r2] = await Promise.all([
-      get(`anime?title_english=ilike.%25${enc}%25&select=id,title_english,title_romaji,cover_large&limit=6`),
-      get(`anime?title_romaji=ilike.%25${enc}%25&select=id,title_english,title_romaji,cover_large&limit=6`),
-    ])
-    const seen = new Set()
-    return [...(r1||[]),...(r2||[])].filter(r => { if(seen.has(r.id)) return false; seen.add(r.id); return true })
-      .slice(0,8).map(r => ({ id: String(r.id), title: r.title_english || r.title_romaji, cover: r.cover_large, type: 'anime' }))
-  } else {
-    const [r1, r2] = await Promise.all([
-      get(`manga?title_en=ilike.%25${enc}%25&select=id,title_en,title_ja_ro,cover_url&limit=6`),
-      get(`manga?title_ja_ro=ilike.%25${enc}%25&select=id,title_en,title_ja_ro,cover_url&limit=6`),
-    ])
-    const seen = new Set()
-    return [...(r1||[]),...(r2||[])].filter(r => { if(seen.has(r.id)) return false; seen.add(r.id); return true })
-      .slice(0,8).map(r => ({ id: String(r.id), title: r.title_en || r.title_ja_ro, cover: r.cover_url, type: 'manga' }))
-  }
+  const rows = await get(`series?item_type=eq.${type}&or=(title.ilike.%25${enc}%25)&select=id,title,cover_url,item_type&limit=10`)
+  return (rows || []).map(r => ({ id: String(r.id), title: r.title, cover: r.cover_url, type: r.item_type }))
 }
 
-function SeriesPicker({ token, onPick }) {
+function SeriesPicker({ token, onPick, defaultType }) {
   const [query,   setQuery]   = useState('')
-  const [type,    setType]    = useState('novel')
+  const [type,    setType]    = useState(defaultType || 'novel')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
+  const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
 
   useEffect(() => {
     if (query.trim().length < 2) { setResults([]); return }
@@ -572,44 +275,38 @@ function SeriesPicker({ token, onPick }) {
     return () => { cancelled = true; clearTimeout(t) }
   }, [query, type, token])
 
-  const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
-
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
         {['novel','anime','manga'].map(t => (
           <button key={t} onClick={() => { setType(t); setResults([]) }} style={{
-            ...btn(TYPE_COLOR[t], type !== t),
-            padding: '6px 14px', fontSize: 11, textTransform: 'capitalize',
+            ...btn(TYPE_COLOR[t], type !== t), padding: '6px 14px', fontSize: 11, textTransform: 'capitalize',
           }}>{t}</button>
         ))}
       </div>
-      <input value={query} onChange={e => setQuery(e.target.value)}
-        placeholder={`Search ${type} by title…`} style={inp} autoFocus />
+      <div style={{ position: 'relative' }}>
+        <Search size={14} color="#475569" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+        <input value={query} onChange={e => setQuery(e.target.value)}
+          placeholder={`Search ${type} by title…`}
+          style={{ ...inp, paddingLeft: 32 }} autoFocus />
+      </div>
       {loading && <div style={{ color: '#475569', fontSize: 12, padding: '8px 0' }}>Searching…</div>}
       {results.length > 0 && (
-        <div style={{ marginTop: 6, border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 10, overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
+        <div style={{ marginTop: 8, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
           {results.map(r => (
-            <div key={r.id} onClick={() => onPick(r)}
-              style={{ display: 'flex', gap: 10, alignItems: 'center',
-                padding: '8px 12px', cursor: 'pointer',
-                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                background: 'rgba(255,255,255,0.02)',
-                transition: 'background 0.1s',
-              }}
+            <div key={r.id} onClick={() => onPick(r)} style={{
+              display: 'flex', gap: 10, alignItems: 'center', padding: '8px 12px',
+              cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)',
+              background: 'rgba(255,255,255,0.02)', transition: 'background 0.1s',
+            }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
-              {r.cover && <img src={r.cover} style={{ width: 28, height: 38, objectFit: 'cover',
-                borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
+              {r.cover && <img src={r.cover} style={{ width: 28, height: 38, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif",
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                <div style={{ fontSize: 13, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
                 <div style={{ fontSize: 10, color: '#475569' }}>ID: {r.id}</div>
               </div>
-              <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 700,
-                background: `${TYPE_COLOR[r.type]}20`, color: TYPE_COLOR[r.type],
-                textTransform: 'uppercase' }}>{r.type}</span>
+              <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 700, background: `${TYPE_COLOR[r.type]}20`, color: TYPE_COLOR[r.type], textTransform: 'uppercase' }}>{r.type}</span>
             </div>
           ))}
         </div>
@@ -618,9 +315,406 @@ function SeriesPicker({ token, onPick }) {
   )
 }
 
-// ═══════════════════════════════════════════════════════════
-// Tab: Series Links
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// Series Manager — unified series table, item_type aware
+// ─────────────────────────────────────────────────────────────
+
+// Status values matching actual DB + constants.js
+const ANIME_STATUSES  = ['FINISHED','RELEASING','NOT_YET_RELEASED','CANCELLED']
+const MANGA_STATUSES  = ['ongoing','completed','hiatus','cancelled']
+const NOVEL_STATUSES  = ['ongoing','completed','hiatus','cancelled']  // matches constants.js
+const ANIME_FORMATS   = ['TV','TV_SHORT','MOVIE','SPECIAL','OVA','ONA','MUSIC','ONE_SHOT']
+const ANIME_SEASONS   = ['WINTER','SPRING','SUMMER','FALL']
+const MANGA_DEMOGRAPHICS = ['shounen','shoujo','seinen','josei']
+
+const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
+
+function SeriesTab({ token, toast, type }) {
+  const [items,      setItems]      = useState([])
+  const [loading,    setLoading]    = useState(false)
+  const [search,     setSearch]     = useState('')
+  const [editing,    setEditing]    = useState(null)
+  const [form,       setForm]       = useState({})
+  const [delConfirm, setDelConfirm] = useState(null)
+
+  const color = TYPE_COLOR[type]
+  const F = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  const load = useCallback(async (q = '') => {
+    setLoading(true)
+    try {
+      const enc = encodeURIComponent(q)
+      const filter = q ? `&title=ilike.%25${enc}%25` : ''
+      // For anime/manga also join meta tables for extra fields
+      const select = type === 'anime' ? '*,anime_meta(*)' : type === 'manga' ? '*,manga_meta(*)' : '*'
+      const url = `series?item_type=eq.${type}${filter}&order=score.desc.nullslast,title.asc&limit=40&select=${select}`
+      const data = await api(token, url)
+      setItems(Array.isArray(data) ? data : [])
+    } catch(e) { toast(`Load failed: ${e.message}`, false) }
+    finally { setLoading(false) }
+  }, [token, type])
+
+  useEffect(() => {
+    const t = setTimeout(() => load(search), 400)
+    return () => clearTimeout(t)
+  }, [search, load])
+
+  const openNew = () => {
+    if (type === 'anime') {
+      setForm({ title: '', title_native: '', cover_url: '', banner_url: '', description: '',
+        genres: [], status: 'FINISHED', score: '', external_id: '',
+        anime_meta: { format: 'TV', episodes: '', duration: '', season: '', season_year: '', studio: '', site_url: '' } })
+    } else if (type === 'manga') {
+      setForm({ title: '', title_native: '', cover_url: '', description: '',
+        genres: [], status: 'ongoing', score: '', external_id: '',
+        manga_meta: { author: '', year: '', chapters: '', volumes: '', demographic: '', last_chapter: '' } })
+    } else {
+      setForm({ title: '', title_native: '', cover_url: '', description: '',
+        genres: [], status: 'ongoing', score: '', publisher: '', author: '', external_id: '' })
+    }
+    setEditing('new')
+  }
+
+  const openEdit = (row) => {
+    setForm({
+      ...row,
+      genres: row.genres || [],
+      anime_meta: row.anime_meta?.[0] || row.anime_meta || {},
+      manga_meta: row.manga_meta?.[0] || row.manga_meta || {},
+    })
+    setEditing(row)
+  }
+
+  const save = async () => {
+    try {
+      const clean = { ...form }
+      // Remove joined meta tables from the series row itself
+      delete clean.anime_meta
+      delete clean.manga_meta
+      // Ensure item_type is set
+      clean.item_type = type
+
+      // Cast numeric fields
+      const numFields = ['score', 'score_count', 'external_id']
+      numFields.forEach(k => {
+        if (clean[k] === '' || clean[k] == null) clean[k] = null
+        else if (!isNaN(+clean[k])) clean[k] = +clean[k]
+      })
+
+      if (editing === 'new') {
+        const rows = await fetch(`${SUPABASE_URL}/rest/v1/series`, {
+          method: 'POST',
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' },
+          body: JSON.stringify(clean),
+        }).then(async r => { if (!r.ok) throw new Error(await r.text()); return r.json() })
+
+        // Upsert meta table if applicable
+        const newId = rows?.[0]?.id
+        if (newId) await saveMeta(newId, form)
+        toast(`${type} added ✓`)
+      } else {
+        await api(token, `series?id=eq.${editing.id}`, 'PATCH', clean)
+        await saveMeta(editing.id, form)
+        toast('Updated ✓')
+      }
+      setEditing(null); load(search)
+    } catch(e) { toast(`Save failed: ${e.message}`, false) }
+  }
+
+  const saveMeta = async (seriesId, f) => {
+    if (type === 'anime' && f.anime_meta) {
+      const m = { ...f.anime_meta }
+      const numMeta = ['episodes', 'duration', 'season_year']
+      numMeta.forEach(k => { if (m[k] === '' || m[k] == null) m[k] = null; else if (!isNaN(+m[k])) m[k] = +m[k] })
+      await fetch(`${SUPABASE_URL}/rest/v1/anime_meta`, {
+        method: 'POST',
+        headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ ...m, series_id: seriesId }),
+      })
+    }
+    if (type === 'manga' && f.manga_meta) {
+      const m = { ...f.manga_meta }
+      const numMeta = ['year', 'chapters', 'volumes']
+      numMeta.forEach(k => { if (m[k] === '' || m[k] == null) m[k] = null; else if (!isNaN(+m[k])) m[k] = +m[k] })
+      await fetch(`${SUPABASE_URL}/rest/v1/manga_meta`, {
+        method: 'POST',
+        headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ ...m, series_id: seriesId }),
+      })
+    }
+  }
+
+  const del = async (row) => {
+    try {
+      await api(token, `series?id=eq.${row.id}`, 'DELETE')
+      toast('Deleted'); setDelConfirm(null); load(search)
+    } catch(e) { toast(e.message, false) }
+  }
+
+  const meta = (row) => type === 'anime' ? (row.anime_meta?.[0] || row.anime_meta || {}) : (row.manga_meta?.[0] || row.manga_meta || {})
+
+  return (
+    <div>
+      <Section
+        title={`${type.charAt(0).toUpperCase() + type.slice(1)} Manager`}
+        icon={type === 'anime' ? Tv2 : type === 'manga' ? BookMarked : BookOpen}
+        color={color}
+        action={
+          <button style={{ ...btn(GREEN), padding: '7px 12px' }} onClick={openNew}>
+            <Plus size={13} /> Add {type}
+          </button>
+        }
+      >
+        {/* Search */}
+        <div style={{ position: 'relative', marginBottom: 14 }}>
+          <Search size={14} color="#475569" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder={`Search ${type} by title…`}
+            style={{ ...inp, paddingLeft: 32 }} />
+        </div>
+
+        {loading ? (
+          <div style={{ color: '#475569', textAlign: 'center', padding: 32 }}>
+            <RefreshCw size={16} style={{ display: 'inline', marginRight: 8, animation: 'spin 1s linear infinite' }} />Loading…
+          </div>
+        ) : items.length === 0 ? (
+          <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No results.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {items.map(row => (
+              <div key={row.id} style={{
+                display: 'flex', gap: 10, alignItems: 'center',
+                background: 'rgba(255,255,255,0.02)', borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.06)', padding: '8px 12px',
+                transition: 'border-color 0.15s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = `${color}30`}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
+              >
+                {row.cover_url && (
+                  <img src={row.cover_url} style={{ width: 28, height: 40, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {row.title || '(no title)'}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#374151', display: 'flex', gap: 8 }}>
+                    <span>ID: {row.id}</span>
+                    {row.status && <span style={{ color: '#475569' }}>{row.status}</span>}
+                    {type === 'anime' && meta(row).episodes && <span style={{ color: '#475569' }}>{meta(row).episodes} eps</span>}
+                    {type === 'manga' && meta(row).chapters  && <span style={{ color: '#475569' }}>{meta(row).chapters} ch</span>}
+                    {type === 'novel' && row.external_id     && <span style={{ color: '#475569' }}>Ext: {row.external_id}</span>}
+                  </div>
+                </div>
+                <button style={{ ...btn(CYAN, true), padding: '6px 10px' }} onClick={() => openEdit(row)}>
+                  <Pencil size={12} />
+                </button>
+                <button style={{ ...btn(ROSE, true), padding: '6px 10px' }} onClick={() => setDelConfirm(row)}>
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Delete confirm */}
+      {delConfirm && (
+        <Modal onClose={() => setDelConfirm(null)} maxWidth={380}>
+          <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
+            <AlertTriangle size={40} color={ROSE} style={{ marginBottom: 12 }} />
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, color: '#f1f5f9', marginBottom: 8 }}>Delete Series?</div>
+            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 20 }}>
+              "{delConfirm.title}" will be permanently removed.
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button style={btn('#64748B', true)} onClick={() => setDelConfirm(null)}>Cancel</button>
+              <button style={{ ...btn(ROSE), padding: '8px 20px' }} onClick={() => del(delConfirm)}>
+                <Trash2 size={13} /> Delete
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit / New modal */}
+      {editing && (
+        <Modal onClose={() => setEditing(null)} maxWidth={640}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9' }}>
+              {editing === 'new' ? `Add ${type}` : `Edit: ${form.title || '…'}`}
+            </div>
+            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex' }}>
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Common fields for all types */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            {[
+              { k: 'title',        label: 'Title *',           req: true },
+              { k: 'title_native', label: 'Native / Alt Title'           },
+              { k: 'external_id',  label: type === 'anime' ? 'AniList ID' : type === 'manga' ? 'MangaDex UUID' : 'RanobeDB ID' },
+              { k: 'score',        label: 'Score (0–10)'                 },
+            ].map(f => (
+              <div key={f.k}>
+                <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)} style={inp} />
+              </div>
+            ))}
+          </div>
+
+          {/* Status */}
+          <div style={{ display: 'grid', gridTemplateColumns: type === 'anime' ? '1fr 1fr 1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div>
+              <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Status</label>
+              <select value={form.status || ''} onChange={e => F('status', e.target.value)} style={inp}>
+                {(type === 'anime' ? ANIME_STATUSES : type === 'manga' ? MANGA_STATUSES : NOVEL_STATUSES)
+                  .map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            {type === 'anime' && (
+              <>
+                <div>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Format</label>
+                  <select value={form.anime_meta?.format || ''} onChange={e => F('anime_meta', { ...form.anime_meta, format: e.target.value })} style={inp}>
+                    {ANIME_FORMATS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Season</label>
+                  <select value={form.anime_meta?.season || ''} onChange={e => F('anime_meta', { ...form.anime_meta, season: e.target.value })} style={inp}>
+                    <option value="">—</option>
+                    {ANIME_SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+            {type === 'manga' && (
+              <div>
+                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Demographic</label>
+                <select value={form.manga_meta?.demographic || ''} onChange={e => F('manga_meta', { ...form.manga_meta, demographic: e.target.value })} style={inp}>
+                  <option value="">—</option>
+                  {MANGA_DEMOGRAPHICS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {/* Type-specific meta fields */}
+          {type === 'anime' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+              {[
+                { k: 'episodes',    label: 'Episodes'         },
+                { k: 'duration',    label: 'Ep Duration (min)'},
+                { k: 'season_year', label: 'Year'             },
+                { k: 'studio',      label: 'Studio'           },
+                { k: 'site_url',    label: 'AniList URL'      },
+              ].map(f => (
+                <div key={f.k}>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <input value={form.anime_meta?.[f.k] || ''} onChange={e => F('anime_meta', { ...form.anime_meta, [f.k]: e.target.value })} style={inp} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {type === 'manga' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+              {[
+                { k: 'author',       label: 'Author'         },
+                { k: 'year',         label: 'Year'           },
+                { k: 'chapters',     label: 'Chapters'       },
+                { k: 'volumes',      label: 'Volumes'        },
+                { k: 'last_chapter', label: 'Latest Chapter' },
+              ].map(f => (
+                <div key={f.k}>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <input value={form.manga_meta?.[f.k] || ''} onChange={e => F('manga_meta', { ...form.manga_meta, [f.k]: e.target.value })} style={inp} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {type === 'novel' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+              {[
+                { k: 'publisher', label: 'Publisher' },
+                { k: 'author',    label: 'Author'    },
+              ].map(f => (
+                <div key={f.k}>
+                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)} style={inp} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Cover URL */}
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Cover URL</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input value={form.cover_url || ''} onChange={e => F('cover_url', e.target.value)} placeholder="https://…" style={{ ...inp, flex: 1 }} />
+              {form.cover_url && (
+                <img src={form.cover_url} style={{ width: 32, height: 44, objectFit: 'cover', borderRadius: 5, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
+              )}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Description</label>
+            <textarea value={form.description || ''} onChange={e => F('description', e.target.value)} rows={3} style={{ ...inp, resize: 'vertical' }} />
+          </div>
+
+          {/* Genres */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 6 }}>Genres</label>
+            <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Action" />
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
+            <button style={{ ...btn(GREEN), padding: '8px 20px' }} onClick={save}>
+              <Check size={13} /> {editing === 'new' ? `Add ${type}` : 'Save Changes'}
+            </button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Modal wrapper
+// ─────────────────────────────────────────────────────────────
+function Modal({ children, onClose, maxWidth = 560 }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: '#0F172A', borderRadius: 16, padding: 24,
+        width: '100%', maxWidth, maxHeight: '92vh', overflowY: 'auto',
+        border: '1px solid rgba(255,255,255,0.1)',
+        boxShadow: '0 25px 60px rgba(0,0,0,0.6)' }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Links Tab
+// ─────────────────────────────────────────────────────────────
+const LINK_FIELDS = [
+  { key: 'shop',     label: 'Shop',     color: GOLD       },
+  { key: 'youtube',  label: 'YouTube',  color: ROSE       },
+  { key: 'official', label: 'Official', color: CYAN       },
+  { key: 'raw',      label: 'Raw',      color: SLATE      },
+  { key: 'anilist',  label: 'AniList',  color: '#02a9ff'  },
+  { key: 'mangadex', label: 'MangaDex', color: ROSE       },
+]
+
 function LinksTab({ token, toast }) {
   const [links,     setLinks]     = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -631,47 +725,28 @@ function LinksTab({ token, toast }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    try {
-      const data = await api(token, 'item_links?order=updated_at.desc&limit=200')
-      setLinks(Array.isArray(data) ? data : [])
-    } catch(e) { toast(e.message, false) }
+    try { const data = await api(token, 'item_links?order=updated_at.desc&limit=200'); setLinks(Array.isArray(data) ? data : []) }
+    catch(e) { toast(e.message, false) }
     finally { setLoading(false) }
   }, [token])
 
   useEffect(() => { load() }, [load])
 
-  const openNew = () => { setShowPicker(true) }
-
   const pickSeries = (series) => {
-    // series = { id, title, cover, type } from SeriesPicker
     setShowPicker(false)
-    setForm({ item_id: series.id, item_type: series.type, title: series.title,
-      cover_url: series.cover || '', shop: '', youtube: '', official: '', raw: '', anilist: '', mangadex: '' })
+    setForm({ item_id: series.id, item_type: series.type, title: series.title, cover_url: series.cover || '',
+      shop: '', youtube: '', official: '', raw: '', anilist: '', mangadex: '' })
     setEditing('new')
-  }
-
-  const openEdit = async (row) => {
-    setForm({ ...row })
-    setEditing(row)
   }
 
   const save = async () => {
     try {
-      // Only send columns that exist in item_links table
       const COLS = ['item_id','item_type','title','shop','youtube','official','raw','anilist','mangadex']
-      const clean = Object.fromEntries(
-        COLS.map(k => [k, form[k] === '' ? null : (form[k] || null)])
-      )
-      console.log('[Admin] saving:', clean)
+      const clean = Object.fromEntries(COLS.map(k => [k, form[k] === '' ? null : (form[k] || null)]))
       if (editing === 'new') {
-        // Upsert — if item_id+item_type already exists, update it instead
         await fetch(`${SUPABASE_URL}/rest/v1/item_links`, {
           method: 'POST',
-          headers: {
-            apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Prefer: 'resolution=merge-duplicates,return=representation',
-          },
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' },
           body: JSON.stringify(clean),
         }).then(async r => { if (!r.ok) throw new Error(await r.text()) })
         toast('Links saved ✓')
@@ -680,10 +755,7 @@ function LinksTab({ token, toast }) {
         toast('Links updated ✓')
       }
       setEditing(null); load()
-    } catch(e) {
-      console.error('[Admin] save error:', e)
-      toast(`Save failed: ${e.message}`, false)
-    }
+    } catch(e) { toast(`Save failed: ${e.message}`, false) }
   }
 
   const del = async (id) => {
@@ -693,173 +765,105 @@ function LinksTab({ token, toast }) {
   }
 
   const filtered = links.filter(l =>
-    !listSearch || l.title?.toLowerCase().includes(listSearch.toLowerCase()) ||
-    l.item_id?.includes(listSearch)
+    !listSearch || l.title?.toLowerCase().includes(listSearch.toLowerCase()) || l.item_id?.includes(listSearch)
   )
-
-  const LINK_FIELDS = [
-    { key: 'shop',     label: '🛒 Shop',     color: GOLD       },
-    { key: 'youtube',  label: '▶ YouTube',  color: '#EF4444'  },
-    { key: 'official', label: '🔗 Official', color: CYAN       },
-    { key: 'raw',      label: '📄 Raw',      color: '#94A3B8'  },
-    { key: 'anilist',  label: '📊 AniList',  color: '#02a9ff'  },
-    { key: 'mangadex', label: '📖 MangaDex', color: ROSE       },
-  ]
-
-  const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
 
   return (
     <div>
-      <Section title="Series Link Manager"
-        action={<button style={btn(GREEN)} onClick={openNew}>+ Add Links</button>}>
-
-        {/* Filter existing entries */}
-        <input value={listSearch} onChange={e => setListSearch(e.target.value)}
-          placeholder="Filter saved entries by title or ID…" style={{ ...inp, marginBottom: 14 }} />
-
-        {loading ? (
-          <div style={{ color: '#475569', textAlign: 'center', padding: 32 }}>Loading…</div>
-        ) : filtered.length === 0 ? (
-          <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>
-            {listSearch ? 'No matching entries.' : 'No entries yet. Click "+ Add Links" to attach links to a series.'}
-          </div>
-        ) : (
+      <Section title="Series Link Manager" icon={Link2} color={GOLD}
+        action={<button style={{ ...btn(GREEN), padding: '7px 12px' }} onClick={() => setShowPicker(true)}><Plus size={13} /> Add Links</button>}>
+        <div style={{ position: 'relative', marginBottom: 14 }}>
+          <Search size={14} color="#475569" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+          <input value={listSearch} onChange={e => setListSearch(e.target.value)} placeholder="Filter by title or ID…" style={{ ...inp, paddingLeft: 32 }} />
+        </div>
+        {loading ? <div style={{ color: '#475569', textAlign: 'center', padding: 32 }}>Loading…</div>
+        : filtered.length === 0 ? <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>{listSearch ? 'No matches.' : 'No entries yet.'}</div>
+        : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {filtered.map(row => (
-              <div key={row.id} style={{
-                display: 'flex', gap: 12, alignItems: 'center',
-                background: 'rgba(255,255,255,0.03)', borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.06)', padding: '10px 14px',
-              }}>
-                {row.cover_url && (
-                  <img src={row.cover_url} style={{ width: 28, height: 38, objectFit: 'cover',
-                    borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
-                )}
+              <div key={row.id} style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)', padding: '10px 14px' }}>
+                {row.cover_url && <img src={row.cover_url} style={{ width: 28, height: 38, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
                 <div style={{ flexShrink: 0 }}>
-                  <div style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20,
-                    background: `${TYPE_COLOR[row.item_type] || PURPLE}20`,
-                    color: TYPE_COLOR[row.item_type] || PURPLE,
-                    fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, display: 'inline-block' }}>
-                    {row.item_type}
-                  </div>
+                  <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: `${TYPE_COLOR[row.item_type]||PURPLE}20`, color: TYPE_COLOR[row.item_type]||PURPLE, fontWeight: 700, textTransform: 'uppercase' }}>{row.item_type}</span>
                   <div style={{ fontSize: 10, color: '#374151', marginTop: 2 }}>ID: {row.item_id}</div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 600,
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {row.title || '(no title)'}
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 600, fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.title || '(no title)'}</div>
+                  <div style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
                     {LINK_FIELDS.filter(f => row[f.key]).map(f => (
-                      <span key={f.key} style={{ fontSize: 9, color: f.color,
-                        background: `${f.color}15`, border: `1px solid ${f.color}30`,
-                        borderRadius: 4, padding: '1px 6px', fontWeight: 700 }}>{f.label}</span>
+                      <span key={f.key} style={{ fontSize: 9, color: f.color, background: `${f.color}15`, border: `1px solid ${f.color}30`, borderRadius: 4, padding: '1px 6px', fontWeight: 700 }}>{f.label}</span>
                     ))}
                   </div>
                 </div>
-                <button style={btn(CYAN, true)} onClick={() => openEdit(row)}>Edit</button>
-                <button style={btn(ROSE, true)} onClick={() => del(row.id)}>×</button>
+                <button style={{ ...btn(CYAN, true), padding: '6px 10px' }} onClick={() => { setForm({...row}); setEditing(row) }}><Pencil size={12} /></button>
+                <button style={{ ...btn(ROSE, true), padding: '6px 10px' }} onClick={() => del(row.id)}><Trash2 size={12} /></button>
               </div>
             ))}
           </div>
         )}
       </Section>
 
-      {/* Series picker modal */}
       {showPicker && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => e.target === e.currentTarget && setShowPicker(false)}>
-          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
-            width: '100%', maxWidth: 500, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 16 }}>
-              Search & Select a Series
-            </div>
-            <SeriesPicker token={token} onPick={pickSeries} />
-            <button style={{ ...btn('#64748B', true), marginTop: 14, width: '100%' }}
-              onClick={() => setShowPicker(false)}>Cancel</button>
-          </div>
-        </div>
+        <Modal onClose={() => setShowPicker(false)} maxWidth={500}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 16 }}>Search & Select a Series</div>
+          <SeriesPicker token={token} onPick={pickSeries} />
+          <button style={{ ...btn('#64748B', true), marginTop: 14, width: '100%', justifyContent: 'center' }} onClick={() => setShowPicker(false)}>Cancel</button>
+        </Modal>
       )}
 
-      {/* Edit / New modal */}
       {editing && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-          zIndex: 9001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => e.target === e.currentTarget && setEditing(null)}>
-          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
-            width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto',
-            border: '1px solid rgba(255,255,255,0.1)' }}>
-
-            {/* Selected series header */}
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20,
-              background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}>
-              {form.cover_url && (
-                <img src={form.cover_url} style={{ width: 36, height: 50, objectFit: 'cover',
-                  borderRadius: 6, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
-              )}
-              <div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: 16, fontWeight: 700, color: '#f1f5f9' }}>{form.title}</div>
-                <div style={{ fontSize: 11, color: '#475569' }}>
-                  {form.item_type} · ID: {form.item_id}
-                </div>
-              </div>
+        <Modal onClose={() => setEditing(null)} maxWidth={560}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9' }}>
+              {editing === 'new' ? 'Save Links' : 'Edit Links'}
             </div>
-
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 15, fontWeight: 700, color: '#94A3B8', letterSpacing: 1,
-              textTransform: 'uppercase', marginBottom: 14 }}>Link URLs</div>
-
-            {LINK_FIELDS.map(f => (
-              <div key={f.key} style={{ marginBottom: 10 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: f.color }}>{f.label} URL</label>
-                <input value={form[f.key] || ''} onChange={e => setForm(p => ({...p, [f.key]: e.target.value}))}
-                  placeholder="https://…" style={{ ...inp, marginTop: 4 }} />
-              </div>
-            ))}
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end' }}>
-              <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
-              <button style={btn(GREEN)} onClick={save}>
-                {editing === 'new' ? 'Save Links' : 'Update Links'}
-              </button>
+            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex' }}><X size={18} /></button>
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}>
+            {form.cover_url && <img src={form.cover_url} style={{ width: 36, height: 50, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
+            <div>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 700, color: '#f1f5f9' }}>{form.title}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>{form.item_type} · ID: {form.item_id}</div>
             </div>
           </div>
-        </div>
+          {LINK_FIELDS.map(f => (
+            <div key={f.key} style={{ marginBottom: 10 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: f.color, display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                <ExternalLink size={11} /> {f.label} URL
+              </label>
+              <input value={form[f.key] || ''} onChange={e => setForm(p => ({...p, [f.key]: e.target.value}))} placeholder="https://…" style={inp} />
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end' }}>
+            <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
+            <button style={{ ...btn(GREEN), padding: '8px 20px' }} onClick={save}><Check size={13} /> {editing === 'new' ? 'Save Links' : 'Update'}</button>
+          </div>
+        </Modal>
       )}
     </div>
   )
 }
 
-// ═══════════════════════════════════════════════════════════
-// Tab: Featured Items
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// Featured Tab
+// ─────────────────────────────────────────────────────────────
 function FeaturedTab({ token, toast }) {
   const [items,   setItems]   = useState([])
   const [editing, setEditing] = useState(null)
   const [form,    setForm]    = useState({})
+  const [showPicker, setShowPicker] = useState(false)
 
   const load = useCallback(async () => {
     const data = await api(token, 'featured_items?order=sort_order.asc')
     setItems(Array.isArray(data) ? data : [])
   }, [token])
-
   useEffect(() => { load() }, [load])
-
-  const [showPicker, setShowPicker] = useState(false)
-
-  const openNew = () => { setShowPicker(true) }
 
   const pickSeries = (series) => {
     setShowPicker(false)
-    setForm({ item_id: series.id, item_type: series.type, title: series.title,
-      cover_url: series.cover || '', reason: '', sort_order: items.length, active: true })
+    setForm({ item_id: series.id, item_type: series.type, title: series.title, cover_url: series.cover || '', reason: '', sort_order: items.length, active: true })
     setEditing('new')
   }
-
   const save = async () => {
     try {
       if (editing === 'new') { await api(token, 'featured_items', 'POST', form); toast('Featured item added ✓') }
@@ -867,131 +871,88 @@ function FeaturedTab({ token, toast }) {
       setEditing(null); load()
     } catch(e) { toast(e.message, false) }
   }
-
-  const toggle = async (row) => {
-    await api(token, `featured_items?id=eq.${row.id}`, 'PATCH', { active: !row.active })
-    load()
-  }
-
-  const del = async (id) => {
-    if (!confirm('Remove featured item?')) return
-    await api(token, `featured_items?id=eq.${id}`, 'DELETE')
-    load()
-  }
+  const toggle = async (row) => { await api(token, `featured_items?id=eq.${row.id}`, 'PATCH', { active: !row.active }); load() }
+  const del = async (id) => { if (!confirm('Remove?')) return; await api(token, `featured_items?id=eq.${id}`, 'DELETE'); load() }
 
   return (
-    <Section title="Featured Series"
-      action={<button style={btn(GOLD)} onClick={openNew}>+ Add Featured</button>}>
-      {/* Series picker */}
-      {showPicker && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => e.target === e.currentTarget && setShowPicker(false)}>
-          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
-            width: '100%', maxWidth: 500, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 16 }}>
-              Search & Select a Series
-            </div>
+    <div>
+      <Section title="Featured Series" icon={Star} color={GOLD}
+        action={<button style={{ ...btn(GOLD), padding: '7px 12px' }} onClick={() => setShowPicker(true)}><Plus size={13} /> Add Featured</button>}>
+        {showPicker && (
+          <Modal onClose={() => setShowPicker(false)} maxWidth={500}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 16 }}>Search & Select</div>
             <SeriesPicker token={token} onPick={pickSeries} />
-            <button style={{ ...btn('#64748B', true), marginTop: 14, width: '100%' }}
-              onClick={() => setShowPicker(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
-      {items.length === 0 ? (
-        <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No featured items.</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {items.map(row => (
-            <div key={row.id} style={{
-              display: 'flex', gap: 12, alignItems: 'center',
-              background: row.active ? 'rgba(245,158,11,0.05)' : 'rgba(255,255,255,0.02)',
-              borderRadius: 10, border: `1px solid ${row.active ? GOLD+'30' : 'rgba(255,255,255,0.06)'}`,
-              padding: '10px 14px', opacity: row.active ? 1 : 0.5,
-            }}>
-              {row.cover_url && (
-                <img src={row.cover_url} style={{ width: 32, height: 44, borderRadius: 5, objectFit: 'cover', flexShrink: 0 }} />
-              )}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 600,
-                  fontFamily: "'Barlow Condensed', sans-serif" }}>{row.title}</div>
-                <div style={{ fontSize: 11, color: '#64748B' }}>{row.item_type} · {row.reason}</div>
-              </div>
-              <div style={{ fontSize: 11, color: '#374151' }}>#{row.sort_order}</div>
-              <button style={btn(row.active ? GOLD : GREEN, true)} onClick={() => toggle(row)}>
-                {row.active ? 'Hide' : 'Show'}
-              </button>
-              <button style={btn(CYAN, true)} onClick={() => { setForm({...row}); setEditing(row) }}>Edit</button>
-              <button style={btn(ROSE, true)} onClick={() => del(row.id)}>×</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {editing && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
-          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => e.target === e.currentTarget && setEditing(null)}>
-          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
-            width: '100%', maxWidth: 480, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>
-              {editing === 'new' ? '+ Add Featured Item' : 'Edit Featured Item'}
-            </div>
-            {/* Series info (read-only, set by picker) */}
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16,
-              background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}>
-              {form.cover_url && <img src={form.cover_url} style={{ width: 32, height: 44,
-                objectFit: 'cover', borderRadius: 5, flexShrink: 0 }} />}
-              <div>
-                <div style={{ fontSize: 14, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 700 }}>{form.title}</div>
-                <div style={{ fontSize: 11, color: '#475569' }}>{form.item_type} · ID: {form.item_id}</div>
-              </div>
-            </div>
-            {[
-              { key: 'reason',    label: 'REASON',     ph: "Editor's Pick, Trending…" },
-              { key: 'sort_order',label: 'SORT ORDER', ph: '0 = first' },
-            ].map(f => (
-              <div key={f.key} style={{ marginBottom: 10 }}>
-                <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>{f.label}</label>
-                <input value={form[f.key] || ''} onChange={e => setForm(p => ({...p, [f.key]: e.target.value}))}
-                  placeholder={f.ph} style={{ ...inp, marginTop: 4 }} />
+            <button style={{ ...btn('#64748B', true), marginTop: 14, width: '100%', justifyContent: 'center' }} onClick={() => setShowPicker(false)}>Cancel</button>
+          </Modal>
+        )}
+        {items.length === 0 ? <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No featured items.</div>
+        : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {items.map(row => (
+              <div key={row.id} style={{ display: 'flex', gap: 12, alignItems: 'center', background: row.active ? 'rgba(245,158,11,0.05)' : 'rgba(255,255,255,0.02)', borderRadius: 10, border: `1px solid ${row.active ? GOLD+'30' : 'rgba(255,255,255,0.06)'}`, padding: '10px 14px', opacity: row.active ? 1 : 0.5 }}>
+                {row.cover_url && <img src={row.cover_url} style={{ width: 32, height: 44, borderRadius: 5, objectFit: 'cover', flexShrink: 0 }} />}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, color: '#e2e8f0', fontWeight: 600, fontFamily: "'Barlow Condensed', sans-serif" }}>{row.title}</div>
+                  <div style={{ fontSize: 11, color: '#64748B' }}>{row.item_type} · {row.reason}</div>
+                </div>
+                <span style={{ fontSize: 11, color: '#374151' }}>#{row.sort_order}</span>
+                <button style={{ ...btn(row.active ? GOLD : GREEN, true), padding: '6px 10px' }} onClick={() => toggle(row)}>
+                  {row.active ? <EyeOff size={12} /> : <Eye size={12} />}
+                </button>
+                <button style={{ ...btn(CYAN, true), padding: '6px 10px' }} onClick={() => { setForm({...row}); setEditing(row) }}><Pencil size={12} /></button>
+                <button style={{ ...btn(ROSE, true), padding: '6px 10px' }} onClick={() => del(row.id)}><Trash2 size={12} /></button>
               </div>
             ))}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <input type="checkbox" checked={form.active !== false}
-                onChange={e => setForm(p => ({...p, active: e.target.checked}))} id="active_chk" />
-              <label htmlFor="active_chk" style={{ fontSize: 13, color: '#94A3B8' }}>Active (visible to users)</label>
-            </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
-              <button style={btn(GOLD)} onClick={save}>{editing === 'new' ? 'Add' : 'Save'}</button>
+          </div>
+        )}
+      </Section>
+
+      {editing && (
+        <Modal onClose={() => setEditing(null)} maxWidth={480}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>
+            {editing === 'new' ? 'Add Featured Item' : 'Edit Featured Item'}
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px' }}>
+            {form.cover_url && <img src={form.cover_url} style={{ width: 32, height: 44, objectFit: 'cover', borderRadius: 5, flexShrink: 0 }} />}
+            <div>
+              <div style={{ fontSize: 14, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>{form.title}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>{form.item_type} · ID: {form.item_id}</div>
             </div>
           </div>
-        </div>
+          {[{ key: 'reason', label: 'REASON', ph: "Editor's Pick, Trending…" }, { key: 'sort_order', label: 'SORT ORDER', ph: '0 = first' }].map(f => (
+            <div key={f.key} style={{ marginBottom: 10 }}>
+              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>{f.label}</label>
+              <input value={form[f.key] || ''} onChange={e => setForm(p => ({...p, [f.key]: e.target.value}))} placeholder={f.ph} style={inp} />
+            </div>
+          ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <input type="checkbox" checked={form.active !== false} onChange={e => setForm(p => ({...p, active: e.target.checked}))} id="active_chk" />
+            <label htmlFor="active_chk" style={{ fontSize: 13, color: '#94A3B8' }}>Active (visible to users)</label>
+          </div>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
+            <button style={{ ...btn(GOLD), padding: '8px 20px' }} onClick={save}><Check size={13} /> {editing === 'new' ? 'Add' : 'Save'}</button>
+          </div>
+        </Modal>
       )}
-    </Section>
+    </div>
   )
 }
 
-// ═══════════════════════════════════════════════════════════
-// Tab: Announcements
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// Announcements Tab
+// ─────────────────────────────────────────────────────────────
 function AnnouncementsTab({ token, toast }) {
   const [items,   setItems]   = useState([])
   const [editing, setEditing] = useState(null)
   const [form,    setForm]    = useState({})
+  const TYPE_COLOR = { info: CYAN, warning: GOLD, success: GREEN }
 
   const load = useCallback(async () => {
     const data = await api(token, 'site_announcements?order=created_at.desc')
     setItems(Array.isArray(data) ? data : [])
   }, [token])
-
   useEffect(() => { load() }, [load])
-
-  const TYPE_COLOR = { info: CYAN, warning: GOLD, success: GREEN }
 
   const save = async () => {
     try {
@@ -1000,165 +961,133 @@ function AnnouncementsTab({ token, toast }) {
       setEditing(null); load()
     } catch(e) { toast(e.message, false) }
   }
-
-  const toggle = async (row) => {
-    await api(token, `site_announcements?id=eq.${row.id}`, 'PATCH', { active: !row.active })
-    load()
-  }
-
-  const del = async (id) => {
-    if (!confirm('Delete announcement?')) return
-    await api(token, `site_announcements?id=eq.${id}`, 'DELETE'); load()
-  }
+  const toggle = async (row) => { await api(token, `site_announcements?id=eq.${row.id}`, 'PATCH', { active: !row.active }); load() }
+  const del = async (id) => { if (!confirm('Delete?')) return; await api(token, `site_announcements?id=eq.${id}`, 'DELETE'); load() }
 
   return (
-    <Section title="Site Announcements"
-      action={<button style={btn(CYAN)} onClick={() => { setForm({ message_en: '', message_vi: '', type: 'info', active: true }); setEditing('new') }}>
-        + New Announcement
-      </button>}>
-      {items.length === 0 ? (
-        <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No announcements.</div>
-      ) : items.map(row => {
-        const c = TYPE_COLOR[row.type] || CYAN
-        return (
-          <div key={row.id} style={{
-            background: `${c}08`, border: `1px solid ${c}25`, borderRadius: 10,
-            padding: '10px 14px', marginBottom: 8, opacity: row.active ? 1 : 0.4,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, color: c, fontWeight: 700, marginBottom: 4 }}>
-                  [{row.type.toUpperCase()}] {row.active ? '● LIVE' : '○ Hidden'}
+    <div>
+      <Section title="Announcements" icon={Megaphone} color={CYAN}
+        action={
+          <button style={{ ...btn(CYAN), padding: '7px 12px' }} onClick={() => { setForm({ message_en: '', message_vi: '', type: 'info', active: true }); setEditing('new') }}>
+            <Plus size={13} /> New
+          </button>
+        }>
+        {items.length === 0 ? <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No announcements.</div>
+        : items.map(row => {
+          const c = TYPE_COLOR[row.type] || CYAN
+          return (
+            <div key={row.id} style={{ background: `${c}08`, border: `1px solid ${c}25`, borderRadius: 10, padding: '10px 14px', marginBottom: 8, opacity: row.active ? 1 : 0.4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, color: c, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>{row.type}</span>
+                    <span style={{ fontSize: 10, opacity: 0.7 }}>{row.active ? '● LIVE' : '○ Hidden'}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#e2e8f0' }}>{row.message_en}</div>
+                  <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{row.message_vi}</div>
                 </div>
-                <div style={{ fontSize: 13, color: '#e2e8f0' }}>{row.message_en}</div>
-                <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{row.message_vi}</div>
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                <button style={btn(row.active ? GOLD : GREEN, true)} onClick={() => toggle(row)}>
-                  {row.active ? 'Hide' : 'Show'}
-                </button>
-                <button style={btn(CYAN, true)} onClick={() => { setForm({...row}); setEditing(row) }}>Edit</button>
-                <button style={btn(ROSE, true)} onClick={() => del(row.id)}>×</button>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button style={{ ...btn(row.active ? GOLD : GREEN, true), padding: '6px 10px' }} onClick={() => toggle(row)}>
+                    {row.active ? <EyeOff size={12} /> : <Eye size={12} />}
+                  </button>
+                  <button style={{ ...btn(CYAN, true), padding: '6px 10px' }} onClick={() => { setForm({...row}); setEditing(row) }}><Pencil size={12} /></button>
+                  <button style={{ ...btn(ROSE, true), padding: '6px 10px' }} onClick={() => del(row.id)}><Trash2 size={12} /></button>
+                </div>
               </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </Section>
 
       {editing && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
-          zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => e.target === e.currentTarget && setEditing(null)}>
-          <div style={{ background: '#111827', borderRadius: 16, padding: 24,
-            width: '100%', maxWidth: 500, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>
-              {editing === 'new' ? '+ New Announcement' : 'Edit Announcement'}
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>TYPE</label>
-              <select value={form.type || 'info'} onChange={e => setForm(p => ({...p, type: e.target.value}))}
-                style={{ ...inp, marginTop: 4 }}>
-                <option value="info">ℹ Info</option>
-                <option value="warning">⚠ Warning</option>
-                <option value="success">✓ Success</option>
-              </select>
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>MESSAGE (English)</label>
-              <textarea value={form.message_en || ''} onChange={e => setForm(p => ({...p, message_en: e.target.value}))}
-                placeholder="Enter message in English…" rows={3}
-                style={{ ...inp, marginTop: 4, resize: 'vertical' }} />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>MESSAGE (Vietnamese)</label>
-              <textarea value={form.message_vi || ''} onChange={e => setForm(p => ({...p, message_vi: e.target.value}))}
-                placeholder="Nhập nội dung bằng tiếng Việt…" rows={3}
-                style={{ ...inp, marginTop: 4, resize: 'vertical' }} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <input type="checkbox" checked={form.active !== false}
-                onChange={e => setForm(p => ({...p, active: e.target.checked}))} id="ann_active" />
-              <label htmlFor="ann_active" style={{ fontSize: 13, color: '#94A3B8' }}>Show immediately (active)</label>
-            </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
-              <button style={btn(CYAN)} onClick={save}>{editing === 'new' ? 'Publish' : 'Save'}</button>
-            </div>
+        <Modal onClose={() => setEditing(null)} maxWidth={500}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>
+            {editing === 'new' ? 'New Announcement' : 'Edit Announcement'}
           </div>
-        </div>
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>TYPE</label>
+            <select value={form.type || 'info'} onChange={e => setForm(p => ({...p, type: e.target.value}))} style={inp}>
+              <option value="info">ℹ Info</option>
+              <option value="warning">⚠ Warning</option>
+              <option value="success">✓ Success</option>
+            </select>
+          </div>
+          {[
+            { k: 'message_en', label: 'MESSAGE (English)',    ph: 'Enter message in English…' },
+            { k: 'message_vi', label: 'MESSAGE (Vietnamese)', ph: 'Nhập nội dung bằng tiếng Việt…' },
+          ].map(f => (
+            <div key={f.k} style={{ marginBottom: 10 }}>
+              <label style={{ fontSize: 11, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 4 }}>{f.label}</label>
+              <textarea value={form[f.k] || ''} onChange={e => setForm(p => ({...p, [f.k]: e.target.value}))} placeholder={f.ph} rows={3} style={{ ...inp, resize: 'vertical' }} />
+            </div>
+          ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <input type="checkbox" checked={form.active !== false} onChange={e => setForm(p => ({...p, active: e.target.checked}))} id="ann_active" />
+            <label htmlFor="ann_active" style={{ fontSize: 13, color: '#94A3B8' }}>Show immediately (active)</label>
+          </div>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
+            <button style={{ ...btn(CYAN), padding: '8px 20px' }} onClick={save}><Check size={13} /> {editing === 'new' ? 'Publish' : 'Save'}</button>
+          </div>
+        </Modal>
       )}
-    </Section>
+    </div>
   )
 }
 
-// ═══════════════════════════════════════════════════════════
-// Tab: Vote Manager
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// Votes Tab
+// ─────────────────────────────────────────────────────────────
 function VotesTab({ token, toast }) {
-  const [votes,   setVotes]   = useState([])
-  const [month,   setMonth]   = useState(new Date().getMonth() + 1)
-  const [year,    setYear]    = useState(new Date().getFullYear())
+  const [votes, setVotes] = useState([])
+  const [month, setMonth] = useState(new Date().getMonth() + 1)
+  const [year,  setYear]  = useState(new Date().getFullYear())
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
   const load = useCallback(async () => {
     const data = await api(token, `novel_votes?month=eq.${month}&year=eq.${year}&order=vote_count.desc`)
     setVotes(Array.isArray(data) ? data : [])
   }, [token, month, year])
-
   useEffect(() => { load() }, [load])
 
   const resetVotes = async (id) => {
-    if (!confirm('Reset this series vote count to 0?')) return
+    if (!confirm('Reset vote count to 0?')) return
     await api(token, `novel_votes?id=eq.${id}`, 'PATCH', { vote_count: 0 })
-    toast('Vote count reset'); load()
+    toast('Reset ✓'); load()
   }
-
   const deleteEntry = async (id) => {
-    if (!confirm('Delete this vote entry entirely?')) return
+    if (!confirm('Delete entry?')) return
     await api(token, `novel_votes?id=eq.${id}`, 'DELETE')
-    toast('Entry deleted'); load()
+    toast('Deleted'); load()
   }
-
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
   return (
-    <Section title="Vote Manager">
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+    <Section title="Vote Manager" icon={Vote} color={PURPLE}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <select value={month} onChange={e => setMonth(+e.target.value)} style={{ ...inp, width: 'auto' }}>
           {MONTHS.map((m, i) => <option key={i} value={i+1}>{m}</option>)}
         </select>
         <select value={year} onChange={e => setYear(+e.target.value)} style={{ ...inp, width: 'auto' }}>
           {[2024,2025,2026,2027].map(y => <option key={y} value={y}>{y}</option>)}
         </select>
-        <div style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center' }}>
-          {votes.length} entries · {votes.reduce((s,v) => s + v.vote_count, 0)} total votes
+        <div style={{ fontSize: 12, color: '#64748B' }}>
+          {votes.length} entries · <span style={{ color: PURPLE, fontWeight: 700 }}>{votes.reduce((s,v) => s + v.vote_count, 0)}</span> total votes
         </div>
       </div>
-
       {votes.length === 0 ? (
-        <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No votes this month.</div>
+        <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No votes this period.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {votes.map((row, i) => (
-            <div key={row.id} style={{
-              display: 'flex', gap: 10, alignItems: 'center',
-              background: 'rgba(255,255,255,0.02)', borderRadius: 8,
-              border: '1px solid rgba(255,255,255,0.05)', padding: '8px 12px',
-            }}>
+            <div key={row.id} style={{ display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)', padding: '8px 12px' }}>
               <span style={{ width: 24, color: '#374151', fontSize: 12, fontWeight: 700 }}>#{i+1}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: '#e2e8f0', fontFamily: "'Barlow Condensed', sans-serif",
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {row.novel_title}
-                </div>
+                <div style={{ fontSize: 13, color: '#e2e8f0', fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.novel_title}</div>
                 <div style={{ fontSize: 10, color: '#374151' }}>ID: {row.novel_id}</div>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: PURPLE,
-                fontFamily: "'Barlow Condensed', sans-serif", minWidth: 32, textAlign: 'right' }}>
-                {row.vote_count}
-              </div>
-              <button style={btn(GOLD, true)} onClick={() => resetVotes(row.id)}>Reset</button>
-              <button style={btn(ROSE, true)} onClick={() => deleteEntry(row.id)}>Delete</button>
+              <div style={{ fontSize: 18, fontWeight: 900, color: PURPLE, fontFamily: "'Barlow Condensed', sans-serif", minWidth: 32, textAlign: 'right' }}>{row.vote_count}</div>
+              <button style={{ ...btn(GOLD, true), padding: '6px 10px' }} onClick={() => resetVotes(row.id)}><RefreshCw size={12} /></button>
+              <button style={{ ...btn(ROSE, true), padding: '6px 10px' }} onClick={() => deleteEntry(row.id)}><Trash2 size={12} /></button>
             </div>
           ))}
         </div>
@@ -1167,18 +1096,17 @@ function VotesTab({ token, toast }) {
   )
 }
 
-// ═══════════════════════════════════════════════════════════
-// Tab: Users
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// Users Tab
+// ─────────────────────────────────────────────────────────────
 function UsersTab({ token, toast, currentUserId }) {
-  const [admins,  setAdmins]  = useState([])
-  const [newUid,  setNewUid]  = useState('')
+  const [admins, setAdmins] = useState([])
+  const [newUid, setNewUid] = useState('')
 
   const load = useCallback(async () => {
     const data = await api(token, 'admin_users?select=user_id,granted_at')
     setAdmins(Array.isArray(data) ? data : [])
   }, [token])
-
   useEffect(() => { load() }, [load])
 
   const grantAdmin = async () => {
@@ -1188,53 +1116,67 @@ function UsersTab({ token, toast, currentUserId }) {
       toast('Admin granted ✓'); setNewUid(''); load()
     } catch(e) { toast(e.message, false) }
   }
-
   const revokeAdmin = async (uid) => {
     if (uid === currentUserId) { toast("Can't revoke yourself", false); return }
-    if (!confirm('Revoke admin for this user?')) return
+    if (!confirm('Revoke admin?')) return
     await api(token, `admin_users?user_id=eq.${uid}`, 'DELETE')
     toast('Admin revoked'); load()
   }
 
   return (
-    <Section title="Admin Users">
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-        <input value={newUid} onChange={e => setNewUid(e.target.value)}
-          placeholder="User UUID to grant admin…" style={{ ...inp, flex: 1 }} />
-        <button style={btn(GREEN)} onClick={grantAdmin}>Grant Admin</button>
+    <Section title="Admin Users" icon={Users} color={GREEN}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+        <input value={newUid} onChange={e => setNewUid(e.target.value)} placeholder="User UUID to grant admin…" style={{ ...inp, flex: 1 }} />
+        <button style={{ ...btn(GREEN), padding: '8px 14px' }} onClick={grantAdmin}><Shield size={13} /> Grant Admin</button>
       </div>
       <div style={{ fontSize: 11, color: '#374151', marginBottom: 14 }}>
         Find user UUIDs in Supabase Dashboard → Authentication → Users
       </div>
       {admins.map(row => (
-        <div key={row.user_id} style={{
-          display: 'flex', gap: 12, alignItems: 'center',
-          background: 'rgba(255,255,255,0.02)', borderRadius: 8,
-          border: '1px solid rgba(255,255,255,0.06)', padding: '10px 14px', marginBottom: 6,
-        }}>
+        <div key={row.user_id} style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', padding: '10px 14px', marginBottom: 6 }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, color: '#94A3B8', fontFamily: 'monospace' }}>{row.user_id}</div>
             <div style={{ fontSize: 10, color: '#374151' }}>Granted: {new Date(row.granted_at).toLocaleDateString()}</div>
           </div>
-          {row.user_id === currentUserId && (
-            <span style={{ fontSize: 10, color: GREEN, fontWeight: 700 }}>YOU</span>
-          )}
-          <button style={btn(ROSE, true)} onClick={() => revokeAdmin(row.user_id)}>Revoke</button>
+          {row.user_id === currentUserId && <span style={{ fontSize: 10, color: GREEN, fontWeight: 700 }}>YOU</span>}
+          <button style={{ ...btn(ROSE, true), padding: '6px 10px' }} onClick={() => revokeAdmin(row.user_id)}><X size={12} /></button>
         </div>
       ))}
     </Section>
   )
 }
 
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// Settings Tab (placeholder)
+// ─────────────────────────────────────────────────────────────
+function SettingsTab() {
+  return (
+    <Section title="Settings" icon={Settings} color={SLATE}>
+      <div style={{ color: '#374151', textAlign: 'center', padding: 32, fontSize: 13 }}>
+        Site settings coming soon.
+      </div>
+    </Section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Main AdminPage
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
 export function AdminPage() {
   const { user, token } = useAuth()
   const { lang }        = useLang()
   const { show: showToast } = useToast()
-  const [isAdmin, setIsAdmin]   = useState(null)   // null=checking
-  const [activeTab, setActiveTab] = useState('series')
+  const [isAdmin,    setIsAdmin]    = useState(null)
+  const [activeTab,  setActiveTab]  = useState('overview')
+  const [sidebarOpen,setSidebarOpen]= useState(true)
+  const [expanded,   setExpanded]   = useState({ series: true })
+  const [isMobile,   setIsMobile]   = useState(() => window.innerWidth < 900)
+
+  useEffect(() => {
+    const fn = () => { const m = window.innerWidth < 900; setIsMobile(m); if (m) setSidebarOpen(false) }
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
 
   const toast = (msg, ok = true) => showToast(msg, ok)
 
@@ -1242,98 +1184,199 @@ export function AdminPage() {
     if (!token) { setIsAdmin(false); return }
     fetch(`${SUPABASE_URL}/rest/v1/admin_users?user_id=eq.${user?.id}&select=user_id`, {
       headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
-    })
-      .then(r => r.json())
-      .then(data => setIsAdmin(Array.isArray(data) && data.length > 0))
-      .catch(() => setIsAdmin(false))
+    }).then(r => r.json()).then(data => setIsAdmin(Array.isArray(data) && data.length > 0)).catch(() => setIsAdmin(false))
   }, [token, user?.id])
 
+  // ── Auth / permission gates ──
   if (isAdmin === null) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', color: '#475569',
-      fontFamily: "'Be Vietnam Pro', sans-serif" }}>
-      Checking permissions…
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontFamily: "'Be Vietnam Pro', sans-serif", background: '#080D1A' }}>
+      <RefreshCw size={18} style={{ marginRight: 8, animation: 'spin 1s linear infinite' }} />Checking permissions…
     </div>
   )
-
   if (!user) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-      <div style={{ fontSize: 48 }}>🔒</div>
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-        fontSize: 24, color: '#f1f5f9' }}>Login Required</div>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: '#080D1A' }}>
+      <div style={{ width: 60, height: 60, borderRadius: 16, background: `${PURPLE}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={28} color={PURPLE} /></div>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: '#f1f5f9' }}>Login Required</div>
       <a href="#/" style={{ color: PURPLE, textDecoration: 'none', fontSize: 14 }}>← Go home</a>
     </div>
   )
-
   if (!isAdmin) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-      <div style={{ fontSize: 48 }}>⛔</div>
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-        fontSize: 24, color: '#F87171' }}>Access Denied</div>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: '#080D1A' }}>
+      <div style={{ width: 60, height: 60, borderRadius: 16, background: `${ROSE}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={28} color={ROSE} /></div>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: '#F87171' }}>Access Denied</div>
       <div style={{ color: '#475569', fontSize: 14 }}>This account does not have admin privileges.</div>
       <a href="#/" style={{ color: PURPLE, textDecoration: 'none', fontSize: 14 }}>← Go home</a>
     </div>
   )
 
+  const SIDEBAR_W = sidebarOpen ? 220 : 0
+
+  // ── Nav click handler ──
+  const navigate = (id, hasSubId) => {
+    if (hasSubId) {
+      setExpanded(p => ({ ...p, [id]: !p[id] }))
+    } else {
+      setActiveTab(id)
+      if (isMobile) setSidebarOpen(false)
+    }
+  }
+
+  // ── Resolve which sub-tab is active display id ──
+  const displayId = activeTab
+
   return (
-    <div className="page-enter" style={{ minHeight: '100vh' }}>
-      <AppHeader activeTab="#/admin" accent={PURPLE}
-        searchInput="" onSearch={() => {}} sorts={[]}
-        activeSort="" onSort={() => {}} hideSearch hideSorts />
-
-      {/* Admin header */}
+    <div style={{ minHeight: '100vh', background: '#080D1A', display: 'flex', flexDirection: 'column' }}>
+      {/* ── Top bar ── */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(6,182,212,0.08) 100%)',
-        borderBottom: '1px solid rgba(139,92,246,0.2)', padding: '28px 24px 0',
+        height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 20px', background: 'rgba(15,23,42,0.98)',
+        borderBottom: '1px solid rgba(139,92,246,0.15)',
+        position: 'sticky', top: 0, zIndex: 100,
+        backdropFilter: 'blur(12px)',
       }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 10,
-              background: `linear-gradient(135deg, ${PURPLE}, #6366F1)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 20,
-            }}>⚙️</div>
-            <div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: 26, fontWeight: 900, color: '#f1f5f9', letterSpacing: 1 }}>
-                ADMIN PANEL
-              </div>
-              <div style={{ fontSize: 12, color: '#64748B' }}>
-                Logged in as {user.email}
-              </div>
-            </div>
-          </div>
+        {/* Left: hamburger + logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => setSidebarOpen(o => !o)} style={{
+            width: 34, height: 34, borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.05)', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+          }}>
+            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
+          </button>
+          <a href="#/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: `linear-gradient(135deg, ${PURPLE}, #6366F1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: '#fff', fontFamily: "'Barlow Condensed', sans-serif" }}>Li</div>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: '#f1f5f9', letterSpacing: 0.5 }}>
+              Li<span style={{ color: PURPLE }}>Dex</span>
+              <span style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginLeft: 8 }}>ADMIN</span>
+            </span>
+          </a>
+        </div>
 
-          {/* Tab bar */}
-          <div style={{ display: 'flex', gap: 2, overflowX: 'auto' }}>
-            {TABS.map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-                background: activeTab === tab.id ? `${PURPLE}20` : 'transparent',
-                border: 'none', borderBottom: activeTab === tab.id ? `2px solid ${PURPLE}` : '2px solid transparent',
-                color: activeTab === tab.id ? PURPLE : '#475569',
-                padding: '10px 16px', cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap',
-                transition: 'all 0.15s',
-              }}>
-                {tab.icon} {tab.label}
-              </button>
-            ))}
+        {/* Right: user info */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ fontSize: 12, color: '#475569', display: isMobile ? 'none' : 'block' }}>{user.email}</div>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: `${PURPLE}25`, border: `1px solid ${PURPLE}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Shield size={15} color={PURPLE} />
           </div>
         </div>
       </div>
 
-      {/* Tab content */}
-      <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
-        {activeTab === 'series'        && <SeriesTab token={token} toast={toast} />}
-        {activeTab === 'links'         && <LinksTab token={token} toast={toast} />}
-        {activeTab === 'featured'      && <FeaturedTab token={token} toast={toast} />}
-        {activeTab === 'announcements' && <AnnouncementsTab token={token} toast={toast} />}
-        {activeTab === 'votes'         && <VotesTab token={token} toast={toast} />}
-        {activeTab === 'users'         && <UsersTab token={token} toast={toast} currentUserId={user?.id} />}
-      </main>
+      {/* ── Body: sidebar + content ── */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+
+        {/* Sidebar */}
+        <div style={{
+          width: SIDEBAR_W, flexShrink: 0,
+          background: 'rgba(15,23,42,0.95)',
+          borderRight: '1px solid rgba(255,255,255,0.06)',
+          overflowY: 'auto', overflowX: 'hidden',
+          transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
+          position: isMobile ? 'fixed' : 'relative',
+          top: isMobile ? 56 : 0,
+          bottom: 0,
+          zIndex: isMobile ? 80 : 1,
+        }}>
+          {sidebarOpen && (
+            <nav style={{ padding: '12px 10px' }}>
+              {NAV_ITEMS.map(item => {
+                const hasSub = item.sub && item.sub.length > 0
+                const isExpanded = expanded[item.id]
+                const isActive = !hasSub && activeTab === item.id
+                const subActive = hasSub && item.sub.some(s => s.id === activeTab)
+                const Icon = item.icon
+
+                return (
+                  <div key={item.id}>
+                    <button onClick={() => navigate(item.id, hasSub)} style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '9px 12px', borderRadius: 9, marginBottom: 2,
+                      background: isActive || subActive ? `${item.color}15` : 'transparent',
+                      border: `1px solid ${isActive || subActive ? item.color + '30' : 'transparent'}`,
+                      color: isActive || subActive ? '#f1f5f9' : '#475569',
+                      cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                    }}
+                      onMouseEnter={e => { if (!isActive && !subActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                      onMouseLeave={e => { if (!isActive && !subActive) e.currentTarget.style.background = 'transparent' }}
+                    >
+                      <Icon size={15} color={isActive || subActive ? item.color : '#475569'} style={{ flexShrink: 0 }} />
+                      <span style={{ flex: 1, fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: isActive || subActive ? 700 : 500 }}>{item.label}</span>
+                      {hasSub && <ChevronRight size={12} color="#475569" style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />}
+                      {isActive && <span style={{ width: 5, height: 5, borderRadius: '50%', background: item.color, flexShrink: 0 }} />}
+                    </button>
+
+                    {/* Sub-items */}
+                    {hasSub && isExpanded && (
+                      <div style={{ paddingLeft: 14, marginBottom: 4 }}>
+                        {item.sub.map(sub => {
+                          const SubIcon = sub.icon
+                          const subIsActive = activeTab === sub.id
+                          return (
+                            <button key={sub.id} onClick={() => { setActiveTab(sub.id); if (isMobile) setSidebarOpen(false) }} style={{
+                              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                              padding: '7px 12px', borderRadius: 8, marginBottom: 2,
+                              background: subIsActive ? `${sub.color}15` : 'transparent',
+                              border: `1px solid ${subIsActive ? sub.color + '30' : 'transparent'}`,
+                              color: subIsActive ? '#f1f5f9' : '#374151',
+                              cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                            }}
+                              onMouseEnter={e => { if (!subIsActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                              onMouseLeave={e => { if (!subIsActive) e.currentTarget.style.background = 'transparent' }}
+                            >
+                              <SubIcon size={13} color={subIsActive ? sub.color : '#374151'} style={{ flexShrink: 0 }} />
+                              <span style={{ fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 12, fontWeight: subIsActive ? 700 : 500 }}>{sub.label}</span>
+                              {subIsActive && <span style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: sub.color }} />}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+
+              {/* Divider + back to site */}
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 12, paddingTop: 12 }}>
+                <a href="#/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9, color: '#374151', textDecoration: 'none', fontSize: 13, fontFamily: "'Be Vietnam Pro', sans-serif", transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#64748B'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+                >
+                  <ExternalLink size={14} />
+                  Back to site
+                </a>
+              </div>
+            </nav>
+          )}
+        </div>
+
+        {/* Mobile overlay backdrop */}
+        {isMobile && sidebarOpen && (
+          <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, top: 56, background: 'rgba(0,0,0,0.6)', zIndex: 79 }} />
+        )}
+
+        {/* Main content */}
+        <main style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '20px 14px' : '28px 28px', minWidth: 0 }}>
+          {activeTab === 'overview'      && <OverviewTab token={token} />}
+          {activeTab === 'series_anime'  && <SeriesTab token={token} toast={toast} type="anime" />}
+          {activeTab === 'series_manga'  && <SeriesTab token={token} toast={toast} type="manga" />}
+          {activeTab === 'series_novel'  && <SeriesTab token={token} toast={toast} type="novel" />}
+          {activeTab === 'links'         && <LinksTab token={token} toast={toast} />}
+          {activeTab === 'featured'      && <FeaturedTab token={token} toast={toast} />}
+          {activeTab === 'announcements' && <AnnouncementsTab token={token} toast={toast} />}
+          {activeTab === 'votes'         && <VotesTab token={token} toast={toast} />}
+          {activeTab === 'users'         && <UsersTab token={token} toast={toast} currentUserId={user?.id} />}
+          {activeTab === 'settings'      && <SettingsTab />}
+        </main>
+      </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+      `}</style>
     </div>
   )
 }
