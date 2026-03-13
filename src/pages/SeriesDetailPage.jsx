@@ -2,12 +2,28 @@ import React, { useRef, useState, useEffect } from 'react'
 import { PURPLE, novelStatusColor } from '../constants.js'
 import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { useSeriesById, useSeriesVolumes, useSeriesLinks, useRelatedSeries, useSeriesNuData, useSeriesStats, useUserRating, seriesUrl } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
 import { QuickAddButton } from '../components/QuickAddButton.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useUserList } from '../useList.js'
 import { createPortal } from 'react-dom'
+
+function useDetailStyles() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  return {
+    isLight,
+    bg: isLight ? '#F1F5F9' : '#0f0b09',
+    bgSurface: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,248,240,0.02)',
+    border: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,248,240,0.06)',
+    textBright: isLight ? '#0F172A' : '#f1f5f9',
+    textPrimary: isLight ? '#1E293B' : '#e2e8f0',
+    textSecondary: isLight ? '#64748B' : '#94A3B8',
+    textMuted: isLight ? '#94A3B8' : '#6b4f35',
+  }
+}
 
 const LINK_STYLES = {
   shop:     { color: '#F59E0B', label: 'Shop'        },
@@ -614,6 +630,7 @@ function TabPanelContent({ activeTab, lang, series, volumes, related, PURPLE, Mi
 
 export function SeriesDetailPage({ seriesId }) {
   const { lang } = useLang()
+  const s = useDetailStyles()
   const { user, token } = useAuth()
   const { series, loading, error } = useSeriesById(seriesId)
   const { volumes, loading: loadingVols } = useSeriesVolumes(seriesId)

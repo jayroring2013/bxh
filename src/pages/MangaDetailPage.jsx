@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import { ROSE } from '../constants.js'
 import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { useMangaById, useMangaRelated, useSeriesLinks, useSeriesStats, useUserRating, mangaUrl } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -10,6 +11,21 @@ import { createPortal } from 'react-dom'
 
 const ACCENT = ROSE
 const BG_DARK = '#0c0408'
+
+function useDetailStyles() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  return {
+    isLight,
+    bg: isLight ? '#F1F5F9' : BG_DARK,
+    bgSurface: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,248,240,0.02)',
+    border: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,248,240,0.06)',
+    textBright: isLight ? '#0F172A' : '#f1f5f9',
+    textPrimary: isLight ? '#1E293B' : '#e2e8f0',
+    textSecondary: isLight ? '#64748B' : '#94A3B8',
+    textMuted: isLight ? '#94A3B8' : '#4a3828',
+  }
+}
 
 const STATUS_COLORS = {
   ongoing: 'rgba(100,200,255,0.9)', completed: 'rgba(100,200,100,0.8)',
@@ -394,6 +410,7 @@ function ErrorReportButton({ seriesId, title, lang }) {
 // ── Main page ─────────────────────────────────────────────────────
 export function MangaDetailPage({ mangaId }) {
   const { lang } = useLang()
+  const s = useDetailStyles()
   const { user, token } = useAuth()
   const { manga, loading, error } = useMangaById(mangaId)
   const { related, recs } = useMangaRelated(manga?.id, manga?.genres)
@@ -415,7 +432,7 @@ export function MangaDetailPage({ mangaId }) {
   if (loading) return (
     <div className="page-enter">
       <AppHeader activeTab="#/manga" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
-      <div style={{ textAlign:'center', padding:'80px 20px', color:'#5a2030', fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
+      <div style={{ textAlign:'center', padding:'80px 20px', color: s.textMuted, fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
     </div>
   )
   if (error || !manga) return (

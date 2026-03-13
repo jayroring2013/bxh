@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import { CYAN } from '../constants.js'
 import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { useAnimeById, useAnimeRelated, useSeriesLinks, useSeriesStats, useUserRating, animeUrl, mangaUrl, seriesUrl, slugify } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -10,6 +11,27 @@ import { createPortal } from 'react-dom'
 
 const ACCENT = CYAN
 const BG_DARK = '#040810'
+
+function useDetailStyles() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  return {
+    isLight,
+    bg: isLight ? '#F1F5F9' : BG_DARK,
+    bgCard: isLight ? '#fff' : '#0a1428',
+    bgSurface: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(100,200,255,0.04)',
+    border: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(100,200,255,0.08)',
+    textBright: isLight ? '#0F172A' : '#f1f5f9',
+    textPrimary: isLight ? '#1E293B' : '#e2e8f0',
+    textSecondary: isLight ? '#64748B' : '#94A3B8',
+    textMuted: isLight ? '#94A3B8' : '#2a6070',
+    textGhost: isLight ? '#94A3B8' : '#1e4050',
+    inputBg: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(100,200,255,0.06)',
+    inputBorder: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(100,200,255,0.15)',
+    cardBg: isLight ? '#fff' : '#050c18',
+    cardShadow: isLight ? '0 4px 16px rgba(0,0,0,0.1)' : '0 4px 16px rgba(0,0,0,0.5)',
+  }
+}
 
 const LINK_STYLES = {
   anilist:  { color: '#02A9FF', label: 'AniList'       },
@@ -404,6 +426,7 @@ function ErrorReportButton({ seriesId, title, lang }) {
 // ── Main page ─────────────────────────────────────────────────────
 export function AnimeDetailPage({ animeId }) {
   const { lang } = useLang()
+  const s = useDetailStyles()
   const { user, token } = useAuth()
   const { anime, loading, error } = useAnimeById(animeId)
   const { related, recs } = useAnimeRelated(anime?.id, anime?.genres)
@@ -426,7 +449,7 @@ export function AnimeDetailPage({ animeId }) {
   if (loading) return (
     <div className="page-enter">
       <AppHeader activeTab="#/anime" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
-      <div style={{ textAlign:'center', padding:'80px 20px', color:'#2a6070', fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
+      <div style={{ textAlign:'center', padding:'80px 20px', color: s.textMuted, fontFamily:"'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
     </div>
   )
   if (error || !anime) return (
@@ -458,7 +481,7 @@ export function AnimeDetailPage({ animeId }) {
       <AppHeader activeTab="#/anime" accent={ACCENT} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts />
 
       {/* ── Hero ── */}
-      <div style={{ position:'relative', overflow:'hidden', minHeight: isMobile ? 'auto' : 320, background:'#040810' }}>
+      <div style={{ position:'relative', overflow:'hidden', minHeight: isMobile ? 'auto' : 320, background: s.bg }}>
         {/* Layer 1: blurred banner/cover fills entire hero as atmosphere */}
         {(banner || cover) && (
           <div style={{
@@ -469,9 +492,13 @@ export function AnimeDetailPage({ animeId }) {
           }} />
         )}
         {/* Layer 2: left-to-right gradient for readability */}
-        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to right, rgba(4,8,16,0.92) 0%, rgba(4,8,16,0.45) 50%, rgba(4,8,16,0.75) 100%)' }} />
+        <div style={{ position:'absolute', inset:0, zIndex:1, background: s.isLight 
+          ? 'linear-gradient(to right, rgba(241,245,249,0.95) 0%, rgba(241,245,249,0.7) 50%, rgba(241,245,249,0.9) 100%)' 
+          : 'linear-gradient(to right, rgba(4,8,16,0.92) 0%, rgba(4,8,16,0.45) 50%, rgba(4,8,16,0.75) 100%)' }} />
         {/* Layer 3: top/bottom fade */}
-        <div style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to bottom, rgba(4,8,16,0.4) 0%, transparent 30%, transparent 65%, rgba(4,8,16,1) 100%)' }} />
+        <div style={{ position:'absolute', inset:0, zIndex:1, background: s.isLight 
+          ? 'linear-gradient(to bottom, rgba(241,245,249,0.6) 0%, transparent 30%, transparent 65%, rgba(241,245,249,1) 100%)' 
+          : 'linear-gradient(to bottom, rgba(4,8,16,0.4) 0%, transparent 30%, transparent 65%, rgba(4,8,16,1) 100%)' }} />
 
         <div style={{ position:'relative', zIndex:2, padding: isMobile ? '48px 16px 28px' : '52px 32px 40px', paddingLeft: isMobile ? 16 : 228,
           display:'flex', gap: isMobile ? 14 : 32, alignItems:'flex-start' }}>
@@ -655,18 +682,18 @@ export function AnimeDetailPage({ animeId }) {
 
       {/* ── Below hero ── */}
       {isMobile ? (
-        <div style={{ padding:'0 0 48px' }}>
+        <div style={{ padding:'0 0 48px', background: s.bg }}>
           {/* Mobile pills */}
           <div style={{ display:'flex', gap:8, padding:'16px 16px 0', overflowX:'auto' }}>
             {TABS.map(tab => {
               const isActive = activeTab === tab.key
               return (
                 <button key={tab.key} onClick={()=>toggleTab(tab.key)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:6,
-                  padding:'7px 14px', borderRadius:20, background: isActive ? ACCENT : 'rgba(255,248,240,0.07)',
-                  border:'none', cursor:'pointer', color: isActive ? '#fff' : '#a08060',
+                  padding:'7px 14px', borderRadius:20, background: isActive ? ACCENT : s.bgSurface,
+                  border:'none', cursor:'pointer', color: isActive ? '#fff' : s.textMuted,
                   fontSize:12, fontWeight: isActive ? 700 : 500, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                   <span>{tab.icon}</span><span>{lang==='vi'?tab.vi:tab.en}</span>
-                  {tab.badge > 0 && <span style={{ background:'rgba(0,0,0,0.25)', borderRadius:10, padding:'0 5px', fontSize:10 }}>{tab.badge}</span>}
+                  {tab.badge > 0 && <span style={{ background: s.isLight ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.25)', borderRadius:10, padding:'0 5px', fontSize:10 }}>{tab.badge}</span>}
                 </button>
               )
             })}
@@ -685,10 +712,10 @@ export function AnimeDetailPage({ animeId }) {
           </div>
         </div>
       ) : (
-        <div>
+        <div style={{ background: s.bg }}>
           {/* Collapsible tab panel */}
           {activeTab && (
-            <div style={{ borderBottom:'1px solid rgba(255,248,240,0.08)', background:'rgba(255,248,240,0.02)' }}>
+            <div style={{ borderBottom: `1px solid ${s.border}`, background: s.bgSurface }}>
               <div style={{ display:'flex' }}>
                 <div style={{ width:196, flexShrink:0 }} />
                 <div style={{ flex:1, padding:'24px 32px 28px', minWidth:0 }}>
@@ -700,7 +727,7 @@ export function AnimeDetailPage({ animeId }) {
           {/* Sidebar + right */}
           <div style={{ display:'flex', alignItems:'flex-start' }}>
             <aside style={{ width:196, flexShrink:0, position:'sticky', top:56, alignSelf:'flex-start',
-              borderRight:'1px solid rgba(255,248,240,0.08)', background:'#0f0b09', zIndex:10, paddingTop:24 }}>
+              borderRight: `1px solid ${s.border}`, background: s.isLight ? '#fff' : '#0f0b09', zIndex:10, paddingTop:24 }}>
               {TABS.map(tab => {
                 const isActive = activeTab === tab.key
                 return (
@@ -708,7 +735,7 @@ export function AnimeDetailPage({ animeId }) {
                     padding:'10px 14px', background: isActive ? `${ACCENT}18` : 'none', border:'none',
                     borderRight: isActive ? `3px solid ${ACCENT}` : '3px solid transparent',
                     borderRadius:'8px 0 0 8px', cursor:'pointer', transition:'all 0.15s', marginBottom:2, textAlign:'left' }}
-                    onMouseEnter={e=>!isActive&&(e.currentTarget.style.background='rgba(255,248,240,0.04)')}
+                    onMouseEnter={e=>!isActive&&(e.currentTarget.style.background=s.isLight?'rgba(0,0,0,0.05)':'rgba(255,248,240,0.04)')}
                     onMouseLeave={e=>!isActive&&(e.currentTarget.style.background='none')}>
                     <span style={{ fontSize:14, flexShrink:0 }}>{tab.icon}</span>
                     <span style={{ flex:1, fontSize:13, fontWeight: isActive ? 700 : 500,

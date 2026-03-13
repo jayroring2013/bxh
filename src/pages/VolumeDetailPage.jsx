@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import { PURPLE } from '../constants.js'
 import { useLang } from '../context/LangContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { useSeriesById, useVolumeDetail, seriesUrl } from '../hooks.js'
 import { AppHeader, PageFooter, ErrorBox } from '../components/Shared.jsx'
+
+function useDetailStyles() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  return {
+    isLight,
+    bg: isLight ? '#F1F5F9' : '#0f0b09',
+    bgSurface: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,248,240,0.02)',
+    border: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,248,240,0.06)',
+    textBright: isLight ? '#0F172A' : '#f1f5f9',
+    textPrimary: isLight ? '#1E293B' : '#e2e8f0',
+    textSecondary: isLight ? '#64748B' : '#94A3B8',
+    textMuted: isLight ? '#94A3B8' : '#6b4f35',
+  }
+}
 
 const LINK_STYLES = {
   shop:     { color: '#F59E0B', label: 'Shop'       },
@@ -83,6 +99,7 @@ function StatChip({ label, value }) {
 
 export function VolumeDetailPage({ seriesId, volumeNumber }) {
   const { lang } = useLang()
+  const s = useDetailStyles()
   const { series, loading: loadingS } = useSeriesById(seriesId)
   const { volume, links, loading: loadingV, error } = useVolumeDetail(seriesId, volumeNumber)
 
@@ -104,7 +121,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
     <div className="page-enter">
       <AppHeader activeTab="#/novels" accent={PURPLE} searchInput="" onSearch={() => {}}
         sorts={[]} activeSort="" onSort={() => {}} hideSearch hideSorts />
-      <div style={{ textAlign: 'center', padding: '80px 20px', color: '#5a4a3a',
+      <div style={{ textAlign: 'center', padding: '80px 20px', color: s.textMuted,
         fontFamily: "'Be Vietnam Pro',sans-serif" }}>Đang tải…</div>
     </div>
   )
