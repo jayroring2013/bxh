@@ -310,19 +310,31 @@ function OverviewTab({ token }) {
           })
         ])
         
+        console.log('get_user_stats response:', currentRes.status, currentRes.ok)
         if (currentRes.ok) {
           const data = await currentRes.json()
-          if (data) {
+          console.log('get_user_stats data:', data)
+          if (data && Array.isArray(data) && data.length > 0) {
+            setUserStats({
+              total: data[0].total_users || 0,
+              active: data[0].active_users || 0,
+              newSignups: data[0].new_signups || 0
+            })
+          } else if (data && data.total_users !== undefined) {
             setUserStats({
               total: data.total_users || 0,
               active: data.active_users || 0,
               newSignups: data.new_signups || 0
             })
           }
+        } else {
+          const err = await currentRes.text()
+          console.log('get_user_stats error:', err)
         }
         
         if (historyRes.ok) {
           const historyData = await historyRes.json()
+          console.log('get_user_history data:', historyData)
           if (Array.isArray(historyData)) {
             setUserHistory(historyData)
           }
@@ -336,7 +348,7 @@ function OverviewTab({ token }) {
 
   const [userHistory, setUserHistory] = useState([])
   const maxUserVal = Math.max(userStats.total, userStats.active, userStats.newSignups, 1)
-  const maxHistoryVal = Math.max(...userHistory.map(d => Math.max(d.signups, d.active_users)), 1)
+  const maxHistoryVal = Math.max(...userHistory.map(d => Math.max(d.signups, d.total_users || 0)), 1)
 
   return (
     <div>
@@ -391,25 +403,25 @@ function OverviewTab({ token }) {
                   <line x1="0" y1="140" x2="560" y2="140" stroke={s.isLight ? '#000' : '#fff'} strokeOpacity="0.05" />
                   {userHistory.map((d, i) => {
                     const x = (i / Math.max(userHistory.length - 1, 1)) * 560
-                    const signupsY = 140 - (d.signups / Math.max(maxHistoryVal, 1)) * 130 - 5
-                    const activeY = 140 - (d.active_users / Math.max(maxHistoryVal, 1)) * 130 - 5
+                    const signupsY = 140 - ((d.signups || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
+                    const totalY = 140 - ((d.total_users || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
                     return (
                       <g key={i}>
                         <circle cx={x} cy={signupsY} r="3" fill={CYAN} />
-                        <circle cx={x} cy={activeY} r="3" fill={GREEN} />
+                        <circle cx={x} cy={totalY} r="3" fill={PURPLE} />
                         {i < userHistory.length - 1 && (
                           <>
                             <line 
                               x1={x} y1={signupsY} 
                               x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560} 
-                              y2={140 - (userHistory[i+1].signups / Math.max(maxHistoryVal, 1)) * 130 - 5} 
+                              y2={140 - ((userHistory[i+1].signups || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5} 
                               stroke={CYAN} strokeWidth="2" 
                             />
                             <line 
-                              x1={x} y1={activeY} 
+                              x1={x} y1={totalY} 
                               x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560} 
-                              y2={140 - (userHistory[i+1].active_users / Math.max(maxHistoryVal, 1)) * 130 - 5} 
-                              stroke={GREEN} strokeWidth="2" 
+                              y2={140 - ((userHistory[i+1].total_users || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5} 
+                              stroke={PURPLE} strokeWidth="2" 
                             />
                           </>
                         )}
@@ -436,8 +448,8 @@ function OverviewTab({ token }) {
                   <span style={{ fontSize: 10, color: s.textMuted }}>New Signups</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: GREEN }} />
-                  <span style={{ fontSize: 10, color: s.textMuted }}>Active Users</span>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: PURPLE }} />
+                  <span style={{ fontSize: 10, color: s.textMuted }}>Total Users</span>
                 </div>
               </div>
             </div>
