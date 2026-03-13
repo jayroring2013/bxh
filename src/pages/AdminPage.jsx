@@ -377,22 +377,22 @@ function OverviewTab({ token }) {
           {userHistory.length > 0 ? (
             <div>
               <div style={{ fontSize: 11, color: s.textMuted, marginBottom: 12, fontWeight: 600 }}>LAST 30 DAYS</div>
-              <div style={{ position: 'relative', height: 120, marginBottom: 8 }}>
-                <svg width="100%" height="120" viewBox="0 0 600 120" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="signupsGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor={CYAN} stopOpacity="0.3" />
-                      <stop offset="100%" stopColor={CYAN} stopOpacity="0" />
-                    </linearGradient>
-                    <linearGradient id="activeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor={GREEN} stopOpacity="0.3" />
-                      <stop offset="100%" stopColor={GREEN} stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
+              <div style={{ position: 'relative', height: 140, marginBottom: 8, marginLeft: 35 }}>
+                {/* Y-axis labels */}
+                <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', paddingRight: 8 }}>
+                  <span style={{ fontSize: 9, color: s.textMuted }}>{maxHistoryVal}</span>
+                  <span style={{ fontSize: 9, color: s.textMuted }}>{Math.round(maxHistoryVal / 2)}</span>
+                  <span style={{ fontSize: 9, color: s.textMuted }}>0</span>
+                </div>
+                <svg width="100%" height="140" viewBox="0 0 560 140" preserveAspectRatio="none">
+                  {/* Grid lines */}
+                  <line x1="0" y1="10" x2="560" y2="10" stroke={s.isLight ? '#000' : '#fff'} strokeOpacity="0.05" />
+                  <line x1="0" y1="75" x2="560" y2="75" stroke={s.isLight ? '#000' : '#fff'} strokeOpacity="0.05" />
+                  <line x1="0" y1="140" x2="560" y2="140" stroke={s.isLight ? '#000' : '#fff'} strokeOpacity="0.05" />
                   {userHistory.map((d, i) => {
-                    const x = (i / Math.max(userHistory.length - 1, 1)) * 560 + 20
-                    const signupsY = 100 - (d.signups / Math.max(maxHistoryVal, 1)) * 80
-                    const activeY = 100 - (d.active_users / Math.max(maxHistoryVal, 1)) * 80
+                    const x = (i / Math.max(userHistory.length - 1, 1)) * 560
+                    const signupsY = 140 - (d.signups / Math.max(maxHistoryVal, 1)) * 130 - 5
+                    const activeY = 140 - (d.active_users / Math.max(maxHistoryVal, 1)) * 130 - 5
                     return (
                       <g key={i}>
                         <circle cx={x} cy={signupsY} r="3" fill={CYAN} />
@@ -401,14 +401,14 @@ function OverviewTab({ token }) {
                           <>
                             <line 
                               x1={x} y1={signupsY} 
-                              x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560 + 20} 
-                              y2={100 - (userHistory[i+1].signups / Math.max(maxHistoryVal, 1)) * 80} 
+                              x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560} 
+                              y2={140 - (userHistory[i+1].signups / Math.max(maxHistoryVal, 1)) * 130 - 5} 
                               stroke={CYAN} strokeWidth="2" 
                             />
                             <line 
                               x1={x} y1={activeY} 
-                              x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560 + 20} 
-                              y2={100 - (userHistory[i+1].active_users / Math.max(maxHistoryVal, 1)) * 80} 
+                              x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560} 
+                              y2={140 - (userHistory[i+1].active_users / Math.max(maxHistoryVal, 1)) * 130 - 5} 
                               stroke={GREEN} strokeWidth="2" 
                             />
                           </>
@@ -418,7 +418,19 @@ function OverviewTab({ token }) {
                   })}
                 </svg>
               </div>
-              <div style={{ display: 'flex', gap: 20, justifyContent: 'center' }}>
+              {/* X-axis labels */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginLeft: 35, paddingRight: 10 }}>
+                <span style={{ fontSize: 9, color: s.textMuted }}>
+                  {new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+                <span style={{ fontSize: 9, color: s.textMuted }}>
+                  {new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+                <span style={{ fontSize: 9, color: s.textMuted }}>
+                  {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: CYAN }} />
                   <span style={{ fontSize: 10, color: s.textMuted }}>New Signups</span>
