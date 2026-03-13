@@ -90,6 +90,50 @@ html[data-theme="light"] div[style*="background:'#0f0b09"] {
   background: #F1F5F9 !important;
 }
 
+/* Override near-white text used in ranking rows (spans, not card titles) */
+html[data-theme="light"] span[style*="color: #f1f5f9"],
+html[data-theme="light"] span[style*="color: '#f1f5f9'"],
+html[data-theme="light"] span[style*="color: rgb(241, 245, 249)"],
+html[data-theme="light"] a[style*="color: #f1f5f9"],
+html[data-theme="light"] a[style*="color: rgb(241, 245, 249)"] {
+  color: #0F172A !important;
+}
+html[data-theme="light"] span[style*="color: #e2e8f0"],
+html[data-theme="light"] span[style*="color: '#e2e8f0'"],
+html[data-theme="light"] span[style*="color: rgb(226, 232, 240)"],
+html[data-theme="light"] a[style*="color: #e2e8f0"],
+html[data-theme="light"] a[style*="color: rgb(226, 232, 240)"] {
+  color: #1E293B !important;
+}
+/* Row backgrounds in ranking list */
+html[data-theme="light"] div[style*="background: rgba(255,255,255,0.02)"],
+html[data-theme="light"] div[style*="background:rgba(255,255,255,0.02)"] {
+  background: rgba(0,0,0,0.02) !important;
+}
+html[data-theme="light"] div[style*="border: 1px solid rgba(255,255,255,0.05)"],
+html[data-theme="light"] div[style*="borderColor: rgba(255,255,255,0.05)"] {
+  border-color: rgba(0,0,0,0.06) !important;
+}
+/* Landing page ghost/secondary buttons */
+html[data-theme="light"] button[style*="background:'rgba(255,248,240,0.06)'"],
+html[data-theme="light"] button[style*="background: rgba(255,248,240,0.06)"] {
+  background: rgba(0,0,0,0.05) !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #1E293B !important;
+}
+html[data-theme="light"] button[style*="background:rgba(255,248,240,0.06)"] {
+  background: rgba(0,0,0,0.05) !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #1E293B !important;
+}
+/* Ghost "Sign in" button on landing page */
+html[data-theme="light"] button[style*="border:'1px solid rgba(255,255,255,0.12)'"],
+html[data-theme="light"] button[style*="border: 1px solid rgba(255,255,255,0.12)"] {
+  background: rgba(0,0,0,0.03) !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #1E293B !important;
+}
+
 html[data-theme="light"] input::placeholder { color: #94A3B8; }
 
 /* date inputs */
@@ -537,6 +581,37 @@ html[data-theme="light"] div[style*="background: '#0f0b09'"],
 html[data-theme="light"] div[style*="background:'#0f0b09'"],
 html[data-theme="light"] div[style*="background: #0f0b09"] {
   background: #F1F5F9 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SUPPLEMENTAL — sort sub-bar & page footer
+══════════════════════════════════════════════════════════════ */
+/* Sort sub-bar below header */
+html[data-theme="light"] div[style*="background: rgba(0,0,0,0.3)"] {
+  background: rgba(0,0,0,0.04) !important;
+  border-bottom-color: rgba(0,0,0,0.06) !important;
+}
+/* Sort buttons in sub-bar */
+html[data-theme="light"] .sort-btn {
+  color: #475569 !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  background: rgba(0,0,0,0.04) !important;
+}
+/* Page footer text */
+html[data-theme="light"] footer.page-footer {
+  color: #64748B !important;
+  border-top-color: rgba(0,0,0,0.06) !important;
+}
+/* Hero banner sub separator dot */
+html[data-theme="light"] .hero-banner__sub span[style*="color: '#374151'"] {
+  color: #94A3B8 !important;
+}
+/* Skeleton shimmer in light mode */
+html[data-theme="light"] div[style*="linear-gradient(90deg,#1a1a2e"],
+html[data-theme="light"] div[style*="linear-gradient(90deg,#060d1a"],
+html[data-theme="light"] div[style*="linear-gradient(90deg,#1f2937"] {
+  background: linear-gradient(90deg,#E2E8F0 25%,#F1F5F9 50%,#E2E8F0 75%) !important;
+  background-size: 200% 100% !important;
 }
 `
 
