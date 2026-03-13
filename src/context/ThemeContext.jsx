@@ -706,6 +706,62 @@ html[data-theme="light"] a[style*="color:'#67E8F9'"],
 html[data-theme="light"] a[style*="color: '#67E8F9'"] {
   color: #0891B2 !important;
 }
+
+/* Detail page carousel section titles */
+html[data-theme="light"] h2[style*="color:'#f1f5f9'"],
+html[data-theme="light"] h2[style*="color: '#f1f5f9'"] {
+  color: #0F172A !important;
+}
+
+/* Detail page carousel scroll buttons */
+html[data-theme="light"] button[style*="color:'#2a6070'"],
+html[data-theme="light"] button[style*="color: '#2a6070'"] {
+  color: #64748B !important;
+}
+
+/* Detail page carousel text (mini cards) */
+html[data-theme="light"] div[style*="color:'#e2e8f0'"],
+html[data-theme="light"] div[style*="color: '#e2e8f0'"],
+html[data-theme="light"] div[style*="color: #e2e8f0"] {
+  color: #1E293B !important;
+}
+
+/* Detail page carousel card backgrounds */
+html[data-theme="light"] div[style*="background:'#050c18'"],
+html[data-theme="light"] div[style*="background: '#050c18'"],
+html[data-theme="light"] div[style*="background:#050c18"] {
+  background: #E2E8F0 !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
+}
+
+/* Detail page placeholder */
+html[data-theme="light"] p[style*="color:'#2a6070'"],
+html[data-theme="light"] p[style*="color: '#2a6070'"] {
+  color: #64748B !important;
+}
+
+/* Detail page tab panel background */
+html[data-theme="light"] div[style*="background:'rgba(255,248,240,0.02)'"],
+html[data-theme="light"] div[style*="background: rgba(255,248,240,0.02)"] {
+  background: rgba(0,0,0,0.02) !important;
+}
+
+/* Detail page sidebar border */
+html[data-theme="light"] aside[style*="border-right"] {
+  border-right-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Detail page info table */
+html[data-theme="light"] td[style*="color:'#8ac8d8'"],
+html[data-theme="light"] td[style*="color: '#8ac8d8'"] {
+  color: #475569 !important;
+}
+
+/* Detail page view/bookmark/rating icons text */
+html[data-theme="light"] span[style*="color:'#6b7280'"],
+html[data-theme="light"] span[style*="color: '#6b7280'"] {
+  color: #64748B !important;
+}
 `
 
 export function ThemeProvider({ children }) {
