@@ -336,8 +336,9 @@ function OverviewTab({ token }) {
           const historyData = await historyRes.json()
           console.log('get_user_history data:', historyData)
           if (Array.isArray(historyData)) {
-            // Reverse so oldest (day 29) is on left, newest (day 0) is on right
-            setUserHistory([...historyData].reverse())
+            // Already ordered correctly: day_index 0 = today, day_index 29 = 30 days ago
+            // No reversal needed - just use as is
+            setUserHistory(historyData)
           }
         }
       } catch (e) {
@@ -403,9 +404,16 @@ function OverviewTab({ token }) {
                   <line x1="0" y1="75" x2="560" y2="75" stroke={s.isLight ? '#000' : '#fff'} strokeOpacity="0.05" />
                   <line x1="0" y1="140" x2="560" y2="140" stroke={s.isLight ? '#000' : '#fff'} strokeOpacity="0.05" />
                   {userHistory.map((d, i) => {
+                    const nextX = ((i + 1) / Math.max(userHistory.length - 1, 1)) * 560
                     const x = (i / Math.max(userHistory.length - 1, 1)) * 560
                     const signupsY = 140 - ((d.signups || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
                     const totalY = 140 - ((d.cumulative_total || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
+                    const nextSignupsY = i < userHistory.length - 1 
+                      ? 140 - ((userHistory[i+1].signups || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
+                      : signupsY
+                    const nextTotalY = i < userHistory.length - 1
+                      ? 140 - ((userHistory[i+1].cumulative_total || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
+                      : totalY
                     return (
                       <g key={i}>
                         <circle cx={x} cy={signupsY} r="3" fill={CYAN} />
@@ -414,14 +422,14 @@ function OverviewTab({ token }) {
                           <>
                             <line 
                               x1={x} y1={signupsY} 
-                              x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560} 
-                              y2={140 - ((userHistory[i+1].signups || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5} 
+                              x2={nextX} 
+                              y2={nextSignupsY} 
                               stroke={CYAN} strokeWidth="2" 
                             />
                             <line 
                               x1={x} y1={totalY} 
-                              x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560} 
-                              y2={140 - ((userHistory[i+1].cumulative_total || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5} 
+                              x2={nextX} 
+                              y2={nextTotalY} 
                               stroke={PURPLE} strokeWidth="2" 
                             />
                           </>
