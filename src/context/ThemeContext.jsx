@@ -613,6 +613,99 @@ html[data-theme="light"] div[style*="linear-gradient(90deg,#1f2937"] {
   background: linear-gradient(90deg,#E2E8F0 25%,#F1F5F9 50%,#E2E8F0 75%) !important;
   background-size: 200% 100% !important;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   DETAIL PAGES (AnimeDetailPage, MangaDetailPage, SeriesDetailPage)
+   Detail pages use many inline styles, so we target specific patterns
+   that appear in these pages
+   ══════════════════════════════════════════════════════════════ */
+
+/* Detail page hero background */
+html[data-theme="light"] div[style*="background:'#040810'"],
+html[data-theme="light"] div[style*="background: '#040810'"],
+html[data-theme="light"] div[style*="background:#040810"] {
+  background: #F1F5F9 !important;
+}
+
+/* Detail page sidebar (desktop) */
+html[data-theme="light"] aside[style*="background:'#0f0b09'"],
+html[data-theme="light"] aside[style*="background: '#0f0b09'"] {
+  background: #fff !important;
+  border-right-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Detail page section tabs */
+html[data-theme="light"] button[style*="color: '#a08060'"] {
+  color: #64748B !important;
+}
+
+/* Detail page content text colors */
+html[data-theme="light"] h1[style*="color: '#f1f5f9'"],
+html[data-theme="light"] div[style*="color: '#e2e8f0'"],
+html[data-theme="light"] div[style*="color:'#e2e8f0'"],
+html[data-theme="light"] span[style*="color: '#e2e8f0'"],
+html[data-theme="light"] span[style*="color:'#e2e8f0'"] {
+  color: #1E293B !important;
+}
+
+/* Detail page secondary text */
+html[data-theme="light"] div[style*="color: '#4a8090'"],
+html[data-theme="light"] div[style*="color: '#2a6070'"],
+html[data-theme="light"] div[style*="color: '#6a9aaa'"],
+html[data-theme="light"] div[style*="color:'#4a8090'"],
+html[data-theme="light"] div[style*="color:'#2a6070'"],
+html[data-theme="light"] div[style*="color:'#6a9aaa'"] {
+  color: #64748B !important;
+}
+
+/* Detail page stat chips */
+html[data-theme="light"] div[style*="background:'rgba(100,200,255,0.04)'"],
+html[data-theme="light"] div[style*="background: rgba(100,200,255,0.04)"] {
+  background: rgba(0,0,0,0.03) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Detail page genre tags */
+html[data-theme="light"] span[style*="color:'#67E8F9'"],
+html[data-theme="light"] span[style*="color: '#67E8F9'"] {
+  color: #0891B2 !important;
+}
+
+/* Detail page table rows */
+html[data-theme="light"] tr[style*="border-bottom"],
+html[data-theme="light"] td[style*="color: '#2a6070'"],
+html[data-theme="light"] td[style*="color:'#2a6070'"],
+html[data-theme="light"] td[style*="color: '#8ac8d8'"],
+html[data-theme="light"] td[style*="color:'#8ac8d8'"] {
+  color: #475569 !important;
+  border-bottom-color: rgba(0,0,0,0.06) !important;
+}
+
+/* Detail page section titles */
+html[data-theme="light"] h2[style*="color:'#f1f5f9'"],
+html[data-theme="light"] h2[style*="color: '#f1f5f9'"],
+html[data-theme="light"] h3[style*="color: '#f1f5f9'"],
+html[data-theme="light"] h3[style*="color:'#f1f5f9'"] {
+  color: #0F172A !important;
+}
+
+/* Detail page mini cards */
+html[data-theme="light"] div[style*="background:'#050c18'"],
+html[data-theme="light"] div[style*="background: '#050c18'"] {
+  background: #E2E8F0 !important;
+}
+
+/* Detail page placeholder */
+html[data-theme="light"] p[style*="color:'#2a6070'"],
+html[data-theme="light"] p[style*="color: '#2a6070'"] {
+  color: #64748B !important;
+}
+
+/* Detail page action buttons */
+html[data-theme="light"] a[style*="color:'#67E8F9'"],
+html[data-theme="light"] a[style*="color: '#67E8F9'"] {
+  color: #0891B2 !important;
+}
 `
 
 export function ThemeProvider({ children }) {
