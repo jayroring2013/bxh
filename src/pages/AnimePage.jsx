@@ -2,13 +2,16 @@ import React, { useState, useEffect, useRef } from 'react'
 import { CYAN } from '../constants.js'
 import { useAnime, useAnimeCarousel, useDebounce, animeUrl } from '../hooks.js'
 import { useLang } from '../context/LangContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { AppHeader, SkeletonGrid, CardGrid, EmptyState, ErrorBox, LoadMoreBtn, PageFooter } from '../components/Shared.jsx'
 import { AnimeCard }  from '../components/AnimeCard.jsx'
 
-// ── Sort dropdown ────────────────────────────────────────────────
+// ── Sort dropdown ─────────────────────────────────────────────────
 function SortDropdown({ value, options, onChange, accent }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const label = options.find(o => o.id === value)?.label || options[0]?.label
   useEffect(() => {
     const fn = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -21,7 +24,7 @@ function SortDropdown({ value, options, onChange, accent }) {
         display: 'flex', alignItems: 'center', gap: 7,
         background: `${accent}18`, border: `1px solid ${accent}50`,
         borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
-        color: '#67E8F9', fontSize: 12, fontWeight: 700,
+        color: isLight ? accent : '#67E8F9', fontSize: 12, fontWeight: 700,
         fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap',
       }}>
         {label} <span style={{ opacity: 0.6, fontSize: 9 }}>{open ? '▴' : '▾'}</span>
@@ -29,16 +32,17 @@ function SortDropdown({ value, options, onChange, accent }) {
       {open && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 400,
-          background: '#060d1a', border: '1px solid rgba(100,200,255,0.12)',
+          background: isLight ? '#fff' : '#060d1a',
+          border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(100,200,255,0.12)',
           borderRadius: 12, padding: 5, minWidth: 160,
-          boxShadow: '0 20px 50px rgba(0,0,0,0.85)',
+          boxShadow: isLight ? '0 20px 50px rgba(0,0,0,0.12)' : '0 20px 50px rgba(0,0,0,0.85)',
         }}>
           {options.map(opt => (
             <button key={opt.id} onClick={() => { onChange(opt.id); setOpen(false) }} style={{
               display: 'block', width: '100%', textAlign: 'left',
               padding: '7px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
               background: value === opt.id ? `${accent}25` : 'transparent',
-              color: value === opt.id ? '#67E8F9' : '#3a6080',
+              color: value === opt.id ? (isLight ? accent : '#67E8F9') : (isLight ? '#475569' : '#3a6080'),
               fontSize: 12, fontWeight: value === opt.id ? 700 : 400,
               fontFamily: "'Be Vietnam Pro', sans-serif",
             }}>
@@ -54,9 +58,11 @@ function SortDropdown({ value, options, onChange, accent }) {
 
 // ── Filter section ────────────────────────────────────────────────
 function FilterSection({ label, options, value, onSelect, accent }) {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   return (
     <div style={{ minWidth: 140 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#2a5060', letterSpacing: 1,
+      <div style={{ fontSize: 10, fontWeight: 700, color: isLight ? '#64748B' : '#2a5060', letterSpacing: 1,
         textTransform: 'uppercase', marginBottom: 8, fontFamily: "'Be Vietnam Pro', sans-serif" }}>
         {label}
       </div>
@@ -65,7 +71,7 @@ function FilterSection({ label, options, value, onSelect, accent }) {
           display: 'block', width: '100%', textAlign: 'left',
           padding: '5px 10px', borderRadius: 7, border: 'none', cursor: 'pointer', marginBottom: 2,
           background: value === opt.id ? `${accent}22` : 'transparent',
-          color: value === opt.id ? '#67E8F9' : '#3a6080',
+          color: value === opt.id ? (isLight ? accent : '#67E8F9') : (isLight ? '#475569' : '#3a6080'),
           fontSize: 12, fontWeight: value === opt.id ? 700 : 400,
           fontFamily: "'Be Vietnam Pro', sans-serif",
         }}>
@@ -82,6 +88,8 @@ function AdvancedFilter({ status, format, genre, onStatus, onFormat, onGenre,
   statusOptions, formatOptions, genreOptions, hasActive, onClear, accent, lang, isMobile }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const activeCount = [status !== '', format !== '', genre !== 'All'].filter(Boolean).length
   useEffect(() => {
     const fn = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -92,10 +100,10 @@ function AdvancedFilter({ status, format, genre, onStatus, onFormat, onGenre,
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
       <button onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        background: hasActive ? `${accent}20` : 'rgba(0,150,200,0.05)',
-        border: `1px solid ${hasActive ? accent + '55' : 'rgba(100,200,255,0.1)'}`,
+        background: hasActive ? `${accent}20` : (isLight ? 'rgba(0,0,0,0.04)' : 'rgba(0,150,200,0.05)'),
+        border: `1px solid ${hasActive ? accent + '55' : (isLight ? 'rgba(0,0,0,0.1)' : 'rgba(100,200,255,0.1)')}`,
         borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
-        color: hasActive ? '#67E8F9' : '#3a6080', fontSize: 12, fontWeight: 600,
+        color: hasActive ? (isLight ? accent : '#67E8F9') : (isLight ? '#475569' : '#3a6080'), fontSize: 12, fontWeight: 600,
         fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: 'nowrap', transition: 'all 0.15s',
       }}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -112,14 +120,16 @@ function AdvancedFilter({ status, format, genre, onStatus, onFormat, onGenre,
       {open && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 400,
-          background: '#060d1a', border: '1px solid rgba(100,200,255,0.12)',
+          background: isLight ? '#fff' : '#060d1a',
+          border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(100,200,255,0.12)',
           borderRadius: 16, padding: 16, width: 'max-content', maxWidth: '90vw',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.9)',
+          boxShadow: isLight ? '0 24px 60px rgba(0,0,0,0.1)' : '0 24px 60px rgba(0,0,0,0.9)',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid rgba(100,200,255,0.07)' }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9',
-              fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+            marginBottom: 12, paddingBottom: 10,
+            borderBottom: isLight ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(100,200,255,0.07)' }}>
+            <span style={{ fontSize: 12, fontWeight: 700,
+              color: isLight ? '#0F172A' : '#f1f5f9', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
               {lang === 'vi' ? 'Bộ lọc nâng cao' : 'Advanced Filters'}
             </span>
             {hasActive && (
@@ -132,10 +142,10 @@ function AdvancedFilter({ status, format, genre, onStatus, onFormat, onGenre,
           <div style={{ display: 'flex', gap: 0, flexDirection: isMobile ? 'column' : 'row' }}>
             <FilterSection label={lang === 'vi' ? 'Trạng thái' : 'Status'}
               options={statusOptions} value={status} onSelect={onStatus} accent={accent} />
-            {!isMobile && <div style={{ width: 1, background: 'rgba(100,200,255,0.07)', margin: '0 14px' }} />}
+            {!isMobile && <div style={{ width: 1, background: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(100,200,255,0.07)', margin: '0 14px' }} />}
             <FilterSection label={lang === 'vi' ? 'Định dạng' : 'Format'}
               options={formatOptions} value={format} onSelect={onFormat} accent={accent} />
-            {!isMobile && <div style={{ width: 1, background: 'rgba(100,200,255,0.07)', margin: '0 14px' }} />}
+            {!isMobile && <div style={{ width: 1, background: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(100,200,255,0.07)', margin: '0 14px' }} />}
             <FilterSection label={lang === 'vi' ? 'Thể loại' : 'Genre'}
               options={genreOptions} value={genre} onSelect={onGenre} accent={accent} />
           </div>
@@ -154,6 +164,8 @@ const ClockIcon = ({ size = 16, color = 'currentColor' }) => <svg width={size} h
 // ── Carousel ──────────────────────────────────────────────────────
 function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile }) {
   const ref = useRef(null)
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const cardW = isMobile ? 150 : 220
   const scroll = dir => ref.current?.scrollBy({ left: dir * (cardW * 4 + 14 * 3), behavior: 'smooth' })
   return (
@@ -161,7 +173,7 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 14, padding: '0 20px' }}>
         <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20,
-          fontWeight: 700, letterSpacing: 1, color: '#f1f5f9', margin: 0,
+          fontWeight: 700, letterSpacing: 1, color: isLight ? '#0F172A' : '#f1f5f9', margin: 0,
           display: 'flex', alignItems: 'center', gap: 8 }}>
           {TitleIcon && <TitleIcon size={18} color={accent} />}
           {title}
@@ -170,13 +182,14 @@ function Carousel({ title, TitleIcon, items, loading, onSelect, accent, isMobile
           {[0, 1].map(i => (
             <button key={i} onClick={() => scroll(i === 0 ? -1 : 1)} style={{
               width: 30, height: 30, borderRadius: 8,
-              border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255,255,255,0.1)', color: '#E2E8F0', cursor: 'pointer',
+              border: isLight ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(255,255,255,0.2)',
+              background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)',
+              color: isLight ? '#475569' : '#E2E8F0', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background 0.15s, color 0.15s, border-color 0.15s',
             }}
               onMouseEnter={e => { e.currentTarget.style.background = `${accent}35`; e.currentTarget.style.borderColor = `${accent}60`; e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#E2E8F0' }}
+              onMouseLeave={e => { e.currentTarget.style.background = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = isLight ? '#475569' : '#E2E8F0' }}
             >
               {i === 0 ? <ChevronLeft /> : <ChevronRight />}
             </button>
@@ -259,6 +272,8 @@ function na(a) {
 // ── Main ─────────────────────────────────────────────────────────
 export function AnimePage() {
   const { lang } = useLang()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [searchInput, setSearchInput] = useState('')
   const [browseMode,  setBrowseMode]  = useState(false)
   const [sort,        setSort]        = useState('POPULARITY_DESC')
@@ -328,24 +343,26 @@ export function AnimePage() {
 
       {/* Hero */}
       <div style={{ position: 'relative',
-        background: 'linear-gradient(160deg,#040810,#060d1a,#040a12)',
+        background: isLight
+          ? 'linear-gradient(160deg,#EEF2F7,#F1F5F9)'
+          : 'linear-gradient(160deg,#040810,#060d1a,#040a12)',
         padding: isMobile ? '20px 16px 18px' : '32px 20px 28px', textAlign: 'center' }}>
         <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)',
           width: 700, height: 280, background: `radial-gradient(ellipse, ${CYAN}15 0%, transparent 70%)`,
           pointerEvents: 'none' }} />
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: 'clamp(22px, 3.5vw, 38px)', lineHeight: 1, letterSpacing: 2,
-          marginBottom: 8, color: '#f1f5f9', position: 'relative' }}>
+          marginBottom: 8, color: isLight ? '#0F172A' : '#f1f5f9', position: 'relative' }}>
           ANIME
         </div>
         {!isBrowsing && (
-          <div style={{ fontSize: 13, color: '#1e4050', fontFamily: "'Be Vietnam Pro', sans-serif", position: 'relative' }}>
+          <div style={{ fontSize: 13, color: isLight ? '#475569' : '#1e4050', fontFamily: "'Be Vietnam Pro', sans-serif", position: 'relative' }}>
             {lang === 'vi' ? 'Khám phá và theo dõi anime yêu thích của bạn'
                            : 'Discover and track your favourite anime series'}
           </div>
         )}
         {isBrowsing && totalCount > 0 && !loading && (
-          <div style={{ fontSize: 12, color: '#1e5060', position: 'relative' }}>
+          <div style={{ fontSize: 12, color: isLight ? '#64748B' : '#1e5060', position: 'relative' }}>
             {totalCount.toLocaleString()} series
           </div>
         )}
@@ -380,11 +397,13 @@ export function AnimePage() {
                 <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
                   placeholder={lang === 'vi' ? 'Tìm tên anime...' : 'Search anime...'}
                   style={{ width: '100%', boxSizing: 'border-box',
-                    background: 'rgba(0,150,200,0.06)', border: '1px solid rgba(100,200,255,0.12)',
-                    borderRadius: 10, padding: '8px 32px', color: '#fff', fontSize: 12, outline: 'none',
+                    background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(0,150,200,0.06)',
+                    border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(100,200,255,0.12)',
+                    borderRadius: 10, padding: '8px 32px',
+                    color: isLight ? '#0F172A' : '#fff', fontSize: 12, outline: 'none',
                     fontFamily: "'Be Vietnam Pro', sans-serif" }}
                   onFocus={e => { e.target.style.borderColor = CYAN + '70'; e.target.style.boxShadow = `0 0 0 3px ${CYAN}18` }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(100,200,255,0.12)'; e.target.style.boxShadow = 'none' }}
+                  onBlur={e => { e.target.style.borderColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(100,200,255,0.12)'; e.target.style.boxShadow = 'none' }}
                 />
                 {searchInput && (
                   <button onClick={() => setSearchInput('')} style={{ position: 'absolute', right: 9, top: '50%',
@@ -421,12 +440,13 @@ export function AnimePage() {
                   onChange={e => { setSearchInput(e.target.value); if (e.target.value) setBrowseMode(true) }}
                   placeholder={lang === 'vi' ? 'Tìm tên anime...' : 'Search anime...'}
                   style={{ width: '100%', boxSizing: 'border-box',
-                    background: 'rgba(0,150,200,0.05)', border: '1px solid rgba(100,200,255,0.1)',
+                    background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(0,150,200,0.05)',
+                    border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(100,200,255,0.1)',
                     borderRadius: 12, padding: '11px 36px 11px 42px',
-                    color: '#fff', fontSize: 13, outline: 'none',
+                    color: isLight ? '#0F172A' : '#fff', fontSize: 13, outline: 'none',
                     fontFamily: "'Be Vietnam Pro', sans-serif" }}
                   onFocus={e => { e.target.style.borderColor = CYAN + '70'; e.target.style.boxShadow = `0 0 0 3px ${CYAN}18` }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(100,200,255,0.1)'; e.target.style.boxShadow = 'none' }}
+                  onBlur={e => { e.target.style.borderColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(100,200,255,0.1)'; e.target.style.boxShadow = 'none' }}
                 />
               </div>
             </div>

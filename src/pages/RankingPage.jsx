@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { PURPLE, CYAN } from '../constants.js'
 import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { AppHeader, HeroBanner } from '../components/Shared.jsx'
 import { ModalShell, useIsMobile } from '../components/ModalLayout.jsx'
 import { NovelModal } from '../components/NovelModal.jsx'
@@ -202,6 +203,8 @@ function RankChart({ history, color, mobile }) {
 // ── Unified row: rank + change + cover + title + votes + sparkline ──
 function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
   const mobile   = useIsMobile()
+  const { theme } = useTheme()
+  const isLight  = theme === 'light'
   const prev     = prevRanks?.[entry.novel_id]
   const movement = prev ? prev - rank : null
   const isNew    = !prev
@@ -284,7 +287,7 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: isTop3 ? 14 : 12, color: '#f1f5f9', lineHeight: 1.2,
+            fontSize: isTop3 ? 14 : 12, color: isLight ? '#0F172A' : '#f1f5f9', lineHeight: 1.2,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{entry.novel_title || 'Unknown'}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
@@ -347,7 +350,7 @@ function UnifiedRow({ entry, rank, prevRanks, rankHistory, onClick, lang }) {
 
       <div style={{ flex: 1, minWidth: 0,
         fontFamily: "'Barlow Condensed', sans-serif",
-        fontSize: isTop3 ? 15 : 13, color: '#f1f5f9', lineHeight: 1.2,
+        fontSize: isTop3 ? 15 : 13, color: isLight ? '#0F172A' : '#f1f5f9', lineHeight: 1.2,
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {entry.novel_title || 'Unknown'}
       </div>
@@ -377,6 +380,8 @@ function RankRow({ entry, rank, prevRanks, onClick }) {
   const isTop3    = rank <= 3
   const rc        = rankColor(rank)
   const votes     = entry.vote_count || 0
+  const { theme } = useTheme()
+  const isLight   = theme === 'light'
 
   const moveBadge = isNew
     ? <span style={{ color: CYAN, fontSize: 10, fontWeight: 700 }}>★ NEW</span>
@@ -438,7 +443,7 @@ function RankRow({ entry, rank, prevRanks, onClick }) {
       {/* Title */}
       <div style={{ flex: 1, minWidth: 0,
         fontFamily: "'Barlow Condensed', sans-serif",
-        fontSize: isTop3 ? 16 : 14, color: '#f1f5f9', lineHeight: 1.2,
+        fontSize: isTop3 ? 16 : 14, color: isLight ? '#0F172A' : '#f1f5f9', lineHeight: 1.2,
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
         {entry.novel_title || 'Unknown'}
@@ -464,6 +469,8 @@ function ChartRow({ entry, rank, prevRanks, rankHistory, onClick }) {
   const isNew    = !prev
   const rc       = rankColor(rank)
   const votes    = entry.vote_count || 0
+  const { theme } = useTheme()
+  const isLight  = theme === 'light'
 
   // Inline mini rank chart (SVG)
   const valid = (rankHistory || []).filter(v => v !== null)
@@ -528,7 +535,7 @@ function ChartRow({ entry, rank, prevRanks, rankHistory, onClick }) {
       {/* Title */}
       <div style={{ flex: 1, minWidth: 0,
         fontFamily: "'Barlow Condensed', sans-serif",
-        fontSize: 13, color: '#e2e8f0',
+        fontSize: 13, color: isLight ? '#0F172A' : '#e2e8f0',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {entry.novel_title}
       </div>
@@ -554,6 +561,8 @@ function ChartRow({ entry, rank, prevRanks, rankHistory, onClick }) {
 // ── Main page ────────────────────────────────────────────────────
 export function RankingPage() {
   const { lang }  = useLang()
+  const { theme } = useTheme()
+  const isLight   = theme === 'light'
   const [votes,   setVotes]   = useState([])
   const [voterCount, setVoterCount] = useState(0)
   const [history, setHistory] = useState([])
@@ -675,7 +684,8 @@ export function RankingPage() {
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button onClick={() => setMonthOffset(o => o + 1)} style={{
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+              background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.04)',
+              border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.08)',
               color: '#64748B', borderRadius: 8, padding: '6px 14px', cursor: 'pointer',
               fontSize: 12, fontFamily: "'Be Vietnam Pro', sans-serif",
             }}>{T.prev}</button>
@@ -689,7 +699,8 @@ export function RankingPage() {
             </div>
             {monthOffset > 0 && (
               <button onClick={() => setMonthOffset(o => o - 1)} style={{
-                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.04)',
+                border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.08)',
                 color: '#64748B', borderRadius: 8, padding: '6px 14px', cursor: 'pointer',
                 fontSize: 12, fontFamily: "'Be Vietnam Pro', sans-serif",
               }}>{T.next}</button>
@@ -704,7 +715,9 @@ export function RankingPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {Array.from({length: 8}).map((_,i) => (
               <div key={i} style={{ height: 62, borderRadius: 12,
-                background: 'linear-gradient(90deg,#1f2937 25%,#374151 50%,#1f2937 75%)',
+                background: isLight
+                  ? 'linear-gradient(90deg,#DDE3EC 25%,#EEF2F7 50%,#DDE3EC 75%)'
+                  : 'linear-gradient(90deg,#1f2937 25%,#374151 50%,#1f2937 75%)',
                 backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
             ))}
           </div>
@@ -724,8 +737,8 @@ export function RankingPage() {
             {/* Column header — desktop only */}
             {!isMobile && (
             <div style={{ display: 'flex', gap: 10, padding: '0 16px 8px',
-              fontSize: 9, fontWeight: 700, letterSpacing: 1, color: '#374151',
-              borderBottom: '1px solid rgba(255,255,255,0.04)', marginBottom: 4 }}>
+              fontSize: 9, fontWeight: 700, letterSpacing: 1, color: isLight ? '#64748B' : '#374151',
+              borderBottom: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.04)', marginBottom: 4 }}>
               <span style={{ width: 36, flexShrink: 0 }}>#</span>
               <span style={{ width: 36, flexShrink: 0 }}></span>{/* cover spacer */}
               <span style={{ flex: 1 }}>SERIES</span>

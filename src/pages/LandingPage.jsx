@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLang } from '../context/LangContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { AuthModal } from '../components/AuthModal.jsx'
 import { PURPLE, CYAN, ROSE } from '../constants.js'
 
@@ -44,7 +45,7 @@ const TABS = [
   { path:'#/vote',    Icon:VoteIcon,     color:'#F59E0B',  titleKey:'nav_vote',   descKey:'land_vote_desc',   grad:'linear-gradient(135deg,#1a1200,#1a1410)', sample:['Vote monthly','See rankings','Track trends','Support favourites','Compete'] },
 ]
 
-function TabCard({ tab, t, isMobile }) {
+function TabCard({ tab, t, isMobile, isLight }) {
   const [hovered, setHovered] = useState(false)
   const { Icon } = tab
 
@@ -56,12 +57,12 @@ function TabCard({ tab, t, isMobile }) {
         flexDirection: isMobile ? 'row' : 'column',
         alignItems: isMobile ? 'center' : 'flex-start',
         gap: isMobile ? 14 : 0,
-        background: tab.grad,
-        border:`1px solid ${hovered ? tab.color+'60' : 'rgba(255,248,240,0.06)'}`,
+        background: isLight ? (hovered ? `${tab.color}10` : 'rgba(0,0,0,0.03)') : tab.grad,
+        border:`1px solid ${hovered ? tab.color+'60' : (isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,248,240,0.06)')}`,
         borderRadius:16, padding: isMobile ? '16px 18px' : '28px 24px', cursor:'pointer',
         transition:'transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, border-color 0.2s',
         transform: hovered && !isMobile ? 'translateY(-6px) scale(1.02)' : 'none',
-        boxShadow: hovered ? `0 16px 48px ${tab.color}28, 0 4px 16px rgba(0,0,0,0.4)` : '0 2px 12px rgba(0,0,0,0.25)',
+        boxShadow: hovered ? `0 16px 48px ${tab.color}28, 0 4px 16px rgba(0,0,0,0.12)` : (isLight ? '0 2px 12px rgba(0,0,0,0.06)' : '0 2px 12px rgba(0,0,0,0.25)'),
       }}>
         <div style={{
           width: isMobile?44:52, height: isMobile?44:52, borderRadius:12, flexShrink:0,
@@ -73,10 +74,11 @@ function TabCard({ tab, t, isMobile }) {
         </div>
 
         <div style={{ flex:1, display:'flex', flexDirection:'column', minWidth:0 }}>
-          <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?17:22, fontWeight:700, color:'#fff', letterSpacing:0.8, marginBottom: isMobile?3:6 }}>
+          <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?17:22, fontWeight:700,
+            color: isLight ? '#0F172A' : '#fff', letterSpacing:0.8, marginBottom: isMobile?3:6 }}>
             {t(tab.titleKey)}
           </div>
-          <div style={{ color:'#7a6045', fontSize: isMobile?12:13, lineHeight:1.6, marginBottom: isMobile?0:18, flex: isMobile?0:1 }}>
+          <div style={{ color: isLight ? '#64748B' : '#7a6045', fontSize: isMobile?12:13, lineHeight:1.6, marginBottom: isMobile?0:18, flex: isMobile?0:1 }}>
             {t(tab.descKey)}
           </div>
           {!isMobile && (
@@ -102,6 +104,8 @@ function TabCard({ tab, t, isMobile }) {
 export function LandingPage() {
   const { t, lang, toggleLang } = useLang()
   const { user } = useAuth()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [visible, setVisible] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [authMode, setAuthMode] = useState('login')
@@ -123,17 +127,17 @@ export function LandingPage() {
   const openAuth = (mode) => { setAuthMode(mode); setAuthOpen(true) }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#0f0b09', opacity: visible?1:0, transition:'opacity 0.5s ease' }}>
+    <div style={{ minHeight:'100vh', background: isLight ? '#F1F5F9' : '#0f0b09', opacity: visible?1:0, transition:'opacity 0.5s ease' }}>
       {authOpen && <AuthModal onClose={() => setAuthOpen(false)} initialMode={authMode} />}
 
       {/* ── Header ── */}
-      <header style={{ position:'sticky', top:0, zIndex:100, background:'rgba(10,10,15,0.96)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${PURPLE}26`, padding:'0 16px' }}>
+      <header style={{ position:'sticky', top:0, zIndex:100, background: isLight ? 'rgba(241,245,249,0.96)' : 'rgba(10,10,15,0.96)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${isLight ? 'rgba(0,0,0,0.08)' : PURPLE+'26'}`, padding:'0 16px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', minHeight: isMobile?54:62, gap:12 }}>
 
           {/* Logo */}
           <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
             <div style={{ width:30, height:30, borderRadius:8, background:PURPLE, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Barlow Condensed',sans-serif", fontSize:15, color:'#fff', fontWeight:900, letterSpacing:0.5 }}>Li</div>
-            <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?18:22, letterSpacing:2, color:'#fff', fontWeight:700 }}>
+            <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?18:22, letterSpacing:2, color: isLight ? '#0F172A' : '#fff', fontWeight:700 }}>
               Li<span style={{ color:PURPLE }}>Dex</span>
             </span>
           </div>
@@ -141,7 +145,7 @@ export function LandingPage() {
           {/* Right controls */}
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             {/* Language */}
-            <button onClick={toggleLang} style={{ display:'flex', alignItems:'center', gap:5, background:'rgba(255,248,240,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#94A3B8', padding:'6px 10px', borderRadius:10, cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
+            <button onClick={toggleLang} style={{ display:'flex', alignItems:'center', gap:5, background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,248,240,0.06)', border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.1)', color: isLight ? '#475569' : '#94A3B8', padding:'6px 10px', borderRadius:10, cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif" }}>
               <GlobeIcon />{lang==='vi'?'EN':'VI'}
             </button>
 
@@ -159,9 +163,9 @@ export function LandingPage() {
             ) : (
               /* Desktop: separate Sign in + Sign up */
               <>
-                <button onClick={() => openAuth('login')} style={{ background:'none', border:'1px solid rgba(255,255,255,0.12)', color:'#94A3B8', padding:'7px 16px', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif", transition:'border-color 0.15s,color 0.15s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.3)'; e.currentTarget.style.color='#fff' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.12)'; e.currentTarget.style.color='#94A3B8' }}>
+                <button onClick={() => openAuth('login')} style={{ background:'none', border: isLight ? '1px solid rgba(0,0,0,0.15)' : '1px solid rgba(255,255,255,0.12)', color: isLight ? '#1E293B' : '#94A3B8', padding:'7px 16px', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:"'Be Vietnam Pro',sans-serif", transition:'border-color 0.15s,color 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor= isLight ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)'; e.currentTarget.style.color= isLight ? '#0F172A' : '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor= isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.12)'; e.currentTarget.style.color= isLight ? '#1E293B' : '#94A3B8' }}>
                   {lang==='vi' ? 'Đăng nhập' : 'Sign in'}
                 </button>
                 <button onClick={() => openAuth('register')} style={{ background:PURPLE, border:'none', color:'#fff', padding:'7px 18px', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:"'Be Vietnam Pro',sans-serif", boxShadow:`0 4px 16px ${PURPLE}50`, transition:'opacity 0.15s' }}
@@ -176,17 +180,21 @@ export function LandingPage() {
       </header>
 
       {/* ── Hero ── */}
-      <div style={{ position:'relative', overflow:'hidden', background:'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)', padding: isMobile?'52px 20px 44px':'80px 24px 64px', textAlign:'center' }}>
+      <div style={{ position:'relative', overflow:'hidden',
+        background: isLight
+          ? 'linear-gradient(160deg,#EEF2F7,#F1F5F9)'
+          : 'linear-gradient(160deg,#140f08,#110d0a,#0f0b09)',
+        padding: isMobile?'52px 20px 44px':'80px 24px 64px', textAlign:'center' }}>
         <div style={{ position:'absolute', top:-100, left:'20%', width:500, height:320, background:`radial-gradient(ellipse, ${PURPLE}16 0%, transparent 70%)`, pointerEvents:'none' }} />
         <div style={{ position:'absolute', top:-50, right:'15%', width:400, height:260, background:`radial-gradient(ellipse, ${CYAN}10 0%, transparent 70%)`, pointerEvents:'none' }} />
 
         <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?11:13, color:PURPLE, letterSpacing:5, marginBottom:14, textTransform:'uppercase' }}>LiDex</div>
 
-        <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?'clamp(32px,10vw,48px)':'clamp(40px,7vw,80px)', lineHeight:1.05, letterSpacing: isMobile?1:2, margin:'0 0 16px', color:'#fff' }}>
+        <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?'clamp(32px,10vw,48px)':'clamp(40px,7vw,80px)', lineHeight:1.05, letterSpacing: isMobile?1:2, margin:'0 0 16px', color: isLight ? '#0F172A' : '#fff' }}>
           {t('land_tagline')}
         </h1>
 
-        <p style={{ color:'#7a6045', fontSize: isMobile?14:'clamp(14px,2vw,17px)', margin:'0 auto 36px', maxWidth:460, lineHeight:1.7, padding:'0 8px' }}>
+        <p style={{ color: isLight ? '#64748B' : '#7a6045', fontSize: isMobile?14:'clamp(14px,2vw,17px)', margin:'0 auto 36px', maxWidth:460, lineHeight:1.7, padding:'0 8px' }}>
           {t('land_sub')}
         </p>
 
@@ -195,7 +203,12 @@ export function LandingPage() {
             {t('land_enter')} →
           </a>
           {!user && (
-            <button onClick={() => openAuth('register')} style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,248,240,0.06)', border:'1px solid rgba(255,255,255,0.12)', color:'#94A3B8', padding: isMobile?'12px 24px':'14px 32px', borderRadius:14, cursor:'pointer', fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?16:18, letterSpacing:1 }}>
+            <button onClick={() => openAuth('register')} style={{ display:'inline-flex', alignItems:'center', gap:8,
+              background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,248,240,0.06)',
+              border: isLight ? '1px solid rgba(0,0,0,0.14)' : '1px solid rgba(255,255,255,0.12)',
+              color: isLight ? '#1E293B' : '#94A3B8',
+              padding: isMobile?'12px 24px':'14px 32px', borderRadius:14, cursor:'pointer',
+              fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile?16:18, letterSpacing:1 }}>
               {lang==='vi' ? 'Tạo tài khoản' : 'Create account'}
             </button>
           )}
@@ -204,16 +217,16 @@ export function LandingPage() {
 
       {/* ── Section cards ── */}
       <div style={{ maxWidth:1200, margin:'0 auto', padding: isMobile?'28px 14px 48px':'48px 24px 64px' }}>
-        <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:11, letterSpacing:3, color:'#3d2e1e', textTransform:'uppercase', marginBottom: isMobile?16:24 }}>
+        <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:11, letterSpacing:3, color: isLight ? '#64748B' : '#3d2e1e', textTransform:'uppercase', marginBottom: isMobile?16:24 }}>
           {lang==='vi' ? 'Khám phá' : 'Explore'}
         </div>
         <div style={{ display:'grid', gridTemplateColumns: isMobile?'1fr':'repeat(auto-fit,minmax(220px,1fr))', gap: isMobile?10:20, alignItems:'stretch' }}>
-          {TABS.map(tab => <TabCard key={tab.path} tab={tab} t={t} isMobile={isMobile} />)}
+          {TABS.map(tab => <TabCard key={tab.path} tab={tab} t={t} isMobile={isMobile} isLight={isLight} />)}
         </div>
       </div>
 
       {/* ── Footer ── */}
-      <footer style={{ borderTop:'1px solid rgba(255,248,240,0.05)', padding: isMobile?'16px':'20px 24px', textAlign:'center', color:'#3d2e1e', fontSize:11 }}>
+      <footer style={{ borderTop: isLight ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(255,248,240,0.05)', padding: isMobile?'16px':'20px 24px', textAlign:'center', color: isLight ? '#64748B' : '#3d2e1e', fontSize:11 }}>
         <span style={{ fontFamily:"'Barlow Condensed',sans-serif", color:PURPLE, fontSize:13, letterSpacing:2 }}>LIDEX</span>
         {` · ${t('footer_powered')} RanobeDB, AniList & MangaDex · `}{new Date().getFullYear()}
       </footer>

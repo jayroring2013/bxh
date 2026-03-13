@@ -3,6 +3,7 @@ import { RANOBE, PURPLE, CYAN, ROSE } from '../constants.js'
 import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useLang } from '../context/LangContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { AppHeader, ErrorBox, PageFooter } from '../components/Shared.jsx'
 
 const GOLD   = '#F59E0B'
@@ -61,16 +62,18 @@ function SkeletonGrid({isMobile}){
 
 function VoteCard({item,rank,voteCount,prevRank,hasVoted,onVote,voting,accent,t,isMobile}){
   const [hov,setHov]=useState(false)
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const isTop3=rank<=3
   return(
     <div onMouseEnter={()=>!isMobile&&setHov(true)} onMouseLeave={()=>!isMobile&&setHov(false)} style={{
       position:'relative',borderRadius:isMobile?12:16,overflow:'hidden',
       display:'flex',flexDirection:'column',
-      background:isTop3?`${accent}09`:hov?`${accent}06`:'rgba(255,248,240,0.02)',
-      border:`1px solid ${isTop3?(rank===1?'#FFD70040':rank===2?'#C0C0C040':'#CD7F3240'):hov?`${accent}50`:'rgba(255,248,240,0.06)'}`,
+      background:isTop3?`${accent}09`:hov?`${accent}06`:(isLight?'rgba(0,0,0,0.02)':'rgba(255,248,240,0.02)'),
+      border:`1px solid ${isTop3?(rank===1?'#FFD70040':rank===2?'#C0C0C040':'#CD7F3240'):hov?`${accent}50`:(isLight?'rgba(0,0,0,0.08)':'rgba(255,248,240,0.06)')}`,
       transition:'transform .22s ease,box-shadow .22s ease',
       transform:hov?'translateY(-4px)':'none',
-      boxShadow:hov?`0 16px 36px ${accent}22,0 4px 12px rgba(0,0,0,0.5)`:'0 2px 8px rgba(0,0,0,0.25)',
+      boxShadow:hov?`0 16px 36px ${accent}22,0 4px 12px rgba(0,0,0,0.2)`:'0 2px 8px rgba(0,0,0,0.08)',
     }}>
       {/* rank */}
       <div style={{position:'absolute',top:isMobile?7:10,left:isMobile?7:10,zIndex:2,
@@ -82,8 +85,8 @@ function VoteCard({item,rank,voteCount,prevRank,hasVoted,onVote,voting,accent,t,
       <div style={{position:'absolute',top:isMobile?9:12,right:isMobile?8:12,zIndex:2}}>
         <TrendArrow current={rank} prev={prevRank}/>
       </div>
-      {/* cover — aspectRatio so it works at any grid column width */}
-      <div style={{position:'relative',width:'100%',aspectRatio:'2/3',flexShrink:0,background:'#130d08',overflow:'hidden'}}>
+      {/* cover */}
+      <div style={{position:'relative',width:'100%',aspectRatio:'2/3',flexShrink:0,background:isLight?'#E2E8F0':'#130d08',overflow:'hidden'}}>
         {item.cover_url
           ?<img src={item.cover_url} alt={item.title} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:'top',transition:'transform .3s',transform:hov?'scale(1.05)':'scale(1)'}} onError={e=>e.target.style.display='none'}/>
           :<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:`${accent}12`}}>
@@ -93,7 +96,9 @@ function VoteCard({item,rank,voteCount,prevRank,hasVoted,onVote,voting,accent,t,
       </div>
       {/* body */}
       <div style={{padding:isMobile?'7px 8px 9px':'10px 14px 14px',flex:1,display:'flex',flexDirection:'column',gap:isMobile?5:7}}>
-        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:isMobile?12:15,lineHeight:1.25,color:'#f1f5f9',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.title}</div>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:isMobile?12:15,lineHeight:1.25,
+          color: isLight ? '#0F172A' : '#f1f5f9',
+          display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.title}</div>
         {!isMobile&&item.sub&&<div style={{fontSize:10,color:'#475569',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.sub}</div>}
         {!isMobile&&item.tags?.length>0&&(
           <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
@@ -186,8 +191,13 @@ function CategoryPanel({cat,month,year,lang,token,t,isMobile}){
     <div style={{position:'relative'}}>
       {!loading&&items.length>0&&(
         <div style={{position:'relative',marginBottom:20}}>
-          <svg style={{position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',opacity:.3,pointerEvents:'none'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={lang==='vi'?'Lọc theo tên...':'Filter by title...'} style={{width:'100%',boxSizing:'border-box',background:'rgba(255,248,240,0.04)',border:`1px solid ${cat.accent}22`,borderRadius:12,padding:'10px 36px 10px 38px',color:'#f1f5f9',fontSize:13,outline:'none',fontFamily:"'Be Vietnam Pro',sans-serif"}}/>
+          <svg style={{position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',opacity:.3,pointerEvents:'none'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={lang==='vi'?'Lọc theo tên...':'Filter by title...'} style={{width:'100%',boxSizing:'border-box',
+            background: typeof isLight !== 'undefined' && isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,248,240,0.04)',
+            border:`1px solid ${cat.accent}22`,
+            borderRadius:12,padding:'10px 36px 10px 38px',
+            color: typeof isLight !== 'undefined' && isLight ? '#0F172A' : '#f1f5f9',
+            fontSize:13,outline:'none',fontFamily:"'Be Vietnam Pro',sans-serif"}}/>
           {search&&<button onClick={()=>setSearch('')} style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:18}}>×</button>}
         </div>
       )}
@@ -214,6 +224,8 @@ function CategoryPanel({cat,month,year,lang,token,t,isMobile}){
 export function VotePage(){
   const{t,lang}=useLang()
   const{token}=useAuth()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const now=new Date(),month=now.getMonth()+1,year=now.getFullYear()
   const daysLeft=new Date(year,month,1)-now,daysNum=Math.ceil(daysLeft/86400000)
   const MONTHS_VI=['tháng 1','tháng 2','tháng 3','tháng 4','tháng 5','tháng 6','tháng 7','tháng 8','tháng 9','tháng 10','tháng 11','tháng 12']
@@ -226,19 +238,19 @@ export function VotePage(){
   const switchCat=id=>{setActiveCat(id);if(isMobile&&contentRef.current)setTimeout(()=>contentRef.current?.scrollIntoView({behavior:'smooth',block:'start'}),50)}
 
   return(
-    <div className="page-enter" style={{minHeight:'100vh',background:'#0f0b09'}}>
+    <div className="page-enter" style={{minHeight:'100vh',background: isLight ? '#F1F5F9' : '#0f0b09'}}>
       <AppHeader activeTab="#/vote" accent={PURPLE} searchInput="" onSearch={()=>{}} sorts={[]} activeSort="" onSort={()=>{}} hideSearch hideSorts/>
 
       {/* Hero */}
-      <div style={{background:'linear-gradient(160deg,#130a1c 0%,#0f0b09 60%)',padding:isMobile?'28px 20px 24px':'44px 48px 40px',borderBottom:'1px solid rgba(255,248,240,0.06)',position:'relative',overflow:'hidden'}}>
+      <div style={{background: isLight ? 'linear-gradient(160deg,#EEF2F7,#F1F5F9)' : 'linear-gradient(160deg,#130a1c 0%,#0f0b09 60%)',padding:isMobile?'28px 20px 24px':'44px 48px 40px',borderBottom: isLight ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(255,248,240,0.06)',position:'relative',overflow:'hidden'}}>
         <div style={{position:'absolute',inset:0,background:`radial-gradient(ellipse at 15% 60%, ${PURPLE}14 0%, transparent 55%)`}}/>
         <div style={{position:'relative',zIndex:1,textAlign:'center',maxWidth:560,margin:'0 auto'}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,marginBottom:10}}>
             <TrophyIcon size={14} color={PURPLE}/>
             <span style={{fontSize:11,fontWeight:700,letterSpacing:3,textTransform:'uppercase',color:PURPLE,fontFamily:"'Barlow Condensed',sans-serif"}}>{lang==='vi'?'Bầu chọn tháng này':'Monthly Vote'}</span>
           </div>
-          <h1 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:isMobile?34:52,fontWeight:900,color:'#f1f5f9',margin:'0 0 10px',lineHeight:1.05,letterSpacing:.5}}>{lang==='vi'?`Bầu chọn ${monthLabel} ${year}`:`${monthLabel} ${year} Poll`}</h1>
-          <p style={{fontSize:isMobile?12:13,color:'#6b4f35',fontFamily:"'Be Vietnam Pro',sans-serif",margin:0,lineHeight:1.7}}>{isMobile?(lang==='vi'?`Còn ${daysNum} ngày`:`${daysNum} days left`):(lang==='vi'?`Bình chọn tác phẩm yêu thích của bạn trong mỗi hạng mục. Còn ${daysNum} ngày.`:`Cast one vote per category for your favorites. ${daysNum} days remaining.`)}</p>
+          <h1 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:isMobile?34:52,fontWeight:900,color: isLight ? '#0F172A' : '#f1f5f9',margin:'0 0 10px',lineHeight:1.05,letterSpacing:.5}}>{lang==='vi'?`Bầu chọn ${monthLabel} ${year}`:`${monthLabel} ${year} Poll`}</h1>
+          <p style={{fontSize:isMobile?12:13,color: isLight ? '#64748B' : '#6b4f35',fontFamily:"'Be Vietnam Pro',sans-serif",margin:0,lineHeight:1.7}}>{isMobile?(lang==='vi'?`Còn ${daysNum} ngày`:`${daysNum} days left`):(lang==='vi'?`Bình chọn tác phẩm yêu thích của bạn trong mỗi hạng mục. Còn ${daysNum} ngày.`:`Cast one vote per category for your favorites. ${daysNum} days remaining.`)}</p>
         </div>
       </div>
 
@@ -246,11 +258,15 @@ export function VotePage(){
         /* ── MOBILE: column layout ── */
         <div style={{display:'flex',flexDirection:'column'}}>
           {/* Sticky tabs */}
-          <div style={{position:'sticky',top:56,zIndex:20,background:'rgba(15,11,9,0.97)',backdropFilter:'blur(12px)',borderBottom:'1px solid rgba(255,248,240,0.07)',padding:'10px 12px',display:'flex',gap:8}}>
+          <div style={{position:'sticky',top:56,zIndex:20,
+            background: isLight ? 'rgba(241,245,249,0.97)' : 'rgba(15,11,9,0.97)',
+            backdropFilter:'blur(12px)',
+            borderBottom: isLight ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(255,248,240,0.07)',
+            padding:'10px 12px',display:'flex',gap:8}}>
             {CATS.map(c=>{
               const isActive=activeCat===c.id
               return(
-                <button key={c.id} onClick={()=>switchCat(c.id)} style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:6,padding:'9px 4px',borderRadius:12,cursor:'pointer',fontFamily:"'Be Vietnam Pro',sans-serif",fontWeight:isActive?700:500,fontSize:12,transition:'all .15s',background:isActive?`${c.accent}18`:'rgba(255,248,240,0.05)',border:`1.5px solid ${isActive?c.accent:'transparent'}`,color:isActive?c.accent:'#6b4f35',boxShadow:isActive?`0 2px 10px ${c.accent}30`:'none'}}>
+                <button key={c.id} onClick={()=>switchCat(c.id)} style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:6,padding:'9px 4px',borderRadius:12,cursor:'pointer',fontFamily:"'Be Vietnam Pro',sans-serif",fontWeight:isActive?700:500,fontSize:12,transition:'all .15s',background:isActive?`${c.accent}18`:(isLight?'rgba(0,0,0,0.04)':'rgba(255,248,240,0.05)'),border:`1.5px solid ${isActive?c.accent:'transparent'}`,color:isActive?c.accent:(isLight?'#475569':'#6b4f35'),boxShadow:isActive?`0 2px 10px ${c.accent}30`:'none'}}>
                   <CatIcon id={c.id} size={14} color={isActive?c.accent:'#6b4f35'}/>
                   <span>{lang==='vi'?c.label.vi:c.label.en}</span>
                 </button>
@@ -262,7 +278,7 @@ export function VotePage(){
             <div style={{marginBottom:16,paddingBottom:14,borderBottom:'1px solid rgba(255,248,240,0.07)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div style={{display:'flex',alignItems:'center',gap:10}}>
                 <CatIcon id={cat.id} size={20} color={cat.accent}/>
-                <h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:900,color:'#f1f5f9',margin:0,letterSpacing:.5}}>{lang==='vi'?cat.label.vi:cat.label.en}</h2>
+                <h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:900,color: isLight ? '#0F172A' : '#f1f5f9',margin:0,letterSpacing:.5}}>{lang==='vi'?cat.label.vi:cat.label.en}</h2>
               </div>
               <span style={{fontSize:11,color:cat.accent,background:`${cat.accent}15`,padding:'3px 10px',borderRadius:20,fontWeight:700,whiteSpace:'nowrap',fontFamily:"'Be Vietnam Pro',sans-serif"}}>{monthLabel}</span>
             </div>
@@ -272,16 +288,19 @@ export function VotePage(){
       ):(
         /* ── DESKTOP: sidebar + content ── */
         <div style={{display:'flex',alignItems:'flex-start',maxWidth:1320,margin:'0 auto'}}>
-          <aside style={{width:230,flexShrink:0,position:'sticky',top:56,alignSelf:'flex-start',minHeight:'calc(100vh - 56px)',borderRight:'1px solid rgba(255,248,240,0.07)',background:'#0f0b09',paddingTop:28}}>
-            <div style={{padding:'0 16px 16px',fontFamily:"'Barlow Condensed',sans-serif",fontSize:10,fontWeight:700,letterSpacing:2.5,color:'#2e2016',textTransform:'uppercase'}}>{lang==='vi'?'Hạng mục':'Categories'}</div>
+          <aside style={{width:230,flexShrink:0,position:'sticky',top:56,alignSelf:'flex-start',minHeight:'calc(100vh - 56px)',
+            borderRight: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,248,240,0.07)',
+            background: isLight ? '#F1F5F9' : '#0f0b09',
+            paddingTop:28}}>
+            <div style={{padding:'0 16px 16px',fontFamily:"'Barlow Condensed',sans-serif",fontSize:10,fontWeight:700,letterSpacing:2.5,color: isLight ? '#64748B' : '#2e2016',textTransform:'uppercase'}}>{lang==='vi'?'Hạng mục':'Categories'}</div>
             {CATS.map(c=>{
               const isActive=activeCat===c.id
               return(
                 <button key={c.id} onClick={()=>switchCat(c.id)} style={{width:'100%',display:'flex',alignItems:'flex-start',gap:12,padding:'14px 18px 14px 16px',textAlign:'left',background:isActive?`${c.accent}12`:'transparent',border:'none',borderLeft:`3px solid ${isActive?c.accent:'transparent'}`,cursor:'pointer',transition:'all .15s'}}>
-                  <div style={{marginTop:2,flexShrink:0}}><CatIcon id={c.id} size={18} color={isActive?c.accent:'#6b4f35'}/></div>
+                  <div style={{marginTop:2,flexShrink:0}}><CatIcon id={c.id} size={18} color={isActive?c.accent:(isLight?'#64748B':'#6b4f35')}/></div>
                   <div>
-                    <div style={{fontFamily:"'Be Vietnam Pro',sans-serif",fontSize:14,fontWeight:isActive?700:500,color:isActive?'#f1f5f9':'#a08060',lineHeight:1.3}}>{lang==='vi'?c.label.vi:c.label.en}</div>
-                    <div style={{fontFamily:"'Be Vietnam Pro',sans-serif",fontSize:11,marginTop:3,lineHeight:1.5,color:isActive?c.accent:'#4a3828'}}>{lang==='vi'?c.desc.vi:c.desc.en}</div>
+                    <div style={{fontFamily:"'Be Vietnam Pro',sans-serif",fontSize:14,fontWeight:isActive?700:500,color:isActive?(isLight?c.accent:'#f1f5f9'):(isLight?'#475569':'#a08060'),lineHeight:1.3}}>{lang==='vi'?c.label.vi:c.label.en}</div>
+                    <div style={{fontFamily:"'Be Vietnam Pro',sans-serif",fontSize:11,marginTop:3,lineHeight:1.5,color:isActive?c.accent:(isLight?'#94A3B8':'#4a3828')}}>{lang==='vi'?c.desc.vi:c.desc.en}</div>
                   </div>
                 </button>
               )
@@ -293,12 +312,12 @@ export function VotePage(){
             </div>
           </aside>
           <div ref={contentRef} style={{flex:1,minWidth:0,padding:'32px 32px 72px'}}>
-            <div style={{marginBottom:24,paddingBottom:18,borderBottom:'1px solid rgba(255,248,240,0.07)'}}>
+            <div style={{marginBottom:24,paddingBottom:18,borderBottom: isLight ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(255,248,240,0.07)'}}>
               <div style={{display:'flex',alignItems:'center',gap:14}}>
                 <CatIcon id={cat.id} size={28} color={cat.accent}/>
                 <div>
-                  <h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:28,fontWeight:900,color:'#f1f5f9',margin:0,letterSpacing:.5}}>{lang==='vi'?cat.label.vi:cat.label.en}</h2>
-                  <p style={{fontSize:12,color:'#6b4f35',margin:'4px 0 0',fontFamily:"'Be Vietnam Pro',sans-serif"}}>{lang==='vi'?cat.desc.vi:cat.desc.en}{' · '}<span style={{color:cat.accent}}>{monthLabel} {year}</span></p>
+                  <h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:28,fontWeight:900,color: isLight ? '#0F172A' : '#f1f5f9',margin:0,letterSpacing:.5}}>{lang==='vi'?cat.label.vi:cat.label.en}</h2>
+                  <p style={{fontSize:12,color: isLight ? '#64748B' : '#6b4f35',margin:'4px 0 0',fontFamily:"'Be Vietnam Pro',sans-serif"}}>{lang==='vi'?cat.desc.vi:cat.desc.en}{' · '}<span style={{color:cat.accent}}>{monthLabel} {year}</span></p>
                 </div>
               </div>
             </div>
