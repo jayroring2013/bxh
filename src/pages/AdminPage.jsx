@@ -336,7 +336,8 @@ function OverviewTab({ token }) {
           const historyData = await historyRes.json()
           console.log('get_user_history data:', historyData)
           if (Array.isArray(historyData)) {
-            setUserHistory(historyData)
+            // Reverse so oldest (day 29) is on left, newest (day 0) is on right
+            setUserHistory([...historyData].reverse())
           }
         }
       } catch (e) {
