@@ -334,11 +334,12 @@ function OverviewTab({ token }) {
         
         if (historyRes.ok) {
           const historyData = await historyRes.json()
-          console.log('get_user_history data:', historyData)
+          console.log('get_user_history raw data:', JSON.stringify(historyData))
           if (Array.isArray(historyData)) {
-            // Already ordered correctly: day_index 0 = today, day_index 29 = 30 days ago
-            // No reversal needed - just use as is
-            setUserHistory(historyData)
+            // Sort by day_index DESC: day_index 29 (oldest) at index 0 (left), day_index 0 (newest) at index 29 (right)
+            const sortedData = [...historyData].sort((a, b) => b.day_index - a.day_index)
+            console.log('get_user_history sorted:', JSON.stringify(sortedData))
+            setUserHistory(sortedData)
           }
         }
       } catch (e) {
