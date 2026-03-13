@@ -348,7 +348,7 @@ function OverviewTab({ token }) {
 
   const [userHistory, setUserHistory] = useState([])
   const maxUserVal = Math.max(userStats.total, userStats.active, userStats.newSignups, 1)
-  const maxHistoryVal = Math.max(...userHistory.map(d => Math.max(d.signups, d.total_users || 0)), 1)
+  const maxHistoryVal = Math.max(...userHistory.map(d => Math.max(d.signups || 0, d.cumulative_total || 0)), 1)
 
   return (
     <div>
@@ -404,7 +404,7 @@ function OverviewTab({ token }) {
                   {userHistory.map((d, i) => {
                     const x = (i / Math.max(userHistory.length - 1, 1)) * 560
                     const signupsY = 140 - ((d.signups || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
-                    const totalY = 140 - ((d.total_users || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
+                    const totalY = 140 - ((d.cumulative_total || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5
                     return (
                       <g key={i}>
                         <circle cx={x} cy={signupsY} r="3" fill={CYAN} />
@@ -420,7 +420,7 @@ function OverviewTab({ token }) {
                             <line 
                               x1={x} y1={totalY} 
                               x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560} 
-                              y2={140 - ((userHistory[i+1].total_users || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5} 
+                              y2={140 - ((userHistory[i+1].cumulative_total || 0) / Math.max(maxHistoryVal, 1)) * 130 - 5} 
                               stroke={PURPLE} strokeWidth="2" 
                             />
                           </>
