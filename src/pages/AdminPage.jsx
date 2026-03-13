@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { SUPABASE_URL, SUPABASE_ANON } from '../supabase.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useLang } from '../context/LangContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { AppHeader } from '../components/Shared.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 // ── Inline SVG icon system (no lucide-react dependency) ────────
@@ -84,6 +85,30 @@ const GOLD   = '#F59E0B'
 const GREEN  = '#4ADE80'
 const SLATE  = '#94A3B8'
 
+// ── Theme-aware styles hook ─────────────────────────────────
+function useAdminStyles() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  
+  return {
+    isLight,
+    bg: isLight ? '#F1F5F9' : '#080D1A',
+    bgSurface: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
+    bgSurface2: isLight ? 'rgba(0,0,0,0.015)' : 'rgba(255,255,255,0.02)',
+    border: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)',
+    borderLight: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
+    textBright: isLight ? '#0F172A' : '#f1f5f9',
+    textPrimary: isLight ? '#1E293B' : '#e2e8f0',
+    textSecondary: isLight ? '#64748B' : '#94A3B8',
+    textMuted: isLight ? '#94A3B8' : '#64748B',
+    textGhost: isLight ? '#94A3B8' : '#374151',
+    inputBg: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.05)',
+    inputBorder: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.08)',
+    sidebarBg: isLight ? 'rgba(241,245,249,0.98)' : 'rgba(15,23,42,0.95)',
+    headerBg: isLight ? 'rgba(241,245,249,0.98)' : 'rgba(15,23,42,0.98)',
+  }
+}
+
 // ── API helper ────────────────────────────────────────────────
 const api = async (token, path, method = 'GET', body = null) => {
   const headers = {
@@ -101,13 +126,8 @@ const api = async (token, path, method = 'GET', body = null) => {
   return text ? JSON.parse(text) : null
 }
 
-// ── Shared input/button styles ─────────────────────────────────
-const inp = {
-  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-  color: '#f1f5f9', borderRadius: 8, padding: '9px 12px',
-  fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, outline: 'none',
-  width: '100%', boxSizing: 'border-box', transition: 'border-color 0.15s',
-}
+// ── Shared input/button styles (theme-aware, will be created per-component) ─────────────────────────────────
+// These will be defined inside each component that uses them
 const btn = (color = PURPLE, outline = false) => ({
   background: outline ? 'transparent' : `${color}20`,
   border: `1px solid ${color}${outline ? '60' : '40'}`,
@@ -142,27 +162,29 @@ const NAV_ITEMS = [
 // Card + Section primitives
 // ─────────────────────────────────────────────────────────────
 function Card({ children, style = {} }) {
+  const s = useAdminStyles()
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.03)', borderRadius: 14,
-      border: '1px solid rgba(255,255,255,0.07)',
+      background: s.bgSurface, borderRadius: 14,
+      border: `1px solid ${s.border}`,
       ...style,
     }}>{children}</div>
   )
 }
 
 function SectionHeader({ title, icon: Icon, color = SLATE, action }) {
+  const s = useAdminStyles()
   return (
     <div style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+      padding: '14px 18px', borderBottom: `1px solid ${s.borderLight}`,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {Icon && <Icon size={15} color={color} />}
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: 13, fontWeight: 700, letterSpacing: 1,
-          color: '#94A3B8', textTransform: 'uppercase',
+          color: s.textSecondary, textTransform: 'uppercase',
         }}>{title}</span>
       </div>
       {action}
@@ -181,6 +203,7 @@ function Section({ title, icon, color, children, action, style = {} }) {
 
 // Stat chip for overview
 function StatChip({ label, value, icon: Icon, color }) {
+  const s = useAdminStyles()
   return (
     <div style={{
       background: `${color}0d`, border: `1px solid ${color}25`,
@@ -196,7 +219,7 @@ function StatChip({ label, value, icon: Icon, color }) {
       </div>
       <div>
         <div style={{ fontSize: 22, fontWeight: 900, color, fontFamily: "'Barlow Condensed', sans-serif" }}>{value}</div>
-        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, letterSpacing: 0.5 }}>{label}</div>
+        <div style={{ fontSize: 11, color: s.textMuted, fontWeight: 600, letterSpacing: 0.5 }}>{label}</div>
       </div>
     </div>
   )
@@ -204,32 +227,35 @@ function StatChip({ label, value, icon: Icon, color }) {
 
 // Tag input
 function TagInput({ value = [], onChange, placeholder }) {
+  const s = useAdminStyles()
   const [input, setInput] = useState('')
   const tags = Array.isArray(value) ? value : []
   const add = () => {
     const v = input.trim()
     if (v && !tags.includes(v)) { onChange([...tags, v]); setInput('') }
   }
+  const inpStyle = { ...inp, background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.textBright, flex: 1 }
+  const btnStyle = { ...btn(PURPLE), background: outline ? 'transparent' : `${PURPLE}20`, border: `${PURPLE}${outline ? '60' : '40'}`, color: PURPLE, padding: '8px 14px', cursor: 'pointer', fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 12, fontWeight: 700, transition: 'all 0.15s' }
   return (
     <div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
         {tags.map(t => (
           <span key={t} style={{
-            background: 'rgba(255,255,255,0.08)', borderRadius: 20,
-            padding: '2px 10px', fontSize: 11, color: '#94A3B8',
+            background: s.bgSurface2, borderRadius: 20,
+            padding: '2px 10px', fontSize: 11, color: s.textSecondary,
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
             {t}
             <button onClick={() => onChange(tags.filter(x => x !== t))}
-              style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 12, padding: 0 }}>×</button>
+              style={{ background: 'none', border: 'none', color: s.textMuted, cursor: 'pointer', fontSize: 12, padding: 0 }}>×</button>
           </span>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
         <input value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add())}
-          placeholder={placeholder || 'Add tag…'} style={{ ...inp, flex: 1 }} />
-        <button style={{ ...btn(PURPLE), padding: '8px 12px' }} onClick={add}><Plus size={13} /></button>
+          placeholder={placeholder || 'Add tag…'} style={inpStyle} />
+        <button style={btnStyle} onClick={add}><Plus size={13} /></button>
       </div>
     </div>
   )
@@ -239,6 +265,7 @@ function TagInput({ value = [], onChange, placeholder }) {
 // Overview Tab
 // ─────────────────────────────────────────────────────────────
 function OverviewTab({ token }) {
+  const s = useAdminStyles()
   const [counts, setCounts] = useState({ anime: 0, manga: 0, novels: 0, votes: 0, featured: 0, announcements: 0 })
   const [loading, setLoading] = useState(true)
 
@@ -265,10 +292,10 @@ function OverviewTab({ token }) {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 4px' }}>
+        <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, color: s.textBright, margin: '0 0 4px' }}>
           Dashboard Overview
         </h2>
-        <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>
+        <p style={{ color: s.textMuted, fontSize: 13, margin: 0 }}>
           Summary of your LiDex database content.
         </p>
       </div>
@@ -294,12 +321,16 @@ function OverviewTab({ token }) {
             { label: 'Announcements',        hash: 'announcements',color: CYAN   },
             { label: 'Vote Manager',         hash: 'votes',        color: PURPLE },
             { label: 'User Management',      hash: 'users',        color: GREEN  },
-          ].map(item => (
-            <a key={item.hash} href={`#admin-${item.hash}`} style={{
-              ...btn(item.color, true),
-              textDecoration: 'none', fontSize: 12,
-            }}>{item.label}</a>
-          ))}
+          ].map(item => {
+            const btnStyle = {
+              background: 'transparent', border: `1px solid ${item.color}60`,
+              color: item.color, borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
+              fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 12, fontWeight: 700,
+              transition: 'all 0.15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6,
+              textDecoration: 'none',
+            }
+            return <a key={item.hash} href={`#admin-${item.hash}`} style={btnStyle}>{item.label}</a>
+          })}
         </div>
       </Card>
     </div>
@@ -323,11 +354,13 @@ async function searchSeries(token, type, q) {
 }
 
 function SeriesPicker({ token, onPick, defaultType }) {
+  const s = useAdminStyles()
   const [query,   setQuery]   = useState('')
   const [type,    setType]    = useState(defaultType || 'novel')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
+  const inpStyle = { background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.textBright, borderRadius: 8, padding: '9px 12px', fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', transition: 'border-color 0.15s' }
 
   useEffect(() => {
     if (query.trim().length < 2) { setResults([]); return }
@@ -345,31 +378,35 @@ function SeriesPicker({ token, onPick, defaultType }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
         {['novel','anime','manga'].map(t => (
           <button key={t} onClick={() => { setType(t); setResults([]) }} style={{
-            ...btn(TYPE_COLOR[t], type !== t), padding: '6px 14px', fontSize: 11, textTransform: 'capitalize',
+            background: type !== t ? 'transparent' : `${TYPE_COLOR[t]}20`,
+            border: `1px solid ${TYPE_COLOR[t]}${type !== t ? '60' : '40'}`,
+            color: TYPE_COLOR[t], borderRadius: 8, padding: '6px 14px', cursor: 'pointer',
+            fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 11, fontWeight: 700,
+            transition: 'all 0.15s', textTransform: 'capitalize',
           }}>{t}</button>
         ))}
       </div>
       <div style={{ position: 'relative' }}>
-        <Search size={14} color="#475569" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+        <Search size={14} color={s.textMuted} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
         <input value={query} onChange={e => setQuery(e.target.value)}
           placeholder={`Search ${type} by title…`}
-          style={{ ...inp, paddingLeft: 32 }} autoFocus />
+          style={{ ...inpStyle, paddingLeft: 32 }} autoFocus />
       </div>
-      {loading && <div style={{ color: '#475569', fontSize: 12, padding: '8px 0' }}>Searching…</div>}
+      {loading && <div style={{ color: s.textMuted, fontSize: 12, padding: '8px 0' }}>Searching…</div>}
       {results.length > 0 && (
-        <div style={{ marginTop: 8, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
+        <div style={{ marginTop: 8, border: `1px solid ${s.border}`, borderRadius: 10, overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
           {results.map(r => (
             <div key={r.id} onClick={() => onPick(r)} style={{
               display: 'flex', gap: 10, alignItems: 'center', padding: '8px 12px',
-              cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)',
-              background: 'rgba(255,255,255,0.02)', transition: 'background 0.1s',
+              cursor: 'pointer', borderBottom: `1px solid ${s.borderLight}`,
+              background: s.bgSurface2, transition: 'background 0.1s',
             }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}>
+              onMouseEnter={e => e.currentTarget.style.background = s.bgSurface}
+              onMouseLeave={e => e.currentTarget.style.background = s.bgSurface2}>
               {r.cover && <img src={r.cover} style={{ width: 28, height: 38, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
-                <div style={{ fontSize: 10, color: '#475569' }}>ID: {r.id}</div>
+                <div style={{ fontSize: 13, color: s.textBright, fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                <div style={{ fontSize: 10, color: s.textMuted }}>ID: {r.id}</div>
               </div>
               <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, fontWeight: 700, background: `${TYPE_COLOR[r.type]}20`, color: TYPE_COLOR[r.type], textTransform: 'uppercase' }}>{r.type}</span>
             </div>
@@ -395,6 +432,7 @@ const MANGA_DEMOGRAPHICS = ['shounen','shoujo','seinen','josei']
 const TYPE_COLOR = { novel: PURPLE, anime: CYAN, manga: ROSE }
 
 function SeriesTab({ token, toast, type }) {
+  const s = useAdminStyles()
   const [items,      setItems]      = useState([])
   const [loading,    setLoading]    = useState(false)
   const [search,     setSearch]     = useState('')
@@ -404,6 +442,14 @@ function SeriesTab({ token, toast, type }) {
 
   const color = TYPE_COLOR[type]
   const F = (k, v) => setForm(p => ({ ...p, [k]: v }))
+  const inpStyle = { background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.textBright, borderRadius: 8, padding: '9px 12px', fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', transition: 'border-color 0.15s' }
+  const btnStyle = (c, outline) => ({
+    background: outline ? 'transparent' : `${c}20`,
+    border: `1px solid ${c}${outline ? '60' : '40'}`,
+    color: c, borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
+    fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 12, fontWeight: 700,
+    transition: 'all 0.15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6,
+  })
 
   const load = useCallback(async (q = '') => {
     setLoading(true)
@@ -526,56 +572,56 @@ function SeriesTab({ token, toast, type }) {
         icon={type === 'anime' ? Tv2 : type === 'manga' ? BookMarked : BookOpen}
         color={color}
         action={
-          <button style={{ ...btn(GREEN), padding: '7px 12px' }} onClick={openNew}>
+          <button style={{ ...btnStyle(GREEN), padding: '7px 12px' }} onClick={openNew}>
             <Plus size={13} /> Add {type}
           </button>
         }
       >
         {/* Search */}
         <div style={{ position: 'relative', marginBottom: 14 }}>
-          <Search size={14} color="#475569" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={14} color={s.textMuted} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder={`Search ${type} by title…`}
-            style={{ ...inp, paddingLeft: 32 }} />
+            style={{ ...inpStyle, paddingLeft: 32 }} />
         </div>
 
         {loading ? (
-          <div style={{ color: '#475569', textAlign: 'center', padding: 32 }}>
+          <div style={{ color: s.textMuted, textAlign: 'center', padding: 32 }}>
             <RefreshCw size={16} style={{ display: 'inline', marginRight: 8, animation: 'spin 1s linear infinite' }} />Loading…
           </div>
         ) : items.length === 0 ? (
-          <div style={{ color: '#374151', textAlign: 'center', padding: 32 }}>No results.</div>
+          <div style={{ color: s.textGhost, textAlign: 'center', padding: 32 }}>No results.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {items.map(row => (
               <div key={row.id} style={{
                 display: 'flex', gap: 10, alignItems: 'center',
-                background: 'rgba(255,255,255,0.02)', borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.06)', padding: '8px 12px',
+                background: s.bgSurface2, borderRadius: 10,
+                border: `1px solid ${s.border}`, padding: '8px 12px',
                 transition: 'border-color 0.15s',
               }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = `${color}30`}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = s.border}
               >
                 {row.cover_url && (
                   <img src={row.cover_url} style={{ width: 28, height: 40, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: '#f1f5f9', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 13, color: s.textBright, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {row.title || '(no title)'}
                   </div>
-                  <div style={{ fontSize: 10, color: '#374151', display: 'flex', gap: 8 }}>
+                  <div style={{ fontSize: 10, color: s.textGhost, display: 'flex', gap: 8 }}>
                     <span>ID: {row.id}</span>
-                    {row.status && <span style={{ color: '#475569' }}>{row.status}</span>}
-                    {type === 'anime' && meta(row).episodes && <span style={{ color: '#475569' }}>{meta(row).episodes} eps</span>}
-                    {type === 'manga' && meta(row).chapters  && <span style={{ color: '#475569' }}>{meta(row).chapters} ch</span>}
-                    {type === 'novel' && row.external_id     && <span style={{ color: '#475569' }}>Ext: {row.external_id}</span>}
+                    {row.status && <span style={{ color: s.textMuted }}>{row.status}</span>}
+                    {type === 'anime' && meta(row).episodes && <span style={{ color: s.textMuted }}>{meta(row).episodes} eps</span>}
+                    {type === 'manga' && meta(row).chapters  && <span style={{ color: s.textMuted }}>{meta(row).chapters} ch</span>}
+                    {type === 'novel' && row.external_id     && <span style={{ color: s.textMuted }}>Ext: {row.external_id}</span>}
                   </div>
                 </div>
-                <button style={{ ...btn(CYAN, true), padding: '6px 10px' }} onClick={() => openEdit(row)}>
+                <button style={{ ...btnStyle(CYAN, true), padding: '6px 10px' }} onClick={() => openEdit(row)}>
                   <Pencil size={12} />
                 </button>
-                <button style={{ ...btn(ROSE, true), padding: '6px 10px' }} onClick={() => setDelConfirm(row)}>
+                <button style={{ ...btnStyle(ROSE, true), padding: '6px 10px' }} onClick={() => setDelConfirm(row)}>
                   <Trash2 size={12} />
                 </button>
               </div>
@@ -589,13 +635,13 @@ function SeriesTab({ token, toast, type }) {
         <Modal onClose={() => setDelConfirm(null)} maxWidth={380}>
           <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
             <AlertTriangle size={40} color={ROSE} style={{ marginBottom: 12 }} />
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, color: '#f1f5f9', marginBottom: 8 }}>Delete Series?</div>
-            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 20 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, color: s.textBright, marginBottom: 8 }}>Delete Series?</div>
+            <div style={{ fontSize: 13, color: s.textMuted, marginBottom: 20 }}>
               "{delConfirm.title}" will be permanently removed.
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button style={btn('#64748B', true)} onClick={() => setDelConfirm(null)}>Cancel</button>
-              <button style={{ ...btn(ROSE), padding: '8px 20px' }} onClick={() => del(delConfirm)}>
+              <button style={btnStyle(s.textGhost, true)} onClick={() => setDelConfirm(null)}>Cancel</button>
+              <button style={{ ...btnStyle(ROSE), padding: '8px 20px' }} onClick={() => del(delConfirm)}>
                 <Trash2 size={13} /> Delete
               </button>
             </div>
@@ -607,10 +653,10 @@ function SeriesTab({ token, toast, type }) {
       {editing && (
         <Modal onClose={() => setEditing(null)} maxWidth={640}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: '#f1f5f9' }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 700, color: s.textBright }}>
               {editing === 'new' ? `Add ${type}` : `Edit: ${form.title || '…'}`}
             </div>
-            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex' }}>
+            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', color: s.textMuted, cursor: 'pointer', display: 'flex' }}>
               <X size={18} />
             </button>
           </div>
@@ -624,8 +670,8 @@ function SeriesTab({ token, toast, type }) {
               { k: 'score',        label: 'Score (0–10)'                 },
             ].map(f => (
               <div key={f.k}>
-                <label style={{ fontSize: 10, color: f.req ? GREEN : '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
-                <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)} style={inp} />
+                <label style={{ fontSize: 10, color: f.req ? GREEN : s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)} style={inpStyle} />
               </div>
             ))}
           </div>
@@ -633,8 +679,8 @@ function SeriesTab({ token, toast, type }) {
           {/* Status */}
           <div style={{ display: 'grid', gridTemplateColumns: type === 'anime' ? '1fr 1fr 1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div>
-              <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Status</label>
-              <select value={form.status || ''} onChange={e => F('status', e.target.value)} style={inp}>
+              <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Status</label>
+              <select value={form.status || ''} onChange={e => F('status', e.target.value)} style={inpStyle}>
                 {(type === 'anime' ? ANIME_STATUSES : type === 'manga' ? MANGA_STATUSES : NOVEL_STATUSES)
                   .map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -642,14 +688,14 @@ function SeriesTab({ token, toast, type }) {
             {type === 'anime' && (
               <>
                 <div>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Format</label>
-                  <select value={form.anime_meta?.format || ''} onChange={e => F('anime_meta', { ...form.anime_meta, format: e.target.value })} style={inp}>
+                  <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Format</label>
+                  <select value={form.anime_meta?.format || ''} onChange={e => F('anime_meta', { ...form.anime_meta, format: e.target.value })} style={inpStyle}>
                     {ANIME_FORMATS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Season</label>
-                  <select value={form.anime_meta?.season || ''} onChange={e => F('anime_meta', { ...form.anime_meta, season: e.target.value })} style={inp}>
+                  <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Season</label>
+                  <select value={form.anime_meta?.season || ''} onChange={e => F('anime_meta', { ...form.anime_meta, season: e.target.value })} style={inpStyle}>
                     <option value="">—</option>
                     {ANIME_SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -658,8 +704,8 @@ function SeriesTab({ token, toast, type }) {
             )}
             {type === 'manga' && (
               <div>
-                <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Demographic</label>
-                <select value={form.manga_meta?.demographic || ''} onChange={e => F('manga_meta', { ...form.manga_meta, demographic: e.target.value })} style={inp}>
+                <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Demographic</label>
+                <select value={form.manga_meta?.demographic || ''} onChange={e => F('manga_meta', { ...form.manga_meta, demographic: e.target.value })} style={inpStyle}>
                   <option value="">—</option>
                   {MANGA_DEMOGRAPHICS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -678,8 +724,8 @@ function SeriesTab({ token, toast, type }) {
                 { k: 'site_url',    label: 'AniList URL'      },
               ].map(f => (
                 <div key={f.k}>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
-                  <input value={form.anime_meta?.[f.k] || ''} onChange={e => F('anime_meta', { ...form.anime_meta, [f.k]: e.target.value })} style={inp} />
+                  <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <input value={form.anime_meta?.[f.k] || ''} onChange={e => F('anime_meta', { ...form.anime_meta, [f.k]: e.target.value })} style={inpStyle} />
                 </div>
               ))}
             </div>
@@ -695,8 +741,8 @@ function SeriesTab({ token, toast, type }) {
                 { k: 'last_chapter', label: 'Latest Chapter' },
               ].map(f => (
                 <div key={f.k}>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
-                  <input value={form.manga_meta?.[f.k] || ''} onChange={e => F('manga_meta', { ...form.manga_meta, [f.k]: e.target.value })} style={inp} />
+                  <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <input value={form.manga_meta?.[f.k] || ''} onChange={e => F('manga_meta', { ...form.manga_meta, [f.k]: e.target.value })} style={inpStyle} />
                 </div>
               ))}
             </div>
@@ -709,8 +755,8 @@ function SeriesTab({ token, toast, type }) {
                 { k: 'author',    label: 'Author'    },
               ].map(f => (
                 <div key={f.k}>
-                  <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
-                  <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)} style={inp} />
+                  <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <input value={form[f.k] || ''} onChange={e => F(f.k, e.target.value)} style={inpStyle} />
                 </div>
               ))}
             </div>
@@ -718,9 +764,9 @@ function SeriesTab({ token, toast, type }) {
 
           {/* Cover URL */}
           <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Cover URL</label>
+            <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Cover URL</label>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input value={form.cover_url || ''} onChange={e => F('cover_url', e.target.value)} placeholder="https://…" style={{ ...inp, flex: 1 }} />
+              <input value={form.cover_url || ''} onChange={e => F('cover_url', e.target.value)} placeholder="https://…" style={{ ...inpStyle, flex: 1 }} />
               {form.cover_url && (
                 <img src={form.cover_url} style={{ width: 32, height: 44, objectFit: 'cover', borderRadius: 5, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
               )}
@@ -729,19 +775,19 @@ function SeriesTab({ token, toast, type }) {
 
           {/* Description */}
           <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 3 }}>Description</label>
-            <textarea value={form.description || ''} onChange={e => F('description', e.target.value)} rows={3} style={{ ...inp, resize: 'vertical' }} />
+            <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 3 }}>Description</label>
+            <textarea value={form.description || ''} onChange={e => F('description', e.target.value)} rows={3} style={{ ...inpStyle, resize: 'vertical' }} />
           </div>
 
           {/* Genres */}
           <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: 10, color: '#64748B', fontWeight: 700, display: 'block', marginBottom: 6 }}>Genres</label>
+            <label style={{ fontSize: 10, color: s.textMuted, fontWeight: 700, display: 'block', marginBottom: 6 }}>Genres</label>
             <TagInput value={form.genres} onChange={v => F('genres', v)} placeholder="e.g. Action" />
           </div>
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <button style={btn('#64748B', true)} onClick={() => setEditing(null)}>Cancel</button>
-            <button style={{ ...btn(GREEN), padding: '8px 20px' }} onClick={save}>
+            <button style={btnStyle(s.textMuted, true)} onClick={() => setEditing(null)}>Cancel</button>
+            <button style={{ ...btnStyle(GREEN), padding: '8px 20px' }} onClick={save}>
               <Check size={13} /> {editing === 'new' ? `Add ${type}` : 'Save Changes'}
             </button>
           </div>
@@ -755,13 +801,14 @@ function SeriesTab({ token, toast, type }) {
 // Modal wrapper
 // ─────────────────────────────────────────────────────────────
 function Modal({ children, onClose, maxWidth = 560 }) {
+  const s = useAdminStyles()
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9000,
+    <div style={{ position: 'fixed', inset: 0, background: s.isLight ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.85)', zIndex: 9000,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: '#0F172A', borderRadius: 16, padding: 24,
+      <div style={{ background: s.isLight ? '#fff' : '#0F172A', borderRadius: 16, padding: 24,
         width: '100%', maxWidth, maxHeight: '92vh', overflowY: 'auto',
-        border: '1px solid rgba(255,255,255,0.1)',
+        border: `1px solid ${s.isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}`,
         boxShadow: '0 25px 60px rgba(0,0,0,0.6)' }}>
         {children}
       </div>
@@ -1566,6 +1613,7 @@ export function AdminPage() {
   const { user, token } = useAuth()
   const { lang }        = useLang()
   const { show: showToast } = useToast()
+  const s = useAdminStyles()
   const [isAdmin,    setIsAdmin]    = useState(null)
   const [activeTab,  setActiveTab]  = useState('overview')
   const [sidebarOpen,setSidebarOpen]= useState(true)
@@ -1589,22 +1637,22 @@ export function AdminPage() {
 
   // ── Auth / permission gates ──
   if (isAdmin === null) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontFamily: "'Be Vietnam Pro', sans-serif", background: '#080D1A' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.textMuted, fontFamily: "'Be Vietnam Pro', sans-serif", background: s.bg }}>
       <RefreshCw size={18} style={{ marginRight: 8, animation: 'spin 1s linear infinite' }} />Checking permissions…
     </div>
   )
   if (!user) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: '#080D1A' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: s.bg }}>
       <div style={{ width: 60, height: 60, borderRadius: 16, background: `${PURPLE}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={28} color={PURPLE} /></div>
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: '#f1f5f9' }}>Login Required</div>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: s.textBright }}>Login Required</div>
       <a href="#/" style={{ color: PURPLE, textDecoration: 'none', fontSize: 14 }}>← Go home</a>
     </div>
   )
   if (!isAdmin) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: '#080D1A' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: s.bg }}>
       <div style={{ width: 60, height: 60, borderRadius: 16, background: `${ROSE}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={28} color={ROSE} /></div>
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: '#F87171' }}>Access Denied</div>
-      <div style={{ color: '#475569', fontSize: 14 }}>This account does not have admin privileges.</div>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, color: ROSE }}>Access Denied</div>
+      <div style={{ color: s.textMuted, fontSize: 14 }}>This account does not have admin privileges.</div>
       <a href="#/" style={{ color: PURPLE, textDecoration: 'none', fontSize: 14 }}>← Go home</a>
     </div>
   )
@@ -1625,38 +1673,38 @@ export function AdminPage() {
   const displayId = activeTab
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080D1A', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: s.bg, display: 'flex', flexDirection: 'column' }}>
       {/* ── Top bar ── */}
       <div style={{
         height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px', background: 'rgba(15,23,42,0.98)',
-        borderBottom: '1px solid rgba(139,92,246,0.15)',
+        padding: '0 20px', background: s.headerBg,
+        borderBottom: `1px solid ${s.isLight ? 'rgba(0,0,0,0.08)' : 'rgba(139,92,246,0.15)'}`,
         position: 'sticky', top: 0, zIndex: 100,
         backdropFilter: 'blur(12px)',
       }}>
         {/* Left: hamburger + logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => setSidebarOpen(o => !o)} style={{
-            width: 34, height: 34, borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.05)', cursor: 'pointer',
+            width: 34, height: 34, borderRadius: 8, border: `1px solid ${s.isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}`,
+            background: s.isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)', cursor: 'pointer',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
           }}>
-            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
-            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
-            <span style={{ width: 14, height: 1.5, background: '#94A3B8', borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 14, height: 1.5, background: s.textSecondary, borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 14, height: 1.5, background: s.textSecondary, borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 14, height: 1.5, background: s.textSecondary, borderRadius: 2, display: 'block' }} />
           </button>
           <a href="#/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: 7, background: `linear-gradient(135deg, ${PURPLE}, #6366F1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: '#fff', fontFamily: "'Barlow Condensed', sans-serif" }}>Li</div>
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: '#f1f5f9', letterSpacing: 0.5 }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 900, color: s.textBright, letterSpacing: 0.5 }}>
               Li<span style={{ color: PURPLE }}>Dex</span>
-              <span style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginLeft: 8 }}>ADMIN</span>
+              <span style={{ fontSize: 11, color: s.textMuted, fontWeight: 600, marginLeft: 8 }}>ADMIN</span>
             </span>
           </a>
         </div>
 
         {/* Right: user info */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ fontSize: 12, color: '#475569', display: isMobile ? 'none' : 'block' }}>{user.email}</div>
+          <div style={{ fontSize: 12, color: s.textMuted, display: isMobile ? 'none' : 'block' }}>{user.email}</div>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: `${PURPLE}25`, border: `1px solid ${PURPLE}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Shield size={15} color={PURPLE} />
           </div>
@@ -1669,8 +1717,8 @@ export function AdminPage() {
         {/* Sidebar */}
         <div style={{
           width: SIDEBAR_W, flexShrink: 0,
-          background: 'rgba(15,23,42,0.95)',
-          borderRight: '1px solid rgba(255,255,255,0.06)',
+          background: s.sidebarBg,
+          borderRight: `1px solid ${s.border}`,
           overflowY: 'auto', overflowX: 'hidden',
           transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
           position: isMobile ? 'fixed' : 'relative',
@@ -1694,15 +1742,15 @@ export function AdminPage() {
                       padding: '9px 12px', borderRadius: 9, marginBottom: 2,
                       background: isActive || subActive ? `${item.color}15` : 'transparent',
                       border: `1px solid ${isActive || subActive ? item.color + '30' : 'transparent'}`,
-                      color: isActive || subActive ? '#f1f5f9' : '#475569',
+                      color: isActive || subActive ? s.textBright : s.textMuted,
                       cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
                     }}
-                      onMouseEnter={e => { if (!isActive && !subActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                      onMouseEnter={e => { if (!isActive && !subActive) e.currentTarget.style.background = s.isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.04)' }}
                       onMouseLeave={e => { if (!isActive && !subActive) e.currentTarget.style.background = 'transparent' }}
                     >
-                      <Icon size={15} color={isActive || subActive ? item.color : '#475569'} style={{ flexShrink: 0 }} />
+                      <Icon size={15} color={isActive || subActive ? item.color : s.textMuted} style={{ flexShrink: 0 }} />
                       <span style={{ flex: 1, fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 13, fontWeight: isActive || subActive ? 700 : 500 }}>{item.label}</span>
-                      {hasSub && <ChevronRight size={12} color="#475569" style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />}
+                      {hasSub && <ChevronRight size={12} color={s.textMuted} style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />}
                       {isActive && <span style={{ width: 5, height: 5, borderRadius: '50%', background: item.color, flexShrink: 0 }} />}
                     </button>
 
@@ -1718,13 +1766,13 @@ export function AdminPage() {
                               padding: '7px 12px', borderRadius: 8, marginBottom: 2,
                               background: subIsActive ? `${sub.color}15` : 'transparent',
                               border: `1px solid ${subIsActive ? sub.color + '30' : 'transparent'}`,
-                              color: subIsActive ? '#f1f5f9' : '#374151',
+                              color: subIsActive ? s.textBright : s.textGhost,
                               cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
                             }}
-                              onMouseEnter={e => { if (!subIsActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                              onMouseEnter={e => { if (!subIsActive) e.currentTarget.style.background = s.isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.04)' }}
                               onMouseLeave={e => { if (!subIsActive) e.currentTarget.style.background = 'transparent' }}
                             >
-                              <SubIcon size={13} color={subIsActive ? sub.color : '#374151'} style={{ flexShrink: 0 }} />
+                              <SubIcon size={13} color={subIsActive ? sub.color : s.textGhost} style={{ flexShrink: 0 }} />
                               <span style={{ fontFamily: "'Be Vietnam Pro', sans-serif", fontSize: 12, fontWeight: subIsActive ? 700 : 500 }}>{sub.label}</span>
                               {subIsActive && <span style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: sub.color }} />}
                             </button>
@@ -1737,10 +1785,10 @@ export function AdminPage() {
               })}
 
               {/* Divider + back to site */}
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 12, paddingTop: 12 }}>
-                <a href="#/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9, color: '#374151', textDecoration: 'none', fontSize: 13, fontFamily: "'Be Vietnam Pro', sans-serif", transition: 'color 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#64748B'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+              <div style={{ borderTop: `1px solid ${s.border}`, marginTop: 12, paddingTop: 12 }}>
+                <a href="#/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9, color: s.textGhost, textDecoration: 'none', fontSize: 13, fontFamily: "'Be Vietnam Pro', sans-serif", transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = s.textMuted}
+                  onMouseLeave={e => e.currentTarget.style.color = s.textGhost}
                 >
                   <ExternalLink size={14} />
                   Back to site
@@ -1775,8 +1823,8 @@ export function AdminPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        ::-webkit-scrollbar-thumb { background: ${s.isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)'}; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: ${s.isLight ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.2)'}; }
       `}</style>
     </div>
   )
