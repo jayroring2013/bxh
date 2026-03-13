@@ -178,8 +178,10 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
       {/* Language toggle */}
       <button onClick={toggleLang} style={{
-        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-        color: '#fff', padding: isMobile ? '5px 10px' : '6px 12px', borderRadius: 9, cursor: 'pointer',
+        background: theme === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
+        border: theme === 'light' ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.12)',
+        color: theme === 'light' ? '#475569' : '#fff',
+        padding: isMobile ? '5px 10px' : '6px 12px', borderRadius: 9, cursor: 'pointer',
         fontSize: 12, fontWeight: 700, fontFamily: "'Be Vietnam Pro', sans-serif",
         display: 'flex', alignItems: 'center', gap: 5,
       }}>
@@ -208,17 +210,20 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
           {showUserMenu && (
             <div style={{
               position: 'absolute', top: 42, right: 0, zIndex: 9999,
-              background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)',
+              background: theme === 'light' ? '#fff' : '#1a1a2e',
+              border: theme === 'light' ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.1)',
               borderRadius: 12, padding: 8, minWidth: 180,
-              boxShadow: '0 16px 40px rgba(0,0,0,0.8)',
+              boxShadow: theme === 'light' ? '0 16px 40px rgba(0,0,0,0.12)' : '0 16px 40px rgba(0,0,0,0.8)',
             }}>
-              <div style={{ padding: '6px 12px', fontSize: 11, color: '#475569',
-                borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 4 }}>
+              <div style={{ padding: '6px 12px', fontSize: 11,
+                color: theme === 'light' ? '#94A3B8' : '#475569',
+                borderBottom: theme === 'light' ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(255,255,255,0.06)',
+                marginBottom: 4 }}>
                 {user.email}
               </div>
               <a href="#/list" onClick={() => setShowUserMenu(false)} style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                padding: '8px 12px', color: '#CBD5E1', textDecoration: 'none',
+                padding: '8px 12px', color: theme === 'light' ? '#1E293B' : '#CBD5E1', textDecoration: 'none',
                 borderRadius: 8, fontSize: 13, fontWeight: 600,
               }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
@@ -226,7 +231,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
               </a>
               <a href="#/admin" onClick={() => setShowUserMenu(false)} style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                padding: '8px 12px', color: '#A78BFA', textDecoration: 'none',
+                padding: '8px 12px', color: theme === 'light' ? '#7C3AED' : '#A78BFA', textDecoration: 'none',
                 borderRadius: 8, fontSize: 13, fontWeight: 600,
               }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.41 1.41l-1.42 2.46A7.5 7.5 0 0 0 17.5 8l-2.83-.01a7.5 7.5 0 0 0-.85-2.04l1.42-2.46a10 10 0 0 1 1.83.44zM4.93 4.93a10 10 0 0 0-1.41 1.41l1.42 2.46A7.5 7.5 0 0 1 6.5 8l2.83-.01a7.5 7.5 0 0 1 .85-2.04L8.76 3.49a10 10 0 0 0-1.83.44 10 10 0 0 0-2 1z"/></svg>
@@ -310,7 +315,7 @@ export function AppHeader({ activeTab, accent, searchInput, onSearch, sorts, act
                       textDecoration: 'none', transition: 'background 0.15s',
                       background: on ? `${accent}18` : 'transparent',
                       borderLeft: `3px solid ${on ? accent : 'transparent'}`,
-                      color: on ? '#f1f5f9' : '#64748B',
+                      color: on ? (theme === 'light' ? '#0F172A' : '#f1f5f9') : '#64748B',
                     }}
                   >
                     <span style={{ color: on ? accent : '#475569', flexShrink: 0 }}>
