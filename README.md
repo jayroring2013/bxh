@@ -1,4 +1,4 @@
-# NovelTrend
+# LiDex
 
 A Vietnamese/English tracking site for Light Novels, Anime, and Manga.
 Built with React + Vite, hosted on GitHub Pages, backed by Supabase.
