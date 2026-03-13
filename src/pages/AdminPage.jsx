@@ -267,6 +267,7 @@ function TagInput({ value = [], onChange, placeholder }) {
 function OverviewTab({ token }) {
   const s = useAdminStyles()
   const [counts, setCounts] = useState({ anime: 0, manga: 0, novels: 0, votes: 0, featured: 0, announcements: 0 })
+  const [userStats, setUserStats] = useState({ total: 0, active: 0, newSignups: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -289,6 +290,35 @@ function OverviewTab({ token }) {
     }).catch(() => setLoading(false))
   }, [token])
 
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, {
+          headers: { 
+            apikey: SUPABASE_ANON, 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data) {
+            setUserStats({
+              total: data.total_users || 0,
+              active: data.active_users || 0,
+              newSignups: data.new_signups || 0
+            })
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch user stats:', e)
+      }
+    }
+    if (token) fetchUserStats()
+  }, [token])
+
+  const maxUserVal = Math.max(userStats.total, userStats.active, userStats.newSignups, 1)
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -308,6 +338,55 @@ function OverviewTab({ token }) {
         <StatChip label="Live Features" value={loading ? '…' : counts.featured}      icon={Star}          color={GOLD}   />
         <StatChip label="Announcements" value={loading ? '…' : counts.announcements} icon={Megaphone}     color={GREEN}  />
       </div>
+
+      <Card style={{ marginBottom: 18 }}>
+        <SectionHeader title="User Statistics" icon={Users} color={GREEN} />
+        <div style={{ padding: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 20 }}>
+            {[
+              { label: 'Total Users', value: userStats.total, color: PURPLE },
+              { label: 'Active (7 days)', value: userStats.active, color: GREEN },
+              { label: 'New (30 days)', value: userStats.newSignups, color: CYAN },
+            ].map(stat => (
+              <div key={stat.label} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: stat.color, fontFamily: "'Barlow Condensed', sans-serif" }}>{stat.value}</div>
+                <div style={{ fontSize: 11, color: s.textMuted, fontWeight: 600, letterSpacing: 0.5 }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, height: 100 }}>
+            {[
+              { label: 'Total', value: userStats.total, color: PURPLE },
+              { label: 'Active', value: userStats.active, color: GREEN },
+              { label: 'New', value: userStats.newSignups, color: CYAN },
+            ].map(bar => {
+              const height = Math.max((bar.value / maxUserVal) * 80, 4)
+              return (
+                <div key={bar.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  <div style={{ 
+                    width: '100%', 
+                    height: 80, 
+                    display: 'flex', 
+                    alignItems: 'flex-end',
+                    justifyContent: 'center' 
+                  }}>
+                    <div style={{ 
+                      width: '60%', 
+                      height: height, 
+                      background: `linear-gradient(to top, ${bar.color}, ${bar.color}80)`,
+                      borderRadius: '6px 6px 0 0',
+                      minHeight: 4,
+                      transition: 'height 0.5s ease',
+                      boxShadow: `0 0 20px ${bar.color}40`
+                    }} />
+                  </div>
+                  <div style={{ fontSize: 10, color: s.textMuted, fontWeight: 600 }}>{bar.label}</div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </Card>
 
       <Card>
         <SectionHeader title="Quick Navigation" icon={ChevronRight} />
