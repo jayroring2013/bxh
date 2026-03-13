@@ -379,27 +379,37 @@ function OverviewTab({ token }) {
               <div style={{ fontSize: 11, color: s.textMuted, marginBottom: 12, fontWeight: 600 }}>LAST 30 DAYS</div>
               <div style={{ position: 'relative', height: 120, marginBottom: 8 }}>
                 <svg width="100%" height="120" viewBox="0 0 600 120" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="signupsGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor={CYAN} stopOpacity="0.3" />
+                      <stop offset="100%" stopColor={CYAN} stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="activeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor={GREEN} stopOpacity="0.3" />
+                      <stop offset="100%" stopColor={GREEN} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
                   {userHistory.map((d, i) => {
-                    const x = (i / (userHistory.length - 1)) * 580 + 10
-                    const signupsY = 110 - (d.signups / maxHistoryVal) * 100
-                    const activeY = 110 - (d.active_users / maxHistoryVal) * 100
+                    const x = (i / Math.max(userHistory.length - 1, 1)) * 560 + 20
+                    const signupsY = 100 - (d.signups / Math.max(maxHistoryVal, 1)) * 80
+                    const activeY = 100 - (d.active_users / Math.max(maxHistoryVal, 1)) * 80
                     return (
                       <g key={i}>
-                        <circle cx={x} cy={signupsY} r="3" fill={CYAN} opacity="0.8" />
-                        <circle cx={x} cy={activeY} r="3" fill={GREEN} opacity="0.8" />
+                        <circle cx={x} cy={signupsY} r="3" fill={CYAN} />
+                        <circle cx={x} cy={activeY} r="3" fill={GREEN} />
                         {i < userHistory.length - 1 && (
                           <>
                             <line 
                               x1={x} y1={signupsY} 
-                              x2={(userHistory[i+1].day_index / (userHistory.length - 1)) * 580 + 10} 
-                              y2={110 - (userHistory[i+1].signups / maxHistoryVal) * 100} 
-                              stroke={CYAN} strokeWidth="2" opacity="0.5" 
+                              x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560 + 20} 
+                              y2={100 - (userHistory[i+1].signups / Math.max(maxHistoryVal, 1)) * 80} 
+                              stroke={CYAN} strokeWidth="2" 
                             />
                             <line 
                               x1={x} y1={activeY} 
-                              x2={(userHistory[i+1].day_index / (userHistory.length - 1)) * 580 + 10} 
-                              y2={110 - (userHistory[i+1].active_users / maxHistoryVal) * 100} 
-                              stroke={GREEN} strokeWidth="2" opacity="0.5" 
+                              x2={(userHistory[i+1].day_index / Math.max(userHistory.length - 1, 1)) * 560 + 20} 
+                              y2={100 - (userHistory[i+1].active_users / Math.max(maxHistoryVal, 1)) * 80} 
+                              stroke={GREEN} strokeWidth="2" 
                             />
                           </>
                         )}
@@ -421,7 +431,7 @@ function OverviewTab({ token }) {
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: 20, color: s.textMuted, fontSize: 12 }}>
-              Loading chart data...
+              {userStats.total === 0 ? 'No user data available yet' : 'Loading chart data...'}
             </div>
           )}
         </div>
