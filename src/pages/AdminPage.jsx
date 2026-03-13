@@ -293,21 +293,38 @@ function OverviewTab({ token }) {
   useEffect(() => {
     const fetchUserStats = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, {
-          headers: { 
-            apikey: SUPABASE_ANON, 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-        })
-        if (res.ok) {
-          const data = await res.json()
+        const [currentRes, historyRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, {
+            headers: { 
+              apikey: SUPABASE_ANON, 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+          }),
+          fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_history`, {
+            headers: { 
+              apikey: SUPABASE_ANON, 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+          })
+        ])
+        
+        if (currentRes.ok) {
+          const data = await currentRes.json()
           if (data) {
             setUserStats({
               total: data.total_users || 0,
               active: data.active_users || 0,
               newSignups: data.new_signups || 0
             })
+          }
+        }
+        
+        if (historyRes.ok) {
+          const historyData = await historyRes.json()
+          if (Array.isArray(historyData)) {
+            setUserHistory(historyData)
           }
         }
       } catch (e) {
@@ -317,7 +334,9 @@ function OverviewTab({ token }) {
     if (token) fetchUserStats()
   }, [token])
 
+  const [userHistory, setUserHistory] = useState([])
   const maxUserVal = Math.max(userStats.total, userStats.active, userStats.newSignups, 1)
+  const maxHistoryVal = Math.max(...userHistory.map(d => Math.max(d.signups, d.active_users)), 1)
 
   return (
     <div>
@@ -345,8 +364,8 @@ function OverviewTab({ token }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 20 }}>
             {[
               { label: 'Total Users', value: userStats.total, color: PURPLE },
-              { label: 'Active (7 days)', value: userStats.active, color: GREEN },
-              { label: 'New (30 days)', value: userStats.newSignups, color: CYAN },
+              { label: 'Active (2h)', value: userStats.active, color: GREEN },
+              { label: 'New (1 day)', value: userStats.newSignups, color: CYAN },
             ].map(stat => (
               <div key={stat.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 28, fontWeight: 900, color: stat.color, fontFamily: "'Barlow Condensed', sans-serif" }}>{stat.value}</div>
@@ -354,37 +373,57 @@ function OverviewTab({ token }) {
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, height: 100 }}>
-            {[
-              { label: 'Total', value: userStats.total, color: PURPLE },
-              { label: 'Active', value: userStats.active, color: GREEN },
-              { label: 'New', value: userStats.newSignups, color: CYAN },
-            ].map(bar => {
-              const height = Math.max((bar.value / maxUserVal) * 80, 4)
-              return (
-                <div key={bar.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <div style={{ 
-                    width: '100%', 
-                    height: 80, 
-                    display: 'flex', 
-                    alignItems: 'flex-end',
-                    justifyContent: 'center' 
-                  }}>
-                    <div style={{ 
-                      width: '60%', 
-                      height: height, 
-                      background: `linear-gradient(to top, ${bar.color}, ${bar.color}80)`,
-                      borderRadius: '6px 6px 0 0',
-                      minHeight: 4,
-                      transition: 'height 0.5s ease',
-                      boxShadow: `0 0 20px ${bar.color}40`
-                    }} />
-                  </div>
-                  <div style={{ fontSize: 10, color: s.textMuted, fontWeight: 600 }}>{bar.label}</div>
+          
+          {userHistory.length > 0 ? (
+            <div>
+              <div style={{ fontSize: 11, color: s.textMuted, marginBottom: 12, fontWeight: 600 }}>LAST 30 DAYS</div>
+              <div style={{ position: 'relative', height: 120, marginBottom: 8 }}>
+                <svg width="100%" height="120" viewBox="0 0 600 120" preserveAspectRatio="none">
+                  {userHistory.map((d, i) => {
+                    const x = (i / (userHistory.length - 1)) * 580 + 10
+                    const signupsY = 110 - (d.signups / maxHistoryVal) * 100
+                    const activeY = 110 - (d.active_users / maxHistoryVal) * 100
+                    return (
+                      <g key={i}>
+                        <circle cx={x} cy={signupsY} r="3" fill={CYAN} opacity="0.8" />
+                        <circle cx={x} cy={activeY} r="3" fill={GREEN} opacity="0.8" />
+                        {i < userHistory.length - 1 && (
+                          <>
+                            <line 
+                              x1={x} y1={signupsY} 
+                              x2={(userHistory[i+1].day_index / (userHistory.length - 1)) * 580 + 10} 
+                              y2={110 - (userHistory[i+1].signups / maxHistoryVal) * 100} 
+                              stroke={CYAN} strokeWidth="2" opacity="0.5" 
+                            />
+                            <line 
+                              x1={x} y1={activeY} 
+                              x2={(userHistory[i+1].day_index / (userHistory.length - 1)) * 580 + 10} 
+                              y2={110 - (userHistory[i+1].active_users / maxHistoryVal) * 100} 
+                              stroke={GREEN} strokeWidth="2" opacity="0.5" 
+                            />
+                          </>
+                        )}
+                      </g>
+                    )
+                  })}
+                </svg>
+              </div>
+              <div style={{ display: 'flex', gap: 20, justifyContent: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: CYAN }} />
+                  <span style={{ fontSize: 10, color: s.textMuted }}>New Signups</span>
                 </div>
-              )
-            })}
-          </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: GREEN }} />
+                  <span style={{ fontSize: 10, color: s.textMuted }}>Active Users</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: 20, color: s.textMuted, fontSize: 12 }}>
+              Loading chart data...
+            </div>
+          )}
         </div>
       </Card>
 
