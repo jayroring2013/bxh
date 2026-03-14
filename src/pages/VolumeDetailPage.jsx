@@ -32,7 +32,7 @@ const LINK_STYLES = {
 }
 
 /* Renders description with smart paragraph + section breaks */
-function DescriptionText({ text }) {
+function DescriptionText({ text, s }) {
   if (!text) return null
 
   // Normalize: convert \n, split on --- dividers and * bullet markers
@@ -55,12 +55,12 @@ function DescriptionText({ text }) {
           <div key={si} style={{
             marginBottom: si < sections.length - 1 ? 20 : 0,
             paddingTop: isMeta ? 16 : 0,
-            borderTop: isMeta ? '1px solid rgba(255,248,240,0.06)' : 'none',
+            borderTop: isMeta ? `1px solid ${s?.border || 'rgba(255,248,240,0.06)'}` : 'none',
           }}>
             {paras.map((p, pi) => (
               <p key={pi} style={{
                 fontSize: isMeta ? 12 : 14,
-                color: isMeta ? '#8a7055' : '#c8a882',
+                color: isMeta ? (s?.textSecondary || '#8a7055') : (s?.textPrimary || '#c8a882'),
                 lineHeight: isMeta ? 1.65 : 1.9,
                 fontFamily: "'Be Vietnam Pro', sans-serif",
                 margin: '0 0 10px',
@@ -76,11 +76,11 @@ function DescriptionText({ text }) {
 }
 
 /* Single stat chip like series page */
-function StatChip({ label, value }) {
+function StatChip({ label, value, s }) {
   return (
     <div style={{
-      textAlign: 'center', background: 'rgba(255,248,240,0.06)',
-      border: '1px solid rgba(255,248,240,0.14)', borderRadius: 12,
+      textAlign: 'center', background: s?.bgSurface || 'rgba(255,248,240,0.06)',
+      border: `1px solid ${s?.border || 'rgba(255,248,240,0.14)'}`, borderRadius: 12,
       padding: '8px 16px', minWidth: 64,
     }}>
       <div style={{
@@ -89,7 +89,7 @@ function StatChip({ label, value }) {
         whiteSpace: 'nowrap',
       }}>{value || '—'}</div>
       <div style={{
-        fontSize: 10, color: '#a08060', fontWeight: 700,
+        fontSize: 10, color: s?.textSecondary || '#a08060', fontWeight: 700,
         letterSpacing: 0.8, textTransform: 'uppercase',
         fontFamily: "'Be Vietnam Pro', sans-serif",
       }}>{label}</div>
@@ -162,7 +162,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
       {/* ── Hero — immersive blurred cover backdrop (AniList-style) ── */}
       <div style={{
         position: 'relative', overflow: 'hidden', minHeight: isMobile ? 'auto' : 340,
-        background: '#110d0a',
+        background: s.isLight ? '#dde3ed' : '#110d0a',
       }}>
         {/* Layer 1: blurred cover fills entire hero as atmosphere */}
         {cover && (
@@ -170,34 +170,34 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
             position: 'absolute', inset: '-20px', zIndex: 0,
             backgroundImage: `url(${cover})`,
             backgroundSize: 'cover', backgroundPosition: 'center top',
-            filter: 'blur(18px) saturate(1.2) brightness(0.6)',
+            filter: s.isLight ? 'blur(18px) saturate(0.8) brightness(0.85)' : 'blur(18px) saturate(1.2) brightness(0.6)',
           }} />
         )}
         {/* Layer 2: gradient to darken edges and ensure readability */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1,
-          background: 'linear-gradient(to right, rgba(8,13,26,0.85) 0%, rgba(8,13,26,0.35) 50%, rgba(8,13,26,0.7) 100%)',
+          background: s.isLight ? 'linear-gradient(to right, rgba(215,222,232,0.95) 0%, rgba(215,222,232,0.55) 50%, rgba(215,222,232,0.85) 100%)' : 'linear-gradient(to right, rgba(8,13,26,0.85) 0%, rgba(8,13,26,0.35) 50%, rgba(8,13,26,0.7) 100%)',
         }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1,
-          background: 'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, transparent 30%, transparent 70%, rgba(8,13,26,1) 100%)',
+          background: s.isLight ? 'linear-gradient(to bottom, rgba(215,222,232,0.5) 0%, transparent 30%, transparent 70%, rgba(215,222,232,1) 100%)' : 'linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, transparent 30%, transparent 70%, rgba(8,13,26,1) 100%)',
         }} />
 
         {/* Breadcrumb */}
         <div style={{ position: 'absolute', top: 14, left: 24, zIndex: 3,
           display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
           <button onClick={() => window.location.hash = '#/novels'} style={{
-            background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+            background: 'none', border: 'none', color: s.isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)', cursor: 'pointer',
             fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
           }}>Light Novel</button>
-          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11 }}>›</span>
+          <span style={{ color: s.isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)', fontSize: 11 }}>›</span>
           <button onClick={goToSeries} style={{
-            background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+            background: 'none', border: 'none', color: s.isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)', cursor: 'pointer',
             fontSize: 11, fontFamily: "'Be Vietnam Pro',sans-serif", padding: 0,
             maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{series?.title || '…'}</button>
-          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11 }}>›</span>
-          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 600 }}>{label}</span>
+          <span style={{ color: s.isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)', fontSize: 11 }}>›</span>
+          <span style={{ color: s.isLight ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 600 }}>{label}</span>
         </div>
 
         {/* Content: cover card + info, both floating inside the atmospheric bg */}
@@ -253,13 +253,13 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
 
             {/* ── Stat chips row (like series page) ── */}
             <div style={{ display: 'flex', gap: isMobile ? 8 : 12, flexWrap: 'wrap', margin: '12px 0 16px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
-              {relDate && <StatChip label={lang === 'vi' ? 'Phát hành' : 'Released'} value={relDate} />}
-              {publisher && <StatChip label="NPH" value={publisher} />}
-              {pages     && <StatChip label={lang === 'vi' ? 'Trang' : 'Pages'} value={pages} />}
-              {format    && <StatChip label={lang === 'vi' ? 'Bìa' : 'Format'} value={format} />}
-              {weight    && <StatChip label={lang === 'vi' ? 'Khối lượng' : 'Weight'} value={weight} />}
-              {dimensions && <StatChip label={lang === 'vi' ? 'Kích thước' : 'Size'} value={dimensions} />}
-              {translator && <StatChip label={lang === 'vi' ? 'Dịch giả' : 'Translator'} value={translator} />}
+              {relDate && <StatChip label={lang === 'vi' ? 'Phát hành' : 'Released'} value={relDate} s={s} />}
+              {publisher && <StatChip label="NPH" value={publisher} s={s} />}
+              {pages     && <StatChip label={lang === 'vi' ? 'Trang' : 'Pages'} value={pages} s={s} />}
+              {format    && <StatChip label={lang === 'vi' ? 'Bìa' : 'Format'} value={format} s={s} />}
+              {weight    && <StatChip label={lang === 'vi' ? 'Khối lượng' : 'Weight'} value={weight} s={s} />}
+              {dimensions && <StatChip label={lang === 'vi' ? 'Kích thước' : 'Size'} value={dimensions} s={s} />}
+              {translator && <StatChip label={lang === 'vi' ? 'Dịch giả' : 'Translator'} value={translator} s={s} />}
             </div>
 
             {/* Description — collapsible */}
@@ -269,7 +269,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
               const shown = (!isLong || descExpanded) ? desc : desc.slice(0, LIMIT) + '…'
               return (
                 <div style={{ marginBottom: 16 }}>
-                  <DescriptionText text={shown} />
+                  <DescriptionText text={shown} s={s} />
                   {isLong && (
                     <button onClick={() => setDescExpanded(x => !x)} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
@@ -309,7 +309,7 @@ export function VolumeDetailPage({ seriesId, volumeNumber }) {
             )}
 
             {links.length === 0 && (
-              <p style={{ fontSize: 12, color: '#3d2e1e', fontStyle: 'italic',
+              <p style={{ fontSize: 12, color: s.textSecondary, fontStyle: 'italic',
                 fontFamily: "'Be Vietnam Pro',sans-serif", marginTop: 4 }}>
                 {lang === 'vi' ? 'Chưa có liên kết mua sách.' : 'No purchase links available yet.'}
               </p>

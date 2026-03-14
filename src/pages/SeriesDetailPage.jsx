@@ -397,7 +397,7 @@ function PlaceholderPanel({ icon, text }) {
 }
 
 // ── Horizontal scroll carousel ────────────────────────────────────
-function SectionCarousel({ title, children, count, loading }) {
+function SectionCarousel({ title, children, count, loading, s }) {
   const ref = useRef(null)
   const scroll = dir => ref.current?.scrollBy({ left: dir * 700, behavior: 'smooth' })
   // Hide only when not loading AND children is genuinely empty
@@ -408,11 +408,11 @@ function SectionCarousel({ title, children, count, loading }) {
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
         marginBottom: 16 }}>
         <h2 style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize: 18,
-          fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: 0,
+          fontWeight: 800, letterSpacing: 1.5, color: s?.textBright || '#f1f5f9', margin: 0,
           textTransform: 'uppercase' }}>
           {title}
           {count != null && (
-            <span style={{ fontSize: 12, color: '#a08060', fontWeight: 500,
+            <span style={{ fontSize: 12, color: s?.textSecondary || '#a08060', fontWeight: 500,
               marginLeft: 10, textTransform: 'none' }}>({count})</span>
           )}
         </h2>
@@ -420,8 +420,8 @@ function SectionCarousel({ title, children, count, loading }) {
           {['←','→'].map((a, i) => (
             <button key={a} onClick={() => scroll(i===0?-1:1)} style={{
               width: 28, height: 28, borderRadius: 8,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,248,240,0.04)', color: '#7a6045',
+              border: `1px solid ${s?.border || 'rgba(255,255,255,0.1)'}`,
+              background: s?.bgSurface || 'rgba(255,248,240,0.04)', color: s?.textSecondary || '#7a6045',
               cursor: 'pointer', fontSize: 13, display:'flex',
               alignItems:'center', justifyContent:'center',
             }}>{a}</button>
@@ -578,10 +578,10 @@ function ErrorReportButton({ seriesId, title, lang, accent }) {
 }
 
 
-function TabPanelContent({ activeTab, lang, series, volumes, related, PURPLE, MiniCard, PlaceholderPanel }) {
+function TabPanelContent({ activeTab, lang, series, volumes, related, PURPLE, MiniCard, PlaceholderPanel, s }) {
   const headingStyle = {
     fontFamily: "'Barlow Condensed',sans-serif", fontSize: 18,
-    fontWeight: 800, letterSpacing: 1.5, color: '#f1f5f9', margin: '0 0 20px',
+    fontWeight: 800, letterSpacing: 1.5, color: s?.textBright || '#f1f5f9', margin: '0 0 20px',
     textTransform: 'uppercase',
   }
   if (activeTab === 'info') return (
@@ -597,11 +597,11 @@ function TabPanelContent({ activeTab, lang, series, volumes, related, PURPLE, Mi
           { label: 'NovelUpdates Score',                                 value: series?.score != null ? `★ ${Number(series.score).toFixed(1)}` : '—' },
           { label: lang === 'vi' ? 'Thể loại'      : 'Genres',         value: (series?.genres || []).join(', ') || '—' },
         ].map((row, i) => (
-          <tr key={i} style={{ borderBottom: '1px solid rgba(255,248,240,0.05)' }}>
-            <td style={{ padding: '9px 16px 9px 0', width: '38%', fontSize: 12, color: '#a08060',
+          <tr key={i} style={{ borderBottom: `1px solid ${s?.border || 'rgba(255,248,240,0.05)'}` }}>
+            <td style={{ padding: '9px 16px 9px 0', width: '38%', fontSize: 12, color: s?.textSecondary || '#a08060',
               fontWeight: 600, fontFamily: "'Be Vietnam Pro',sans-serif",
               textTransform: 'uppercase', letterSpacing: 0.6, verticalAlign: 'top' }}>{row.label}</td>
-            <td style={{ padding: '9px 0', fontSize: 13, color: '#c8a882',
+            <td style={{ padding: '9px 0', fontSize: 13, color: s?.textPrimary || '#c8a882',
               fontFamily: "'Be Vietnam Pro',sans-serif" }}>{row.value}</td>
           </tr>
         ))}
@@ -702,7 +702,7 @@ export function SeriesDetailPage({ seriesId }) {
       <div style={{
         position: 'relative', overflow: 'hidden',
         minHeight: isMobile ? 'auto' : 320,
-        background: '#110d0a',
+        background: s.isLight ? '#dde3ed' : '#110d0a',
       }}>
         {/* Layer 1: blurred cover fills entire hero as atmosphere */}
         {cover && (
@@ -710,15 +710,15 @@ export function SeriesDetailPage({ seriesId }) {
             position: 'absolute', inset: '-20px', zIndex: 0,
             backgroundImage: `url(${cover})`,
             backgroundSize: 'cover', backgroundPosition: 'center top',
-            filter: 'blur(18px) saturate(1.1) brightness(0.55)',
+            filter: s.isLight ? 'blur(18px) saturate(0.8) brightness(0.85)' : 'blur(18px) saturate(1.1) brightness(0.55)',
           }} />
         )}
         {/* Layer 2: left-to-right gradient for readability */}
         <div style={{ position:'absolute', inset:0, zIndex:1,
-          background:'linear-gradient(to right, rgba(8,13,26,0.92) 0%, rgba(8,13,26,0.45) 50%, rgba(8,13,26,0.75) 100%)' }} />
+          background: s.isLight ? 'linear-gradient(to right, rgba(220,226,236,0.95) 0%, rgba(220,226,236,0.6) 50%, rgba(220,226,236,0.85) 100%)' : 'linear-gradient(to right, rgba(8,13,26,0.92) 0%, rgba(8,13,26,0.45) 50%, rgba(8,13,26,0.75) 100%)' }} />
         {/* Layer 3: top/bottom fade */}
         <div style={{ position:'absolute', inset:0, zIndex:1,
-          background:'linear-gradient(to bottom, rgba(8,13,26,0.4) 0%, transparent 30%, transparent 65%, rgba(8,13,26,1) 100%)' }} />
+          background: s.isLight ? 'linear-gradient(to bottom, rgba(220,226,236,0.5) 0%, transparent 30%, transparent 65%, rgba(220,226,236,1) 100%)' : 'linear-gradient(to bottom, rgba(8,13,26,0.4) 0%, transparent 30%, transparent 65%, rgba(8,13,26,1) 100%)' }} />
 
         <div style={{ position:'relative', zIndex:2,
           padding: isMobile ? '48px 16px 28px' : '52px 32px 40px', paddingLeft: isMobile ? 16 : 228,
@@ -727,7 +727,7 @@ export function SeriesDetailPage({ seriesId }) {
           {/* Back button */}
           <button onClick={goBack} style={{
             position:'absolute', top: 16, left: 228,
-            background:'none', border:'none', color:'rgba(255,255,255,0.45)', cursor:'pointer',
+            background:'none', border:'none', color: s.isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.45)', cursor:'pointer',
             fontSize: 12, fontWeight: 600, fontFamily:"'Be Vietnam Pro',sans-serif",
             display:'flex', alignItems:'center', gap: 4, padding: '4px 0',
           }}>← {lang === 'vi' ? 'Quay lại' : 'Back'}</button>
@@ -881,11 +881,11 @@ export function SeriesDetailPage({ seriesId }) {
 
             <h1 style={{
               fontFamily:"'Barlow Condensed', sans-serif", fontSize:'clamp(24px,4vw,42px)',
-              fontWeight: 900, color: '#f1f5f9', margin: '0 0 6px', lineHeight: 1.1, letterSpacing: 1,
+              fontWeight: 900, color: s.textBright, margin: '0 0 6px', lineHeight: 1.1, letterSpacing: 1,
             }}>{title}</h1>
 
             {series.author && (
-              <div style={{ fontSize: 13, color: '#b09070', marginBottom: 16,
+              <div style={{ fontSize: 13, color: s.textSecondary, marginBottom: 16,
                 fontFamily:"'Be Vietnam Pro',sans-serif" }}>
                 {lang === 'vi' ? 'Tác giả: ' : 'Author: '}
                 <span style={{ color: '#C4B5FD', fontWeight: 600 }}>{series.author}</span>
@@ -991,7 +991,7 @@ export function SeriesDetailPage({ seriesId }) {
               return (
                 <div style={{ maxWidth: 640, marginBottom: 20 }}>
                   <p style={{
-                    fontSize: 13, color: '#c8a882', lineHeight: 1.8,
+                    fontSize: 13, color: s.textPrimary, lineHeight: 1.8,
                     fontFamily:"'Be Vietnam Pro',sans-serif", margin: 0,
                     whiteSpace: 'pre-line',
                   }}>{shown}</p>
@@ -1057,9 +1057,9 @@ export function SeriesDetailPage({ seriesId }) {
                 <button key={tab.key} onClick={() => toggleTab(tab.key)} style={{
                   flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
                   padding: '7px 14px', borderRadius: 20,
-                  background: isActive ? PURPLE : 'rgba(255,248,240,0.07)',
+                  background: isActive ? PURPLE : s.bgSurface,
                   border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                  color: isActive ? '#fff' : '#a08060',
+                  color: isActive ? '#fff' : s.textSecondary,
                   fontSize: 12, fontWeight: isActive ? 700 : 500,
                   fontFamily: "'Be Vietnam Pro', sans-serif",
                 }}>
@@ -1074,24 +1074,24 @@ export function SeriesDetailPage({ seriesId }) {
           {/* Mobile tab panel */}
           {activeTab && (
             <div style={{ padding: '20px 16px 4px' }}>
-              <TabPanelContent activeTab={activeTab} lang={lang} series={series} volumes={volumes} related={related} PURPLE={PURPLE} MiniCard={MiniCard} PlaceholderPanel={PlaceholderPanel} />
+              <TabPanelContent activeTab={activeTab} lang={lang} series={series} volumes={volumes} related={related} PURPLE={PURPLE} MiniCard={MiniCard} PlaceholderPanel={PlaceholderPanel} s={s} />
             </div>
           )}
 
           {/* Mobile carousels */}
           <div style={{ padding: '24px 0 0' }}>
-            <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length} loading={loadingVols}>
+            <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length} loading={loadingVols} s={s}>
               {loadingVols
                 ? Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} style={{ width:120, height:180, borderRadius:10, flexShrink:0,
-                      background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
+                      background: s.isLight ? 'linear-gradient(90deg,#d1d5db 25%,#e5e7eb 50%,#d1d5db 75%)' : 'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
                       backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
                   ))
                 : volumes.map(v => <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} lang={lang} />)
               }
             </SectionCarousel>
             {recs.length > 0 && (
-              <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
+              <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'} s={s}>
                 {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} lang={lang} />)}
               </SectionCarousel>
             )}
@@ -1104,14 +1104,14 @@ export function SeriesDetailPage({ seriesId }) {
         {/* ── Collapsible tab panel: appears BESIDE sidebar, above carousels ── */}
         {activeTab && !isMobile && (
           <div style={{
-            borderBottom: '1px solid rgba(255,248,240,0.08)',
-            background: 'rgba(255,248,240,0.02)',
+            borderBottom: `1px solid ${s.border}`,
+            background: s.bgSurface,
           }}>
             {/* sidebar-width spacer so content aligns with right column */}
             <div style={{ display: 'flex' }}>
               <div style={{ width: 196, flexShrink: 0 }} />
               <div style={{ flex: 1, padding: '24px 32px 28px', minWidth: 0 }}>
-                <TabPanelContent activeTab={activeTab} lang={lang} series={series} volumes={volumes} related={related} PURPLE={PURPLE} MiniCard={MiniCard} PlaceholderPanel={PlaceholderPanel} />
+                <TabPanelContent activeTab={activeTab} lang={lang} series={series} volumes={volumes} related={related} PURPLE={PURPLE} MiniCard={MiniCard} PlaceholderPanel={PlaceholderPanel} s={s} />
               </div>
             </div>
           </div>
@@ -1122,8 +1122,8 @@ export function SeriesDetailPage({ seriesId }) {
             <aside style={{
               width: 196, flexShrink: 0,
               position: 'sticky', top: 56, alignSelf: 'flex-start',
-              borderRight: '1px solid rgba(255,248,240,0.08)',
-              background: '#0f0b09',
+              borderRight: `1px solid ${s.border}`,
+              background: s.bg,
               zIndex: 10,
               paddingTop: 24,
             }}>
@@ -1144,19 +1144,19 @@ export function SeriesDetailPage({ seriesId }) {
                     cursor: 'pointer', transition: 'all 0.15s', marginBottom: 2,
                     textAlign: 'left',
                   }}
-                    onMouseEnter={e => !isActive && (e.currentTarget.style.background = 'rgba(255,248,240,0.04)')}
+                    onMouseEnter={e => !isActive && (e.currentTarget.style.background = s.bgSurface)}
                     onMouseLeave={e => !isActive && (e.currentTarget.style.background = 'none')}
                   >
                     <span style={{ fontSize: 14, flexShrink: 0 }}>{tab.icon}</span>
                     <span style={{
                       flex: 1, fontSize: 13, fontWeight: isActive ? 700 : 500,
-                      color: isActive ? '#C4B5FD' : '#a08060',
+                      color: isActive ? '#C4B5FD' : s.textSecondary,
                       fontFamily: "'Be Vietnam Pro', sans-serif",
                     }}>{lang === 'vi' ? tab.vi : tab.en}</span>
                     {tab.badge != null && tab.badge > 0 && (
                       <span style={{
-                        background: isActive ? PURPLE : 'rgba(255,248,240,0.1)',
-                        color: isActive ? '#fff' : '#a08060',
+                        background: isActive ? PURPLE : s.bgSurface,
+                        color: isActive ? '#fff' : s.textSecondary,
                         fontSize: 10, fontWeight: 700,
                         padding: '1px 6px', borderRadius: 10,
                         fontFamily: "'Barlow Condensed', sans-serif",
@@ -1169,18 +1169,18 @@ export function SeriesDetailPage({ seriesId }) {
 
             {/* Carousels in right column */}
             <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', padding: '32px 16px 48px' }}>
-              <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length} loading={loadingVols}>
+              <SectionCarousel title={lang === 'vi' ? 'Danh sách tập' : 'Volumes'} count={volumes.length} loading={loadingVols} s={s}>
                 {loadingVols
                   ? Array.from({ length: 6 }).map((_, i) => (
                       <div key={i} style={{ width:156, height:234, borderRadius:12, flexShrink:0,
-                        background:'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
+                        background: s.isLight ? 'linear-gradient(90deg,#d1d5db 25%,#e5e7eb 50%,#d1d5db 75%)' : 'linear-gradient(90deg,#221a12 25%,#3d2e1e 50%,#221a12 75%)',
                         backgroundSize:'200% 100%', animation:'shimmer 1.4s infinite' }} />
                     ))
                   : volumes.map(v => <VolumeCard key={v.id} vol={v} seriesId={series.id} accent={PURPLE} lang={lang} />)
                 }
               </SectionCarousel>
               {recs.length > 0 && (
-                <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'}>
+                <SectionCarousel title={lang === 'vi' ? 'Có thể bạn thích' : 'You May Also Like'} s={s}>
                   {recs.map(s => <MiniCard key={s.id} series={s} accent={PURPLE} lang={lang} />)}
                 </SectionCarousel>
               )}
